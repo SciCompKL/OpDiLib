@@ -62,7 +62,6 @@ int main(int nargs, char** args) {
   // parallel computation
 
   Real a[1000];
-  Real b[1000];
   Real y = 0.0;
 
   OPDI_PARALLEL()

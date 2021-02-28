@@ -59,8 +59,7 @@ int main(int nargs, char** args) {
 
   // parallel computation
 
-  Real* a = new Real[1000];
-  Real* b = new Real[1000];
+  Real a[1000];
   Real y = 0.0;
 
   #pragma omp parallel
