@@ -27,6 +27,8 @@
  *
  */
 
+#pragma once
+
 #include "testBase.hpp"
 #include "codi.hpp"
 

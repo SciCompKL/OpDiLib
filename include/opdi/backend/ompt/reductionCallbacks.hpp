@@ -27,6 +27,8 @@
  *
  */
 
+#pragma once
+
 #include <iostream>
 #include <omp.h>
 #include <omp-tools.h>

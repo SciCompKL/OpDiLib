@@ -27,6 +27,8 @@
  *
  */
 
+#pragma once
+
 #include "testBase.hpp"
 
 template<typename _Case>

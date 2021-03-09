@@ -27,5 +27,7 @@
  *
  */
 
+#pragma once
+
 template<template<typename> class Driver, template<typename> class Test>
 struct Case : public Driver<Case<Driver, Test>>, public Test<Case<Driver, Test>> {};

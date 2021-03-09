@@ -27,6 +27,8 @@
  *
  */
 
+#pragma once
+
 template<typename Driver>
 struct DriverBase {
   public:
