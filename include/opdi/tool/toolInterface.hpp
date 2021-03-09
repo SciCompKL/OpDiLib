@@ -40,6 +40,10 @@ namespace opdi {
 
       virtual ~ToolInterface() {}
 
+      // initialization and finalization
+      virtual void init() = 0;
+      virtual void finalize() = 0;
+
       // tape creation and deletion
 
       virtual void* createTape() = 0;
