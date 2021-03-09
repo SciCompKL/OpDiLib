@@ -73,7 +73,7 @@ namespace opdi {
 
       virtual void onWork(WorksharingKind /*kind*/, ScopeEndpoint /*endpoint*/) {
         /*
-        if (adTool->getThreadLocalTape() != nullptr && adTool->isActive(adTool->getThreadLocalTape())) {
+        if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
           #if OPDI_LOGIC_OUT & OPDI_WORK_OUT
             TapedOutput::print("WORK i", omp_get_thread_num(), "k", kind, "p", endpoint);
@@ -87,7 +87,7 @@ namespace opdi {
           handle->data = (void*) data;
           handle->reverseFunc = WorkOmpADLogic::reverseFunc;
           handle->deleteFunc = WorkOmpADLogic::deleteFunc;
-          adTool->pushExternalFunction(adTool->getThreadLocalTape(), handle);
+          tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
         }*/
       }
   };

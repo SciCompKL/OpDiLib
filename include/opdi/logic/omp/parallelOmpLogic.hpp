@@ -76,8 +76,8 @@ namespace opdi {
 
           #if OPDI_LOGIC_OUT & OPDI_PARALLEL_OUT
             TapedOutput::print("EVAL t", data->tapes[threadNum],
-                               "s", adTool->positionToString(data->positions[threadNum].back()),
-                               "e", adTool->positionToString(data->positions[threadNum].front()));
+                               "s", tool->positionToString(data->positions[threadNum].back()),
+                               "e", tool->positionToString(data->positions[threadNum].front()));
           #endif
 
           void* oldTape = tool->getThreadLocalTape();
@@ -88,8 +88,8 @@ namespace opdi {
 
             #if OPDI_LOGIC_OUT & OPDI_PARALLEL_OUT
               TapedOutput::print("PART t", data->tapes[threadNum], "i", i,
-                                 "s", adTool->positionToString(data->positions[threadNum][i]),
-                                 "e", adTool->positionToString(data->positions[threadNum][i - 1]));
+                                 "s", tool->positionToString(data->positions[threadNum][i]),
+                                 "e", tool->positionToString(data->positions[threadNum][i - 1]));
             #endif
 
             tool->evaluate(data->tapes[threadNum],

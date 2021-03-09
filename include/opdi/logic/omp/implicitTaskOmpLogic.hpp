@@ -89,7 +89,7 @@ namespace opdi {
                                "i", index,
                                "m", parallelData->masterTape,
                                "t", newTape,
-                               "p", adTool->positionToString(data->parallelData->positions[index].back()));
+                               "p", tool->positionToString(data->parallelData->positions[index].back()));
           #endif
 
           return data;
@@ -118,7 +118,7 @@ namespace opdi {
                                "i", data->index,
                                "m", data->parallelData->masterTape,
                                "t", data->parallelData->tapes[data->index],
-                               "p", adTool->positionToString(data->parallelData->positions[data->index].back()));
+                               "p", tool->positionToString(data->parallelData->positions[data->index].back()));
           #endif
 
           tool->setActive(data->parallelData->tapes[data->index], false);
