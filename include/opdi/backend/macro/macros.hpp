@@ -52,7 +52,7 @@
 
 #define OPDI_FOR(...) \
   opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
-  OPDI_PRAGMA(omp for private(opdi::internalLoopProbe) __VA_ARGS__)
+  OPDI_PRAGMA(omp for __VA_ARGS__ private(opdi::internalLoopProbe))
 
 #define OPDI_END_FOR \
   opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier();
