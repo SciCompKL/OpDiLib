@@ -73,11 +73,9 @@ struct DriverFirstOrderReverseNoOpenMP : public DriverBase<DriverFirstOrderRever
         #endif
         opdi::logic = new opdi::OmpLogic;
         opdi::logic->init();
-        opdi::tool = new CoDiOpDiTool<TestReal>;
-      #endif
-
-      #ifndef BUILD_REFERENCE
         TestReal::getGlobalTape().initialize();
+        opdi::tool = new CoDiOpDiTool<TestReal>;
+        opdi::tool->init();
       #endif
 
       std::array<std::array<TestReal, Case::nIn>, Case::nPoints> inputs = Case::template genPoints<TestReal>();
@@ -135,6 +133,8 @@ struct DriverFirstOrderReverseNoOpenMP : public DriverBase<DriverFirstOrderRever
       }
 
       #ifndef BUILD_REFERENCE
+        opdi::tool->finalize();
+        TestReal::getGlobalTape().finalize();
         opdi::backend->finalize();
         #ifdef OPDI_USE_MACRO_BACKEND
           delete opdi::backend;
