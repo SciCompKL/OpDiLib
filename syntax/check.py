@@ -111,7 +111,14 @@ def check_file(code_file, syntax_file, verbose):
             break
         line = line.strip()
 
-        # skip /* */ comments
+        # eliminate /* */ comments within this line
+        begin = line.find("/*")
+        while begin != -1 and line.find("*/", begin) != -1:
+            end = line.find("*/", begin) + 2
+            line = line[:begin].strip() + ' ' + line[end:].strip()
+            begin = line.find("/*")
+
+        # skip /* */ comment blocks
         if state == State.CODE and line.find("/*") != -1:  # comment begins in this line, parse the leading part
             print_status("comment", line_no, line, verbose)
             line = line[:line.find("/*")].strip()
@@ -121,11 +128,15 @@ def check_file(code_file, syntax_file, verbose):
             if line.find("*/") != -1:  # comment ends in this line, parse the trailing part
                 print_status("comment", line_no, line, verbose)
                 line = line[line.find("*/") + 2:].strip()
-                print_status("trailing code", line_no, line, verbose)
-                state = State.CODE
-            else:
+                if line.find("/*") == -1:
+                    print_status("trailing code", line_no, line, verbose)
+                    state = State.CODE
+                else:
+                    line = line[:line.find("/*")].strip()
+                    print_status("enclosed code", line_no, line, verbose)
+            else:  # the whole line is part of the comment
                 print_status("comment", line_no, line, verbose)
-                continue  # inside larger comment, continue
+                continue
 
         if len(line) == 0:
             continue
