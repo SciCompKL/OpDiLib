@@ -60,6 +60,7 @@ struct TestSectionsReductionMultiple : public TestBase<4, 1, 3, TestSectionsRedu
               output3 *= sin(i) * jobResults[i];
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -70,6 +71,7 @@ struct TestSectionsReductionMultiple : public TestBase<4, 1, 3, TestSectionsRedu
               output3 *= sin(i) * jobResults[i];
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -80,6 +82,7 @@ struct TestSectionsReductionMultiple : public TestBase<4, 1, 3, TestSectionsRedu
               output3 *= sin(i) * jobResults[i];
             }
           }
+          OPDI_END_SECTION
         }
         OPDI_END_SECTIONS
       }

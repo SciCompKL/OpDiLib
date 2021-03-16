@@ -53,6 +53,7 @@ struct TestSectionsNowait : public TestBase<4, 1, 3, TestSectionsNowait<_Case>> 
               Base::job1(i, in, jobResults[i]);
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -60,6 +61,7 @@ struct TestSectionsNowait : public TestBase<4, 1, 3, TestSectionsNowait<_Case>> 
               Base::job1(i, in, jobResults[i]);
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -67,6 +69,7 @@ struct TestSectionsNowait : public TestBase<4, 1, 3, TestSectionsNowait<_Case>> 
               Base::job1(i, in, jobResults[i]);
             }
           }
+          OPDI_END_SECTION
         }
         OPDI_END_SECTIONS
 
@@ -78,6 +81,7 @@ struct TestSectionsNowait : public TestBase<4, 1, 3, TestSectionsNowait<_Case>> 
               Base::job1(i, in, jobResults[i]);
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -85,6 +89,7 @@ struct TestSectionsNowait : public TestBase<4, 1, 3, TestSectionsNowait<_Case>> 
               Base::job1(i, in, jobResults[i]);
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -92,6 +97,7 @@ struct TestSectionsNowait : public TestBase<4, 1, 3, TestSectionsNowait<_Case>> 
               Base::job1(i, in, jobResults[i]);
             }
           }
+          OPDI_END_SECTION
         }
         OPDI_END_SECTIONS
       }

@@ -56,6 +56,7 @@ struct TestSectionsPrivate : public TestBase<4, 1, 3, TestSectionsPrivate<_Case>
               jobResults[i] = cos(exp(helper));
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -64,6 +65,7 @@ struct TestSectionsPrivate : public TestBase<4, 1, 3, TestSectionsPrivate<_Case>
               jobResults[i] = cos(exp(helper));
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -72,6 +74,7 @@ struct TestSectionsPrivate : public TestBase<4, 1, 3, TestSectionsPrivate<_Case>
               jobResults[i] = cos(exp(helper));
             }
           }
+          OPDI_END_SECTION
         }
         OPDI_END_SECTIONS
       }

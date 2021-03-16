@@ -61,6 +61,7 @@ struct TestMaster : public TestBase<4, 1, 3, TestMaster<_Case>> {
             out[0] += jobResults[i];
           }
         }
+        OPDI_END_MASTER
       }
       OPDI_END_PARALLEL
 

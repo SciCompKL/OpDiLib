@@ -58,6 +58,7 @@ struct TestSectionsLastprivate : public TestBase<4, 1, 3, TestSectionsLastprivat
               jobResults[i] *= helper;
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -68,6 +69,7 @@ struct TestSectionsLastprivate : public TestBase<4, 1, 3, TestSectionsLastprivat
               jobResults[i] *= helper;
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -78,6 +80,7 @@ struct TestSectionsLastprivate : public TestBase<4, 1, 3, TestSectionsLastprivat
               jobResults[i] *= helper;
             }
           }
+          OPDI_END_SECTION
         }
         OPDI_END_SECTIONS
       }

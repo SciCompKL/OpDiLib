@@ -60,6 +60,7 @@ struct TestSectionsFirstprivate : public TestBase<4, 1, 3, TestSectionsFirstpriv
 
             helper = in[0] * in[1] * in[2] * in[3];
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -72,6 +73,7 @@ struct TestSectionsFirstprivate : public TestBase<4, 1, 3, TestSectionsFirstpriv
 
             helper = in[0] * in[1] * in[2] * in[3];
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -82,6 +84,7 @@ struct TestSectionsFirstprivate : public TestBase<4, 1, 3, TestSectionsFirstpriv
               jobResults[i] *= helper;
             }
           }
+          OPDI_END_SECTION
         }
         OPDI_END_SECTIONS
       }

@@ -80,7 +80,6 @@
       { \
         opdi::tool->erase(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1, opdiInternalTapePosition2);
 
-
 #define OPDI_SINGLE_NOWAIT(...) \
   { \
     bool constexpr opdiInternalBarrierIndicator = false; \

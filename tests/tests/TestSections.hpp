@@ -53,6 +53,7 @@ struct TestSections : public TestBase<4, 1, 3, TestSections<_Case>> {
               Base::job1(i, in, jobResults[i]);
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -60,6 +61,7 @@ struct TestSections : public TestBase<4, 1, 3, TestSections<_Case>> {
               Base::job1(i, in, jobResults[i]);
             }
           }
+          OPDI_END_SECTION
 
           OPDI_SECTION()
           {
@@ -67,6 +69,7 @@ struct TestSections : public TestBase<4, 1, 3, TestSections<_Case>> {
               Base::job1(i, in, jobResults[i]);
             }
           }
+          OPDI_END_SECTION
         }
         OPDI_END_SECTIONS
       }

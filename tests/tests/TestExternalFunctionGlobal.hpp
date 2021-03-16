@@ -85,6 +85,7 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
             eh->addInput(jobResults[i]);
           }
         }
+        OPDI_END_MASTER
 
         OPDI_BARRIER()
 
@@ -102,6 +103,7 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
             eh->addOutput(intermediate[i]);
           }
         }
+        OPDI_END_MASTER
 
         OPDI_BARRIER()
 
