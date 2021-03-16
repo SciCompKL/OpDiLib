@@ -78,11 +78,19 @@ def get_matches(line, syntax):
     return unique
 
 
+def print_status(status, line_no, line, verbose):
+    if verbose:
+        print(F"line {line_no}, {status}: {line}")
+
+
 def print_error(filename, line_no, message):
     print(F"{filename}, line {line_no}: {RED}{message}{RESET}")
 
 
-def check_file(code_file, syntax_file):
+def check_file(code_file, syntax_file, verbose):
+    if verbose:
+        print(F"Checking {code_file} using {syntax_file}.")
+
     syntax_handle = open(syntax_file, "r")
     syntax = json.load(syntax_handle)
     syntax_handle.close()
@@ -105,13 +113,18 @@ def check_file(code_file, syntax_file):
 
         # skip /* */ comments
         if state == State.CODE and line.find("/*") != -1:  # comment begins in this line, parse the leading part
+            print_status("comment", line_no, line, verbose)
             line = line[:line.find("/*")].strip()
+            print_status("leading code", line_no, line, verbose)
             state = State.COMMENT
         elif state == State.COMMENT:
             if line.find("*/") != -1:  # comment ends in this line, parse the trailing part
+                print_status("comment", line_no, line, verbose)
                 line = line[line.find("*/") + 2:].strip()
+                print_status("trailing code", line_no, line, verbose)
                 state = State.CODE
             else:
+                print_status("comment", line_no, line, verbose)
                 continue  # inside larger comment, continue
 
         if len(line) == 0:
@@ -122,13 +135,16 @@ def check_file(code_file, syntax_file):
             state = State.PREPROCESSOR
 
         if state == State.PREPROCESSOR:
+            print_status("preprocessor", line_no, line, verbose)
             if line[-1] != '\\':
                 state = State.CODE
             continue
 
         # strip // comments
         if line.find("//") != -1:
+            print_status("comment", line_no, line, verbose)
             line = line[:line.find("//")].strip()
+            print_status("leading code", line_no, line, verbose)
 
         if len(line) == 0:
             continue
@@ -137,8 +153,10 @@ def check_file(code_file, syntax_file):
 
         for match in matches:
             if is_opening(match, syntax):
+                print_status("opening macro", line_no, line, verbose)
                 stack.append((match, line_no))
             else:
+                print_status("closing macro", line_no, line, verbose)
                 if len(stack) == 0:
                     print_error(code_file, line_no, F"lonely end macro {match}")
                     return False
@@ -155,8 +173,8 @@ def check_file(code_file, syntax_file):
     return True
 
 
-def check_and_report_result(filename, syntax, stop_on_error):
-    result = check_file(filename, syntax)
+def check_and_report_result(filename, syntax, stop_on_error, verbose):
+    result = check_file(filename, syntax, verbose)
     if result:
         print(F"{filename} {GREEN}OK{RESET}")
     if not result and stop_on_error:
@@ -172,6 +190,7 @@ def main():
     parser.add_argument("-r", "--recursive", action='store_true', help="also check subdirectories")
     parser.add_argument("-p", "--patterns", default="*.hpp,*.cpp", help="files to check in directories")
     parser.add_argument("-s", "--stop-on-error", action='store_true', help="stop on first error")
+    parser.add_argument("-v", "--verbose", action='store_true', help="display reasoning about code")
 
     args = parser.parse_args()
 
@@ -180,7 +199,7 @@ def main():
     all_fine = True
 
     if os.path.isfile(args.path):
-        result = check_and_report_result(args.file, args.syntax, args.stop_on_error)
+        result = check_and_report_result(args.file, args.syntax, args.stop_on_error, args.verbose)
         all_fine = all_fine and result
     elif os.path.isdir(args.path):
         if args.recursive:
@@ -188,7 +207,8 @@ def main():
                 for pattern in patterns:
                     filtered = filter(files, pattern)
                     for file in filtered:
-                        result = check_and_report_result(os.path.join(root, file), args.syntax, args.stop_on_error)
+                        result = check_and_report_result(os.path.join(root, file), args.syntax, args.stop_on_error,
+                                                         args.verbose)
                         all_fine = all_fine and result
     else:
         print(F"{RED}invalid path {args.path}{RESET}")
