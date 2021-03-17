@@ -228,33 +228,34 @@ def main():
     parser = ArgumentParser(description='OpDiLib syntax checker')
 
     parser.add_argument("syntax", help="syntax file")
-    parser.add_argument("path", help="file or directory to check")
+    parser.add_argument("path", nargs='+', help="files and directories to check")
     parser.add_argument("-r", "--recursive", action='store_true', help="also check subdirectories")
-    parser.add_argument("-p", "--patterns", default="*.hpp,*.cpp", help="files to check in directories")
+    parser.add_argument("-p", "--pattern", nargs='+', default=["*.hpp", "*.cpp"],
+                        help="filename filters, default: *.hpp *.cpp")
     parser.add_argument("-s", "--stop-on-error", action='store_true', help="stop on first error")
     parser.add_argument("-v", "--verbose", action='store_true', help="display reasoning about code")
 
     args = parser.parse_args()
 
-    patterns = args.patterns.split(",")
-
     all_fine = True
 
-    if os.path.isfile(args.path):
-        result = check_and_report_result(args.file, args.syntax, args.stop_on_error, args.verbose)
-        all_fine = all_fine and result
-    elif os.path.isdir(args.path):
-        if args.recursive:
-            for root, dirs, files in os.walk(args.path):
-                for pattern in patterns:
-                    filtered = filter(files, pattern)
-                    for file in filtered:
-                        result = check_and_report_result(os.path.join(root, file), args.syntax, args.stop_on_error,
-                                                         args.verbose)
-                        all_fine = all_fine and result
-    else:
-        print(F"{RED}invalid path {args.path}{RESET}")
-        sys.exit(1)
+    for path in args.path:
+        if os.path.isfile(path):
+            result = check_and_report_result(args.file, args.syntax, args.stop_on_error, args.verbose)
+            all_fine = all_fine and result
+        elif os.path.isdir(path):
+            if args.recursive:
+                for root, dirs, files in os.walk(path):
+                    for pattern in args.pattern:
+                        filtered = filter(files, pattern)
+                        for file in filtered:
+                            result = check_and_report_result(os.path.join(root, file), args.syntax, args.stop_on_error,
+                                                             args.verbose)
+                            all_fine = all_fine and result
+        else:
+            print(F"{RED}invalid path {path}{RESET}")
+            if args.stop_on_error:
+                sys.exit(1)
 
     if not all_fine and not args.stop_on_error:
         print(F"{RED}There were errors. Please check the output above.{RESET}")
