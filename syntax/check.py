@@ -49,7 +49,7 @@ def is_opening(keyword, syntax):
 
 
 def is_closing(keyword, syntax):
-    return keyword in syntax["pairs"].value()
+    return keyword in syntax["pairs"].values()
 
 
 def get_keywords(syntax):
@@ -59,21 +59,47 @@ def get_keywords(syntax):
     return set(keys)
 
 
+def a_contains_b(match_a, match_b):
+    return match_a[0] <= match_b[0] and match_b[0] + len(match_b[1]) <= match_a[0] + len(match_a[1]) \
+           and match_a[1].find(match_b[1]) != -1
+
+
+def a_disjoint_b(match_a, match_b):
+    return match_a[0] + len(match_a[1]) <= match_b[0]
+
+
 def get_matches(line, syntax):
     keywords = get_keywords(syntax)
 
     matches = {}
     for keyword in keywords:
-        index = line.find(keyword)
-        if index != -1:
+        last_index = -1
+        index = line.find(keyword, last_index + 1)
+        while index != -1:
             if index not in matches:
                 matches[index] = []
             matches[index].append(keyword)
+            last_index = index
+            index = line.find(keyword, last_index + 1)
 
-    for index in matches:
-        matches[index].sort(key=lambda x: len(x))
+    matches = list(matches.items())
+    matches.sort(key=lambda tuple: tuple[0])
 
-    unique = [match_list[-1] for match_list in matches.values()]
+    for match in matches:
+        match[1].sort(key=lambda x: len(x))
+
+    longest_match_at = [(index, match_list[-1]) for (index, match_list) in matches]
+
+    unique = []
+
+    while len(longest_match_at) != 0:
+        while len(longest_match_at) > 1 and a_contains_b(longest_match_at[0], longest_match_at[1]):
+            del longest_match_at[1]
+        if len(longest_match_at) == 1 or a_disjoint_b(longest_match_at[0], longest_match_at[1]):
+            unique.append(longest_match_at[0][1])
+            del longest_match_at[0]
+        else:
+            raise Exception("inconclusive match, typo in macro?")
 
     return unique
 
@@ -160,7 +186,12 @@ def check_file(code_file, syntax_file, verbose):
         if len(line) == 0:
             continue
 
-        matches = get_matches(line, syntax)
+        matches = []
+        try:
+            matches = get_matches(line, syntax)
+        except Exception as e:
+            print_error(code_file, line_no, line + ' ' + str(e))
+            return False
 
         for match in matches:
             if is_opening(match, syntax):
