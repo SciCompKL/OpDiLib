@@ -33,7 +33,7 @@ from fnmatch import filter
 from enum import Enum
 from argparse import ArgumentParser
 
-RED = "\033[1;31m"
+RED = "\033[0;31m"
 GREEN = "\033[0;32m"
 RESET = "\033[0;0m"
 
@@ -215,9 +215,9 @@ def check_file(code_file, syntax_file, verbose):
     return True
 
 
-def check_and_report_result(filename, syntax, stop_on_error, verbose):
+def check_and_report_result(filename, syntax, stop_on_error, quiet, verbose):
     result = check_file(filename, syntax, verbose)
-    if result:
+    if result and not quiet:
         print(F"{filename} {GREEN}OK{RESET}")
     if not result and stop_on_error:
         sys.exit(1)
@@ -233,6 +233,7 @@ def main():
     parser.add_argument("-p", "--pattern", nargs='+', default=["*.hpp", "*.cpp"],
                         help="filename filters, default: *.hpp *.cpp")
     parser.add_argument("-s", "--stop-on-error", action='store_true', help="stop on first error")
+    parser.add_argument("-q", "--quiet", action='store_true', help="print errors only")
     parser.add_argument("-v", "--verbose", action='store_true', help="display reasoning about code")
 
     args = parser.parse_args()
@@ -241,7 +242,7 @@ def main():
 
     for path in args.path:
         if os.path.isfile(path):
-            result = check_and_report_result(args.file, args.syntax, args.stop_on_error, args.verbose)
+            result = check_and_report_result(args.file, args.syntax, args.stop_on_error, args.quiet, args.verbose)
             all_fine = all_fine and result
         elif os.path.isdir(path):
             if args.recursive:
@@ -250,14 +251,14 @@ def main():
                         filtered = filter(files, pattern)
                         for file in filtered:
                             result = check_and_report_result(os.path.join(root, file), args.syntax, args.stop_on_error,
-                                                             args.verbose)
+                                                             args.quiet, args.verbose)
                             all_fine = all_fine and result
         else:
             print(F"{RED}invalid path {path}{RESET}")
             if args.stop_on_error:
                 sys.exit(1)
 
-    if not all_fine and not args.stop_on_error:
+    if not all_fine and not args.stop_on_error and not args.quiet:
         print(F"{RED}There were errors. Please check the output above.{RESET}")
         sys.exit(1)
 
