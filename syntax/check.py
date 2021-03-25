@@ -258,8 +258,9 @@ def main():
             if args.stop_on_error:
                 sys.exit(1)
 
-    if not all_fine and not args.stop_on_error and not args.quiet:
-        print(F"{RED}There were errors. Please check the output above.{RESET}")
+    if not all_fine and not args.stop_on_error:
+        if not args.quiet:
+            print(F"{RED}There were errors. Please check the output above.{RESET}")
         sys.exit(1)
 
 
