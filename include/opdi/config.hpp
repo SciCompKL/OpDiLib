@@ -49,10 +49,24 @@
 /* logic options */
 
 // control output by forming conjunctions (sums) of options, 0 means no output
-#define OPDI_LOGIC_OUT 0
+#ifndef OPDI_LOGIC_OUT
+  #define OPDI_LOGIC_OUT 0
+#endif
+
+#ifndef OPDI_VARIABLE_ADJOINT_ACCESS_MODE
+  #define OPDI_VARIABLE_ADJOINT_ACCESS_MODE 1
+#endif
 
 /* error handling options */
 
-#define OPDI_ENABLE_WARNINGS 1
-#define OPDI_ENABLE_ERRORS 1
-#define OPDI_TREAT_ERRORS_AS_WARNINGS 0
+#ifndef OPDI_ENABLE_WARNINGS
+  #define OPDI_ENABLE_WARNINGS 1
+#endif
+
+#ifndef OPDI_ENABLE_ERRORS
+  #define OPDI_ENABLE_ERRORS 1
+#endif
+
+#ifndef OPDI_TREAT_ERRORS_AS_WARNINGS
+  #define OPDI_TREAT_ERRORS_AS_WARNINGS 0
+#endif

@@ -185,16 +185,19 @@ namespace opdi {
       }
 
       virtual void setAdjointAccessMode(AdjointAccessMode mode) {
-        AdjointAccessControl::currentMode() = mode;
 
-        Data* data = (Data*) backend->getParallelData();
-        int threadNum = omp_get_thread_num();
+        #if OPDI_VARIABLE_ADJOINT_ACCESS_MODE
+          AdjointAccessControl::currentMode() = mode;
 
-        if (data != nullptr) {
-          data->adjointAccessModes[threadNum].push_back(mode);
-          data->positions[threadNum].push_back(tool->allocPosition());
-          tool->getTapePosition(tool->getThreadLocalTape(), data->positions[threadNum].back());
-        }
+          Data* data = (Data*) backend->getParallelData();
+          int threadNum = omp_get_thread_num();
+
+          if (data != nullptr) {
+            data->adjointAccessModes[threadNum].push_back(mode);
+            data->positions[threadNum].push_back(tool->allocPosition());
+            tool->getTapePosition(tool->getThreadLocalTape(), data->positions[threadNum].back());
+          }
+        #endif
       }
 
       virtual AdjointAccessMode getAdjointAccessMode() {
