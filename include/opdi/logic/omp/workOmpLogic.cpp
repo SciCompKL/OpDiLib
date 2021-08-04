@@ -27,37 +27,54 @@
  *
  */
 
-#pragma once
+#include <omp.h>
 
 #include "../../config.hpp"
 #include "../../tool/toolInterface.hpp"
 
-#include "../logicInterface.hpp"
-
 #include "instrument/ompLogicInstrumentInterface.hpp"
 
-namespace opdi {
+#include "workOmpLogic.hpp"
 
-  struct FlushOmpLogic : public virtual LogicInterface {
-    private:
+void opdi::WorkOmpLogic::reverseFunc(void *dataPtr) {
 
-      static void reverseFunc(void*) {
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    Data* data = (Data*) dataPtr;
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->reverseWork(data);
+    }
+  #else
+    OPDI_UNUSED(dataPtr);
+  #endif
 
-        #if OPDI_OMP_LOGIC_INSTRUMENT
-          for (auto& instrument : ompLogicInstruments) {
-            instrument->reverseFlush();
-          }
-        #endif
-
-        #pragma omp flush
-      }
-
-    public:
-
-      virtual void addReverseFlush() {
-        Handle* handle = new Handle;
-        handle->reverseFunc = FlushOmpLogic::reverseFunc;
-        tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
-      }
-  };
+  #pragma omp barrier
 }
+
+void opdi::WorkOmpLogic::deleteFunc(void* dataPtr) {
+
+  Data* data = (Data*) dataPtr;
+  delete data;
+}
+
+void opdi::WorkOmpLogic::onWork(WorksharingKind /*kind*/, ScopeEndpoint /*endpoint*/) {
+  /*
+  if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+
+    #if OPDI_OMP_LOGIC_INSTRUMENT
+      for (auto& instrument : ompLogicInstruments) {
+        instrument->onWork(kind, endpoint);
+      }
+    #endif
+
+    Data* data = new Data;
+    data->kind = kind;
+    data->endpoint = endpoint;
+
+    Handle* handle = new Handle;
+    handle->data = (void*) data;
+    handle->reverseFunc = WorkOmpADLogic::reverseFunc;
+    handle->deleteFunc = WorkOmpADLogic::deleteFunc;
+    tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
+  }*/
+}
+

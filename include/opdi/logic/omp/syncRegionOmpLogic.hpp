@@ -29,10 +29,6 @@
 
 #pragma once
 
-#include "../../config.hpp"
-#include "../../misc/tapedOutput.hpp"
-#include "../../tool/toolInterface.hpp"
-
 #include "../logicInterface.hpp"
 
 namespace opdi {
@@ -43,64 +39,22 @@ namespace opdi {
       using LogicInterface::ScopeEndpoint;
       using LogicInterface::SyncRegionKind;
 
-    private:
-
       struct Data {
         public:
           SyncRegionKind kind;
           ScopeEndpoint endpoint;
       };
 
-      static void reverseFunc(void* dataPtr) {
+    private:
 
-        #if OPDI_LOGIC_OUT & OPDI_SYNC_REGION_OUT
-          Data* data = (Data*) dataPtr;
-          TapedOutput::print("SBAR i", omp_get_thread_num(), "k", data->kind, "p", data->endpoint);
-        #else
-          OPDI_UNUSED(dataPtr);
-        #endif
+      static void reverseFunc(void* dataPtr);
+      static void deleteFunc(void* dataPtr);
 
-        #pragma omp barrier
-      }
-
-      static void deleteFunc(void* dataPtr) {
-        Data* data = (Data*) dataPtr;
-        delete data;
-      }
-
-      void internalPushHandle(Data* data) {
-        Handle* handle = new Handle;
-        handle->data = (void*) data;
-        handle->reverseFunc = SyncRegionOmpLogic::reverseFunc;
-        handle->deleteFunc = SyncRegionOmpLogic::deleteFunc;
-        tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
-      }
+      void internalPushHandle(Data* data);
 
     public:
 
-      virtual void onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint) {
-        if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
-          if (endpoint == ScopeEndpoint::Begin) {
-            #if OPDI_LOGIC_OUT & OPDI_SYNC_REGION_OUT
-              TapedOutput::print("SYNC i", omp_get_thread_num(), "k", kind, "p", endpoint);
-            #endif
-
-            Data* data = new Data;
-            data->kind = kind;
-            data->endpoint = endpoint;
-
-            this->internalPushHandle(data);
-          }
-        }
-      }
-
-      virtual void addReverseBarrier() {
-        Data* data = new Data;
-        data->kind = SyncRegionKind::BarrierReverse;
-        data->endpoint = ScopeEndpoint::BeginEnd;
-
-        this->internalPushHandle(data);
-      }
-
+      virtual void onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint);
+      virtual void addReverseBarrier();
   };
 }

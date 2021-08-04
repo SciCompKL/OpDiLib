@@ -29,102 +29,31 @@
 
 #pragma once
 
-#include "../../config.hpp"
-#include "../../misc/tapedOutput.hpp"
 #include "../../misc/tapePool.hpp"
-#include "../../tool/toolInterface.hpp"
 
 #include "../logicInterface.hpp"
 
-#include "parallelOmpLogic.hpp"
 #include "adjointAccessControl.hpp"
+#include "parallelOmpLogic.hpp"
 
 namespace opdi {
 
   struct ImplicitTaskOmpLogic : public virtual LogicInterface,
-                                  public virtual AdjointAccessControl,
-                                  public virtual TapePool {
+                                public virtual AdjointAccessControl,
+                                public virtual TapePool {
     public:
 
       using ParallelData = typename ParallelOmpLogic::Data;
 
       struct Data {
-        int level;
-        int index;
-        void* oldTape;
-        ParallelData* parallelData;
+        public:
+          int level;
+          int index;
+          void* oldTape;
+          ParallelData* parallelData;
       };
 
-    public:
-      virtual void* onImplicitTaskBegin(int actualParallelism, int index, void* parallelDataPtr) {
-
-        ParallelData* parallelData = (ParallelData*) parallelDataPtr;
-
-        if (parallelData != nullptr && tool->isActive(parallelData->masterTape)) {
-          if (index == 0) {
-            parallelData->actualThreads = actualParallelism;
-          }
-
-          Data* data = new Data;
-          data->level = omp_get_level();
-          data->index = index;
-          data->oldTape = tool->getThreadLocalTape();
-          data->parallelData = parallelData;
-
-          void* newTape = TapePool::getTape(parallelData->masterTape, index);
-          tool->setActive(newTape, true);
-
-          data->parallelData->tapes[index] = newTape;
-
-          data->parallelData->positions[index].push_back(tool->allocPosition());
-          tool->getTapePosition(newTape, data->parallelData->positions[index].back());
-
-          tool->setThreadLocalTape(newTape);
-
-          AdjointAccessControl::pushMode(data->parallelData->outerAdjointAccessMode);
-          data->parallelData->adjointAccessModes[index].push_back(data->parallelData->outerAdjointAccessMode);
-
-          #if OPDI_LOGIC_OUT & OPDI_IMPLICIT_TASK_OUT
-            TapedOutput::print("ITB l", omp_get_level(),
-                               "i", index,
-                               "m", parallelData->masterTape,
-                               "t", newTape,
-                               "p", tool->positionToString(data->parallelData->positions[index].back()));
-          #endif
-
-          return data;
-        }
-
-        return nullptr;
-      }
-
-      virtual void onImplicitTaskEnd(void* dataPtr) {
-
-        if (dataPtr != nullptr) {
-          Data* data = (Data*) dataPtr;
-
-          AdjointAccessMode lastAccessMode = AdjointAccessControl::currentMode();
-          AdjointAccessControl::popMode();
-          AdjointAccessControl::currentMode() = lastAccessMode;
-
-          tool->setThreadLocalTape(data->oldTape);
-
-          data->parallelData->positions[data->index].push_back(tool->allocPosition());
-          tool->getTapePosition(data->parallelData->tapes[data->index],
-                                data->parallelData->positions[data->index].back());
-
-          #if OPDI_LOGIC_OUT & OPDI_IMPLICIT_TASK_OUT
-            TapedOutput::print("ITE l", omp_get_level(),
-                               "i", data->index,
-                               "m", data->parallelData->masterTape,
-                               "t", data->parallelData->tapes[data->index],
-                               "p", tool->positionToString(data->parallelData->positions[data->index].back()));
-          #endif
-
-          tool->setActive(data->parallelData->tapes[data->index], false);
-
-          delete data;
-        }
-      }
+      virtual void* onImplicitTaskBegin(int actualParallelism, int index, void* parallelDataPtr);
+      virtual void onImplicitTaskEnd(void* dataPtr);
   };
 }

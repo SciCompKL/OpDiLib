@@ -29,12 +29,6 @@
 
 #pragma once
 
-#include <omp.h>
-
-#include "../../config.hpp"
-#include "../../misc/tapedOutput.hpp"
-#include "../../tool/toolInterface.hpp"
-
 #include "../logicInterface.hpp"
 
 namespace opdi {
@@ -45,50 +39,18 @@ namespace opdi {
       using LogicInterface::ScopeEndpoint;
       using LogicInterface::WorksharingKind;
 
-    private:
-
       struct Data {
         WorksharingKind kind;
         ScopeEndpoint endpoint;
       };
 
-      static void reverseFunc(void* dataPtr) {
+    private:
 
-        #if OPDI_LOGIC_OUT & OPDI_WORK_OUT
-          Data* data = (Data*) dataPtr;
-          TapedOutput::print("WBAR i", omp_get_thread_num(), "k", data->kind, "p", data->endpoint);
-        #else
-          OPDI_UNUSED(dataPtr);
-        #endif
-
-        #pragma omp barrier
-      }
-
-      static void deleteFunc(void* dataPtr) {
-        Data* data = (Data*) dataPtr;
-        delete data;
-      }
+      static void reverseFunc(void* dataPtr);
+      static void deleteFunc(void* dataPtr);
 
     public:
 
-      virtual void onWork(WorksharingKind /*kind*/, ScopeEndpoint /*endpoint*/) {
-        /*
-        if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
-
-          #if OPDI_LOGIC_OUT & OPDI_WORK_OUT
-            TapedOutput::print("WORK i", omp_get_thread_num(), "k", kind, "p", endpoint);
-          #endif
-
-          Data* data = new Data;
-          data->kind = kind;
-          data->endpoint = endpoint;
-
-          Handle* handle = new Handle;
-          handle->data = (void*) data;
-          handle->reverseFunc = WorkOmpADLogic::reverseFunc;
-          handle->deleteFunc = WorkOmpADLogic::deleteFunc;
-          tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
-        }*/
-      }
+      virtual void onWork(WorksharingKind kind, ScopeEndpoint endpoint);
   };
 }

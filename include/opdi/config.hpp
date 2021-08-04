@@ -36,21 +36,12 @@
 #define OPDI_MACRO_BACKEND 1
 #define OPDI_OMPT_BACKEND 2
 
-/* logic output options */
-
-#define OPDI_PARALLEL_OUT 1
-#define OPDI_IMPLICIT_TASK_OUT 2
-#define OPDI_MUTEX_OUT 4
-#define OPDI_SYNC_REGION_OUT 8
-#define OPDI_WORK_OUT 16
-
 /* ------------------ configuration ------------------ */
 
 /* logic options */
 
-// control output by forming conjunctions (sums) of options, 0 means no output
-#ifndef OPDI_LOGIC_OUT
-  #define OPDI_LOGIC_OUT 0
+#ifndef OPDI_OMP_LOGIC_INSTRUMENT
+  #define OPDI_OMP_LOGIC_INSTRUMENT 0
 #endif
 
 #ifndef OPDI_VARIABLE_ADJOINT_ACCESS_MODE

@@ -27,11 +27,16 @@
  *
  */
 
+#include "instrument/ompLogicInstrumentInterface.hpp"
 #include "adjointAccessControl.hpp"
-#include "mutexOmpLogic.hpp"
-
-opdi::MutexOmpLogic::State opdi::MutexOmpLogic::localState;
-opdi::MutexOmpLogic::State opdi::MutexOmpLogic::evalState;
 
 std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
                                                                     {opdi::LogicInterface::AdjointAccessMode::Atomic};
+
+std::list<opdi::OmpLogicInstrumentInterface*> opdi::ompLogicInstruments;
+
+#include "implicitTaskOmpLogic.cpp"
+#include "mutexOmpLogic.cpp"
+#include "parallelOmpLogic.cpp"
+#include "syncRegionOmpLogic.cpp"
+#include "workOmpLogic.cpp"
