@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include <list>
 #include <omp.h>
+#include <map>
 #include <set>
 
 #include "../tool/toolInterface.hpp"
@@ -39,13 +39,8 @@ namespace opdi {
 
   struct TapePool {
     private:
-      // tapes that are not used and can be acquired
-      std::list<void*> unusedTapes;
-
-      // tapes that are no longer used but do not qualify for reuse yet
-      std::list<void*> blockedTapes;
-
-      std::set<void*> allTapes;
+      std::map<void*, std::map<int, void*>> tapes;
+      std::set<void*> createdTapes;
 
     protected:
       omp_lock_t lock;
@@ -64,43 +59,27 @@ namespace opdi {
         omp_destroy_lock(&this->lock);
       }
 
-      void* acquireTape() {
+      void* getTape(void* master, int index) {
         omp_set_lock(&this->lock);
 
-        if (this->unusedTapes.empty()) {
-          this->unusedTapes.push_back(tool->createTape());
-          this->allTapes.insert(this->unusedTapes.back());
+        if (this->tapes[master].find(index) == this->tapes[master].end()) {
+          void* newTape = tool->createTape();
+          this->tapes[master][index] = newTape;
+          this->createdTapes.insert(newTape);
         }
 
-        void* result = unusedTapes.front();
-        unusedTapes.pop_front();
+        void* result = this->tapes[master][index];
         omp_unset_lock(&this->lock);
         return result;
       }
 
-      void releaseTape(void* tape, bool blocked = true) {
-        omp_set_lock(&this->lock);
-        if (blocked) {
-          blockedTapes.push_back(tape);
-        }
-        else {
-          unusedTapes.push_back(tape);
-        }
-        omp_unset_lock(&this->lock);
-      }
-
-      void unblock() {
-        omp_set_lock(&this->lock);
-        unusedTapes.insert(unusedTapes.end(), blockedTapes.begin(), blockedTapes.end());
-        blockedTapes.clear();
-        omp_unset_lock(&this->lock);
-      }
-
       void clear() {
         omp_set_lock(&this->lock);
-        for (auto& tape : this->allTapes) {
+        for (auto& tape : this->createdTapes) {
           tool->deleteTape(tape);
         }
+        this->createdTapes.clear();
+        this->tapes.clear();
         omp_unset_lock(&this->lock);
       }
   };

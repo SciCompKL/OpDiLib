@@ -71,7 +71,7 @@ namespace opdi {
           data->oldTape = tool->getThreadLocalTape();
           data->parallelData = parallelData;
 
-          void* newTape = TapePool::acquireTape();
+          void* newTape = TapePool::getTape(parallelData->masterTape, index);
           tool->setActive(newTape, true);
 
           data->parallelData->tapes[index] = newTape;
@@ -122,12 +122,6 @@ namespace opdi {
           #endif
 
           tool->setActive(data->parallelData->tapes[data->index], false);
-
-          bool parallelRegionEnded;
-          #pragma omp atomic read
-          parallelRegionEnded = data->parallelData->parallelRegionEnded;
-
-          TapePool::releaseTape(data->parallelData->tapes[data->index], !(parallelRegionEnded && data->level == 1));
 
           delete data;
         }

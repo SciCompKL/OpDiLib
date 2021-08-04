@@ -55,7 +55,6 @@ namespace opdi {
 
       struct Data {
         public:
-          bool parallelRegionEnded;
           int maxThreads;
           int actualThreads;
           void* masterTape;
@@ -133,19 +132,11 @@ namespace opdi {
 
         if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
-          // prior to the beginning of the outermost parallel region, declare all currently released tapes as unused
-          if (omp_get_level() == 0) {
-            TapePool::unblock();
-          }
-
           #if OPDI_LOGIC_OUT & OPDI_PARALLEL_OUT
             TapedOutput::print("PB l", omp_get_level());
           #endif
 
           Data* data = new Data;
-
-          #pragma omp atomic write
-          data->parallelRegionEnded = false;
 
           data->maxThreads = maxThreads;
           data->masterTape = tool->getThreadLocalTape();
@@ -169,9 +160,6 @@ namespace opdi {
           #if OPDI_LOGIC_OUT & OPDI_PARALLEL_OUT
             TapedOutput::print("PE l", omp_get_level());
           #endif
-
-          #pragma omp atomic write
-          data->parallelRegionEnded = true;
 
           Handle* handle = new Handle;
           handle->data = (void*) data;
