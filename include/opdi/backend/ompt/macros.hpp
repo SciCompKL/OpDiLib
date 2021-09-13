@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "../../aux/macros.hpp"
+#include "../../helpers/macros.hpp"
 
 #define OPDI_PARALLEL(...) \
   OPDI_PRAGMA(omp parallel __VA_ARGS__)

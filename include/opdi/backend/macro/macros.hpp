@@ -31,7 +31,7 @@
 
 #include <omp.h>
 
-#include "../../aux/macros.hpp"
+#include "../../helpers/macros.hpp"
 
 #include "implicitBarrierTools.hpp"
 #include "mutexIdentifiers.hpp"

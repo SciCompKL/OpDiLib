@@ -43,7 +43,7 @@
   #include <codi/externals/codiOpdiTool.hpp>
   #include "opdi.hpp"
 #else
-  #include "opdi/aux/emptyMacros.hpp"
+  #include "opdi/helpers/emptyMacros.hpp"
 #endif
 
 #include "driverBase.hpp"

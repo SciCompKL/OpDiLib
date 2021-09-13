@@ -42,10 +42,10 @@
   #endif
   #include <codi/externals/codiOpdiTool.hpp>
   #include "opdi.hpp"
-  #include "opdi/aux/undefineMacros.hpp"
+  #include "opdi/helpers/undefineMacros.hpp"
 #endif
 
-#include "opdi/aux/emptyMacros.hpp"
+#include "opdi/helpers/emptyMacros.hpp"
 
 #include "driverBase.hpp"
 

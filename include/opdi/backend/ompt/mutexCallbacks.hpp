@@ -36,8 +36,8 @@
 #include <set>
 #include <stack>
 
-#include "../../aux/exceptions.hpp"
-#include "../../aux/macros.hpp"
+#include "../../helpers/exceptions.hpp"
+#include "../../helpers/macros.hpp"
 #include "../../logic/logicInterface.hpp"
 
 #include "callbacksBase.hpp"

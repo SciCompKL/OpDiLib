@@ -33,9 +33,9 @@
 
 #include "opdi/config.hpp"
 
-// aux
+// helpers
 
-#include "opdi/aux/macros.hpp"
+#include "opdi/helpers/macros.hpp"
 
 // interfaces
 

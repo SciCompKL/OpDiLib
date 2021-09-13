@@ -33,8 +33,8 @@
 #include <omp.h>
 #include <set>
 
-#include "../../aux/macros.hpp"
-#include "../../aux/exceptions.hpp"
+#include "../../helpers/macros.hpp"
+#include "../../helpers/exceptions.hpp"
 #include "../../config.hpp"
 #include "../../misc/tapedOutput.hpp"
 #include "../../tool/toolInterface.hpp"

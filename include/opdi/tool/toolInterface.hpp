@@ -31,7 +31,7 @@
 
 #include <string>
 
-#include "aux/handle.hpp"
+#include "helpers/handle.hpp"
 
 namespace opdi {
   

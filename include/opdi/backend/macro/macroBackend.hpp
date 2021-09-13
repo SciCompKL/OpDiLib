@@ -37,7 +37,7 @@
   #define OPDI_BACKEND OPDI_MACRO_BACKEND
 #endif
 
-#include "../../aux/macros.hpp"
+#include "../../helpers/macros.hpp"
 
 #include "../backendInterface.hpp"
 #include "../runtime.hpp"
