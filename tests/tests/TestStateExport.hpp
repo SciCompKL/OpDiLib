@@ -64,7 +64,7 @@ struct TestStateExport : public TestBase<4, 1, 3, TestStateExport<_Case>> {
       #ifdef _OPENMP
         auto opdiState = opdi::logic->exportState();
       #endif
-      auto tapePosition = T::getGlobalTape().getPosition();
+      auto tapePosition = T::getTape().getPosition();
 
       OPDI_PARALLEL()
       {
@@ -81,15 +81,15 @@ struct TestStateExport : public TestBase<4, 1, 3, TestStateExport<_Case>> {
       }
       OPDI_END_PARALLEL
 
-      T::getGlobalTape().setPassive();
+      T::getTape().setPassive();
 
-      T::getGlobalTape().reset(tapePosition);
+      T::getTape().resetTo(tapePosition);
       #ifdef _OPENMP
         opdi::logic->recoverState(opdiState);
         opdi::logic->freeState(opdiState);
       #endif
 
-      T::getGlobalTape().setActive();
+      T::getTape().setActive();
 
       DESTROY_LOCK(&lock1);
       DESTROY_LOCK(&lock2);

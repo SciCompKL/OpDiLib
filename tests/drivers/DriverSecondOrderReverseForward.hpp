@@ -40,7 +40,8 @@
   #elif OPDI_USE_OMPT_BACKEND
     #include "opdi/backend/ompt/omptBackend.hpp"
   #endif
-  #include <codi/externals/codiOpdiTool.hpp>
+  #include "codi/tools/parallel/openmp/codiOpenMP.hpp"
+  #include "codi/tools/parallel/openmp/codiOpDiLibTool.hpp"
   #include "opdi.hpp"
   #ifdef OUTPUT_INSTRUMENT
     #include "opdi/logic/omp/instrument/ompLogicOutputInstrument.hpp"
@@ -54,7 +55,7 @@
 #ifdef BUILD_REFERENCE
   using TestReal = codi::RealReverseIndexGen<codi::RealForward>;
 #else
-  using TestReal = codi::RealReverseIndexParallelGen<codi::RealForward>;
+  using TestReal = codi::RealReverseIndexOpenMPGen<codi::RealForward>;
 
   OPDI_DECLARE_REDUCTION(plus, TestReal, +, 0.0);
   OPDI_DECLARE_REDUCTION(prod, TestReal, *, 1.0);
@@ -75,8 +76,8 @@ struct DriverSecondOrderReverseForward : public DriverBase<DriverSecondOrderReve
         #endif
         opdi::logic = new opdi::OmpLogic;
         opdi::logic->init();
-        TestReal::getGlobalTape().initialize();
-        opdi::tool = new CoDiOpDiTool<TestReal>;
+        //TestReal::getTape().initialize();
+        opdi::tool = new CoDiOpDiLibTool<TestReal>;
         opdi::tool->init();
         #ifdef OUTPUT_INSTRUMENT
           opdi::ompLogicInstruments.push_back(new opdi::OmpLogicOutputInstrument);
@@ -95,7 +96,7 @@ struct DriverSecondOrderReverseForward : public DriverBase<DriverSecondOrderReve
 
             inputs[p][j].value().gradient() = 1.0; // forward seeding
 
-            TestReal::TapeType& tape = TestReal::getGlobalTape();
+            TestReal::Tape& tape = TestReal::getTape();
 
             std::array<TestReal, Case::nOut> outputs = {0.0};
 
@@ -160,7 +161,7 @@ struct DriverSecondOrderReverseForward : public DriverBase<DriverSecondOrderReve
           opdi::ompLogicInstruments.clear();
         #endif
         opdi::tool->finalize();
-        TestReal::getGlobalTape().finalize();
+        //TestReal::getTape().finalize();
         opdi::backend->finalize();
         #ifdef OPDI_USE_MACRO_BACKEND
           delete opdi::backend;

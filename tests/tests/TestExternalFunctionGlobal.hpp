@@ -38,8 +38,17 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
     using Case = _Case;
     using Base = TestBase<4, 1, 3, TestExternalFunctionGlobal<Case>>;
 
+    #ifdef BUILD_REFERENCE
+      template<typename T>
+      using ExternalFunctionHelper = codi::ExternalFunctionHelper<T>;
+    #else
+      template<typename T>
+      using ExternalFunctionHelper = codi::OpenMPExternalFunctionHelper<T>;
+    #endif
+
+
     template<typename T>
-    static void primal(T const* x, size_t m, T* y, size_t, codi::DataStore*) {
+    static void primal(T const* x, size_t m, T* y, size_t, codi::ExternalFunctionUserData*) {
       OPDI_FOR()
       for (size_t i = 0; i < m; ++i) {
         y[i] = sin(x[i]);
@@ -48,7 +57,7 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
     }
 
     template<typename T>
-    static void reverse(T const* x, T* x_b, size_t m, T const*, T const* y_b, size_t, codi::DataStore*) {
+    static void reverse(T const* x, T* x_b, size_t m, T const*, T const* y_b, size_t, codi::ExternalFunctionUserData*) {
       OPDI_FOR()
       for (size_t i = 0; i < m; ++i) {
         x_b[i] = cos(x[i]) * y_b[i];
@@ -64,7 +73,7 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
       T* jobResults = new T[N];
       T* intermediate = new T[N];
 
-      codi::ExternalFunctionHelper<T>* eh;
+      ExternalFunctionHelper<T>* eh;
 
       OPDI_PARALLEL()
       {
@@ -80,30 +89,20 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
 
         OPDI_MASTER()
         {
-          eh = new codi::ExternalFunctionHelper<T>(true);
+          eh = new ExternalFunctionHelper<T>(true);
           for (int i = 0; i < N; ++i) {
             eh->addInput(jobResults[i]);
           }
-        }
-        OPDI_END_MASTER
 
-        OPDI_BARRIER()
-
-        T::getGlobalTape().setPassive();
-
-        primal(jobResults, N, intermediate, N, nullptr);
-
-        T::getGlobalTape().setActive();
-
-        OPDI_BARRIER()
-
-        OPDI_MASTER()
-        {
           for (int i = 0; i < N; ++i) {
             eh->addOutput(intermediate[i]);
           }
         }
         OPDI_END_MASTER
+
+        OPDI_BARRIER()
+
+        eh->callPrimalFuncWithADType(TestExternalFunctionGlobal::primal<T>, jobResults, N, intermediate, N, nullptr);
 
         OPDI_BARRIER()
 

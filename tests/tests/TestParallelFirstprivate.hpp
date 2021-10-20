@@ -46,11 +46,11 @@ struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstpriv
       #ifndef BUILD_REFERENCE
         /* This workaround ensures that firstprivate copy operations that are missed by the correct tapes
          * are at least recorded on the default tapes so that they can be moved later. */
-        bool active = T::getGlobalTape().isActive();
+        bool active = T::getTape().isActive();
         #pragma omp parallel
         {
           if (active) {
-            T::getGlobalTape().setActive();
+            T::getTape().setActive();
           }
         }
       #endif

@@ -31,11 +31,12 @@
 #include <iostream>
 
 #include <opdi/backend/macro/macroBackend.hpp>
-#include <codi/externals/codiOpdiTool.hpp>
+#include <codi/tools/parallel/openmp/codiOpenMP.hpp>
+#include <codi/tools/parallel/openmp/codiOpDiLibTool.hpp>
 #include <opdi.hpp>
 
-using Real = codi::RealReverseIndexParallel;
-using Tape = typename Real::TapeType;
+using Real = codi::RealReverseIndexOpenMP;
+using Tape = typename Real::Tape;
 
 int main(int nargs, char** args) {
 
@@ -45,11 +46,11 @@ int main(int nargs, char** args) {
   opdi::backend->init();
   opdi::logic = new opdi::OmpLogic;
   opdi::logic->init();
-  opdi::tool = new CoDiOpDiTool<Real>;
+  opdi::tool = new CoDiOpDiLibTool<Real>;
 
   // initialize thread-safe version of CoDiPack
 
-  Tape& tape = Real::getGlobalTape();
+  Tape& tape = Real::getTape();
   tape.initialize();
 
   // usual AD workflow

@@ -54,7 +54,7 @@ The following minimal example assumes that the thread-safe version of [CoDiPack]
 #include <opdi.hpp>
 
 using Real = codi::RealReverseIndexParallel;
-using Tape = typename Real::TapeType;
+using Tape = typename Real::Tape;
 
 int main(int nargs, char** args) {
 
@@ -66,7 +66,7 @@ int main(int nargs, char** args) {
 
   // initialize thread-safe version of CoDiPack
 
-  Tape& tape = Real::getGlobalTape();
+  Tape& tape = Real::getTape();
   tape.initialize();
 
   // usual AD workflow
@@ -134,7 +134,7 @@ clang++  -I<path to codi>/include -I<path to opdi>/include --std=c++11 -fopenmp 
 #include <opdi.hpp>
 
 using Real = codi::RealReverseIndexParallel;
-using Tape = typename Real::TapeType;
+using Tape = typename Real::Tape;
 
 int main(int nargs, char** args) {
 
@@ -148,7 +148,7 @@ int main(int nargs, char** args) {
 
   // initialize thread-safe version of CoDiPack
 
-  Tape& tape = Real::getGlobalTape();
+  Tape& tape = Real::getTape();
   tape.initialize();
 
   // usual AD workflow

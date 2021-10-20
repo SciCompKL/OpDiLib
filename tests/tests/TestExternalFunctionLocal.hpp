@@ -39,14 +39,14 @@ struct TestExternalFunctionLocal : public TestBase<4, 1, 3, TestExternalFunction
     using Base = TestBase<4, 1, 3, TestExternalFunctionLocal<Case>>;
 
     template<typename T>
-    static void primal(T const* x, size_t m, T* y, size_t, codi::DataStore*) {
+    static void primal(T const* x, size_t m, T* y, size_t, codi::ExternalFunctionUserData*) {
       for (size_t i = 0; i < m; ++i) {
         y[i] = sin(x[i]);
       }
     }
 
     template<typename T>
-    static void reverse(T const* x, T* x_b, size_t m, T const*, T const* y_b, size_t, codi::DataStore*) {
+    static void reverse(T const* x, T* x_b, size_t m, T const*, T const* y_b, size_t, codi::ExternalFunctionUserData*) {
       for (size_t i = 0; i < m; ++i) {
         x_b[i] = cos(x[i]) * y_b[i];
       }
@@ -74,16 +74,12 @@ struct TestExternalFunctionLocal : public TestBase<4, 1, 3, TestExternalFunction
         for (int i = start; i < end; ++i) {
           eh->addInput(jobResults[i]);
         }
-
-        T::getGlobalTape().setPassive();
-
-        primal(&jobResults[start], end - start, &intermediate[start], end - start, nullptr);
-
-        T::getGlobalTape().setActive();
-
         for (int i = start; i < end; ++i) {
           eh->addOutput(intermediate[i]);
         }
+
+        eh->callPrimalFuncWithADType(TestExternalFunctionLocal::primal<T>, &jobResults[start], end - start,
+                                     &intermediate[start], end - start, nullptr);
 
         eh->addToTape(TestExternalFunctionLocal::reverse);
 
