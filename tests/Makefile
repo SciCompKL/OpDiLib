@@ -42,6 +42,7 @@ BACKEND ?= MACRO
 
 # debug possibly set in environment
 DEBUG ?= no
+OUTPUT_INSTRUMENT ?= no
 
 # possibly set in the environment, enables build from source after preprocessing
 EXPLICIT_PREPROCESSOR ?= no
@@ -52,6 +53,9 @@ ifeq ($(DEBUG),no)
 	FLAGS = -std=c++11 -O3 -flto -Wall -Wextra -mavx2
 else
   FLAGS = -std=c++11 -O0 -ggdb -Wall -Wextra
+  ifeq ($(OUTPUT_INSTRUMENT),yes)
+    FLAGS += -DOPDI_OMP_LOGIC_INSTRUMENT=1 -DOUTPUT_INSTRUMENT
+  endif
 endif
 
 ifeq ($(MODE),REF)

@@ -42,6 +42,9 @@
   #endif
   #include <codi/externals/codiOpdiTool.hpp>
   #include "opdi.hpp"
+  #ifdef OUTPUT_INSTRUMENT
+    #include "opdi/logic/omp/instrument/ompLogicOutputInstrument.hpp"
+  #endif
 #else
   #include "opdi/helpers/emptyMacros.hpp"
 #endif
@@ -75,6 +78,9 @@ struct DriverFirstOrderReverseNestedParallel : public DriverBase<DriverFirstOrde
         TestReal::getGlobalTape().initialize();
         opdi::tool = new CoDiOpDiTool<TestReal>;
         opdi::tool->init();
+        #ifdef OUTPUT_INSTRUMENT
+          opdi::ompLogicInstruments.push_back(new opdi::OmpLogicOutputInstrument);
+        #endif
       #endif
 
       std::array<std::array<TestReal, Case::nIn>, Case::nPoints> inputs = Case::template genPoints<TestReal>();
@@ -136,6 +142,10 @@ struct DriverFirstOrderReverseNestedParallel : public DriverBase<DriverFirstOrde
       }
 
       #ifndef BUILD_REFERENCE
+        #ifdef OUTPUT_INSTRUMENT
+          delete opdi::ompLogicInstruments.front();
+          opdi::ompLogicInstruments.clear();
+        #endif
         opdi::tool->finalize();
         TestReal::getGlobalTape().finalize();
         opdi::backend->finalize();

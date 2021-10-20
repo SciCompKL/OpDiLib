@@ -36,7 +36,7 @@ opdi::LogicInterface* opdi::logic = nullptr;
 opdi::BackendInterface* opdi::backend = nullptr;
 
 omp_lock_t opdi::Output::lock;
-bool opdi::TapedOutput::active = false;
+bool opdi::TapedOutput::active = OPDI_OMP_LOGIC_INSTRUMENT;
 
 // include logic source
 
