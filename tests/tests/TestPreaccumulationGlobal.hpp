@@ -79,9 +79,7 @@ struct TestPreaccumulationGlobal : public TestBase<4, 1, 3, TestPreaccumulationG
         ph.addOutput(post[i]);
       }
 
-      T::getGlobalTape().setPassive();
       ph.finish(false);
-      T::getGlobalTape().setActive();
 
       for (int i = 0; i < Base::nIn; ++i) {
         out[0] += post[i];

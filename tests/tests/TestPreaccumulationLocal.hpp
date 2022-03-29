@@ -78,9 +78,7 @@ struct TestPreaccumulationLocal : public TestBase<4, 1, 3, TestPreaccumulationLo
           ph.addOutput(post[i]);
         }
 
-        T::getGlobalTape().setPassive();
         ph.finish(false);
-        T::getGlobalTape().setActive();
 
         OPDI_CRITICAL()
         {
