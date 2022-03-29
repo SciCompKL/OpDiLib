@@ -89,11 +89,7 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
 
         OPDI_BARRIER()
 
-        T::getGlobalTape().setPassive();
-
-        primal(jobResults, N, intermediate, N, nullptr);
-
-        T::getGlobalTape().setActive();
+        eh->callPassiveFunc(primal<T>, jobResults, N, intermediate, N, nullptr);
 
         OPDI_BARRIER()
 

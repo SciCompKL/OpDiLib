@@ -75,11 +75,7 @@ struct TestExternalFunctionLocal : public TestBase<4, 1, 3, TestExternalFunction
           eh->addInput(jobResults[i]);
         }
 
-        T::getGlobalTape().setPassive();
-
-        primal(&jobResults[start], end - start, &intermediate[start], end - start, nullptr);
-
-        T::getGlobalTape().setActive();
+        eh->callPassiveFunc(primal<T>, &jobResults[start], end - start, &intermediate[start], end - start, nullptr);
 
         for (int i = start; i < end; ++i) {
           eh->addOutput(intermediate[i]);
