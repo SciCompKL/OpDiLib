@@ -105,7 +105,7 @@
     opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier(); \
   }
 
-#define OPDI_NOWAIT private(opdi::internalNowaitProbe)
+#define OPDI_NOWAIT nowait private(opdi::internalNowaitProbe)
 
 #define OPDI_CRITICAL(...) \
   OPDI_PRAGMA(omp critical __VA_ARGS__) \
