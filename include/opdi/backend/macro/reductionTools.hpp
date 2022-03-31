@@ -58,6 +58,8 @@ namespace opdi {
           std::cerr << "ERROR: reduction barrier missing at end of region." << std::endl;
         }
         ReductionTools::reductionBarrierStack.pop();
+        logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
+                            LogicInterface::ScopeEndpoint::Begin);
       }
 
       static void addBarrierIfNeeded() {
