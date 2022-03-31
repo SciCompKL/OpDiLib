@@ -79,7 +79,7 @@ DRIVER_FILES = $(wildcard $(DRIVER_DIR)/Driver**.hpp)
 DRIVERS ?= $(patsubst $(DRIVER_DIR)/Driver%.hpp,%,$(DRIVER_FILES))
 
 # without surrounding parallel directives, privatized variables are not recognized as shared and sections are considered orphaned; hence, they need to be filtered out
-getDriverTests = $(if $(filter FirstOrderReverseNoParallel, $1), $(filter-out ParallelSections ForReduction ForReductionMultiple ForFirstprivate ForLastprivate SectionsReduction SectionsReductionMultiple SectionsFirstprivate SectionsLastprivate ReductionNested SingleFirstprivate, $(TESTS)), $(TESTS))
+getDriverTests = $(if $(filter FirstOrderReverseNoParallel, $1), $(filter-out ParallelSections ForReduction ForReductionNowait ForReductionMultiple ForFirstprivate ForLastprivate SectionsReduction SectionsReductionMultiple SectionsFirstprivate SectionsLastprivate ReductionNested SingleFirstprivate, $(TESTS)), $(TESTS))
 
 DRIVER_TESTS =
 
