@@ -35,6 +35,14 @@
 #include "implicitTaskOmpLogic.hpp"
 #include "parallelOmpLogic.hpp"
 
+void opdi::ImplicitTaskOmpLogic::internalInit() {
+  this->tapePool.init();
+}
+
+void opdi::ImplicitTaskOmpLogic::internalFinalize() {
+  this->tapePool.finalize();
+}
+
 void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int index, void* parallelDataPtr) {
 
   ParallelData* parallelData = (ParallelData*) parallelDataPtr;
@@ -50,7 +58,7 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int
     data->oldTape = tool->getThreadLocalTape();
     data->parallelData = parallelData;
 
-    void* newTape = TapePool::getTape(parallelData->masterTape, index);
+    void* newTape = this->tapePool.getTape(parallelData->masterTape, index);
     tool->setActive(newTape, true);
 
     data->parallelData->tapes[index] = newTape;

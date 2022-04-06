@@ -39,8 +39,13 @@
 namespace opdi {
 
   struct ImplicitTaskOmpLogic : public virtual LogicInterface,
-                                public virtual AdjointAccessControl,
-                                public virtual TapePool {
+                                public virtual AdjointAccessControl {
+    protected:
+      TapePool tapePool;
+
+      void internalInit();
+      void internalFinalize();
+
     public:
 
       using ParallelData = typename ParallelOmpLogic::Data;

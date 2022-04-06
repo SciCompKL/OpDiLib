@@ -42,7 +42,6 @@ namespace opdi {
       std::map<void*, std::map<int, void*>> tapes;
       std::set<void*> createdTapes;
 
-    protected:
       omp_lock_t lock;
 
     public:
@@ -57,6 +56,10 @@ namespace opdi {
 
       void finalize() {
         omp_destroy_lock(&this->lock);
+      }
+
+      omp_lock_t* getInternalLock() {
+        return &this->lock;
       }
 
       void* getTape(void* master, int index) {
