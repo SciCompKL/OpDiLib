@@ -58,14 +58,24 @@ namespace opdi {
           std::cerr << "ERROR: reduction barrier missing at end of region." << std::endl;
         }
         ReductionTools::reductionBarrierStack.pop();
-        logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
-                            LogicInterface::ScopeEndpoint::Begin);
+        #if defined(__GNUC__) && !defined(__clang__)
+          opdi_set_lock(&globalReducerLock);
+          opdi_unset_lock(&globalReducerLock);
+        #else
+          logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
+                              LogicInterface::ScopeEndpoint::Begin);
+        #endif
       }
 
       static void addBarrierIfNeeded() {
         if (ReductionTools::reductionBarrierStack.top() == false) {
-          logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
-                              LogicInterface::ScopeEndpoint::Begin);
+          #if defined(__GNUC__) && !defined(__clang__)
+            opdi_set_lock(&globalReducerLock);
+            opdi_unset_lock(&globalReducerLock);
+          #else
+            logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
+                                LogicInterface::ScopeEndpoint::Begin);
+          #endif
           ReductionTools::reductionBarrierStack.top() = true;
         }
       }
