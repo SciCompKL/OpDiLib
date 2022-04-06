@@ -70,5 +70,12 @@ namespace opdi {
         Output::printRec(args...);
         omp_unset_lock(&Output::lock);
       }
+
+      template<typename... Args>
+      static void printThread(Args const&... args) {
+        omp_set_lock(&Output::lock);
+        Output::printRec("thread", omp_get_thread_num(), args...);
+        omp_unset_lock(&Output::lock);
+      }
   };
 }

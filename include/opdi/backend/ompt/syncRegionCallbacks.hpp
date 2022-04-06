@@ -77,7 +77,9 @@ namespace opdi {
             break;
           case ompt_sync_region_barrier_implementation:
             logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation, endpoint);
+            break;
           case ompt_sync_region_reduction: // does not occur in this callback
+            OPDI_WARNING("Unexpected kind argument ompt_sync_region_reduction.");
             break;
           case ompt_sync_region_taskwait:  // not supported, no AD handling
           case ompt_sync_region_taskgroup:
