@@ -47,6 +47,8 @@ omp_nest_lock_t opdi::Reducer<Type, identifier>::reduceLock;
 template<typename Type, int identifier>
 bool opdi::Reducer<Type, identifier>::isInitialized = false;
 
+std::stack<opdi::ProbeScopeStatus::Status> opdi::ProbeScopeStatus::statusStack;
+
 // global macro backend variables
 
 opdi::LoopProbe opdi::internalLoopProbe(0);
