@@ -85,9 +85,6 @@ void opdi::SyncRegionOmpLogic::onSyncRegion(SyncRegionKind kind, ScopeEndpoint e
 
 void opdi::SyncRegionOmpLogic::addReverseBarrier() {
 
-  Data* data = new Data;
-  data->kind = SyncRegionKind::BarrierReverse;
-  data->endpoint = ScopeEndpoint::BeginEnd;
-
-  this->internalPushHandle(data);
+  this->onSyncRegion(SyncRegionKind::BarrierReverse, ScopeEndpoint::Begin);
+  this->onSyncRegion(SyncRegionKind::BarrierReverse, ScopeEndpoint::End);
 }
