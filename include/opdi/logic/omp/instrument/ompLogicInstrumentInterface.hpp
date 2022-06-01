@@ -67,6 +67,8 @@ namespace opdi {
 
       virtual void reverseWork(WorkOmpLogic::Data* /*data*/) {}
       virtual void onWork(LogicInterface::WorksharingKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}
+
+      virtual void onSetAdjointAccessMode(LogicInterface::AdjointAccessMode /*adjointAccess*/) {}
   };
 
   extern std::list<OmpLogicInstrumentInterface*> ompLogicInstruments;

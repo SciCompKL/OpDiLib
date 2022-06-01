@@ -151,6 +151,12 @@ void opdi::ParallelOmpLogic::setAdjointAccessMode(opdi::LogicInterface::AdjointA
   #if OPDI_VARIABLE_ADJOINT_ACCESS_MODE
     AdjointAccessControl::currentMode() = mode;
 
+    #if OPDI_OMP_LOGIC_INSTRUMENT
+      for (auto& instrument : ompLogicInstruments) {
+        instrument->onSetAdjointAccessMode(mode);
+      }
+    #endif
+
     Data* data = (Data*) backend->getParallelData();
     int threadNum = omp_get_thread_num();
 
