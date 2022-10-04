@@ -93,7 +93,7 @@ struct DriverSecondOrderReverseForward : public DriverBase<DriverSecondOrderReve
         for (int o = 0; o < Case::nOut; ++o) {
           for (int j = 0; j < Case::nIn; ++j) {
 
-            inputs[p][j].value().gradient() = 1.0; // forward seeding
+            inputs[p][j].value().setGradient(1.0); // forward seeding
 
             TestReal::TapeType& tape = TestReal::getGlobalTape();
 
@@ -110,7 +110,7 @@ struct DriverSecondOrderReverseForward : public DriverBase<DriverSecondOrderReve
 
             tape.setPassive();
 
-            outputs[o].gradient().value() = 1.0; // reverse seeding
+            outputs[o].setGradient(1.0); // reverse seeding
 
             #ifndef BUILD_REFERENCE
               opdi::logic->prepareEvaluate();
@@ -119,12 +119,12 @@ struct DriverSecondOrderReverseForward : public DriverBase<DriverSecondOrderReve
 
             for (int i = 0; i < Case::nIn; ++i)
             {
-              hessian[o][i][j] = inputs[p][i].gradient().gradient();
-              jacobian[o][i] = inputs[p][i].gradient().value();
-              inputs[p][i].gradient() = 0.0; // undo reverse results
+              hessian[o][i][j] = inputs[p][i].getGradient().getGradient();
+              jacobian[o][i] = inputs[p][i].getGradient().value();
+              inputs[p][i].setGradient(0.0); // undo reverse results
             }
 
-            inputs[p][j].value().gradient() = 0.0; // undo forward seeding
+            inputs[p][j].value().setGradient(0.0); // undo forward seeding
 
             primal[o] = outputs[o].value().value();
 
