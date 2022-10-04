@@ -46,8 +46,6 @@ void opdi::WorkOmpLogic::reverseFunc(void *dataPtr) {
   #else
     OPDI_UNUSED(dataPtr);
   #endif
-
-  #pragma omp barrier
 }
 
 void opdi::WorkOmpLogic::deleteFunc(void* dataPtr) {
@@ -56,25 +54,29 @@ void opdi::WorkOmpLogic::deleteFunc(void* dataPtr) {
   delete data;
 }
 
-void opdi::WorkOmpLogic::onWork(WorksharingKind /*kind*/, ScopeEndpoint /*endpoint*/) {
-  /*
-  if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+void opdi::WorkOmpLogic::onWork(WorksharingKind kind, ScopeEndpoint endpoint) {
 
-    #if OPDI_OMP_LOGIC_INSTRUMENT
-      for (auto& instrument : ompLogicInstruments) {
-        instrument->onWork(kind, endpoint);
-      }
-    #endif
+  #if OPDI_OMP_LOGIC_INSTRUMENT
 
-    Data* data = new Data;
-    data->kind = kind;
-    data->endpoint = endpoint;
+    if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
-    Handle* handle = new Handle;
-    handle->data = (void*) data;
-    handle->reverseFunc = WorkOmpADLogic::reverseFunc;
-    handle->deleteFunc = WorkOmpADLogic::deleteFunc;
-    tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
-  }*/
+        for (auto& instrument : ompLogicInstruments) {
+          instrument->onWork(kind, endpoint);
+        }
+
+        Data* data = new Data;
+        data->kind = kind;
+        data->endpoint = endpoint;
+
+        Handle* handle = new Handle;
+        handle->data = (void*) data;
+        handle->reverseFunc = WorkOmpADLogic::reverseFunc;
+        handle->deleteFunc = WorkOmpADLogic::deleteFunc;
+        tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
+    }
+  #else
+    OPDI_UNUSED(kind);
+    OPDI_UNUSED(endpoint);
+  #endif
 }
 
