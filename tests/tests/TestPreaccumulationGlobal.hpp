@@ -1,7 +1,7 @@
 ﻿/*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -79,9 +79,7 @@ struct TestPreaccumulationGlobal : public TestBase<4, 1, 3, TestPreaccumulationG
         ph.addOutput(post[i]);
       }
 
-      T::getTape().setPassive();
       ph.finish(false);
-      T::getTape().setActive();
 
       for (int i = 0; i < Base::nIn; ++i) {
         out[0] += post[i];

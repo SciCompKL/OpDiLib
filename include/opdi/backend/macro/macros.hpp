@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -105,7 +105,7 @@
     opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier(); \
   }
 
-#define OPDI_NOWAIT private(opdi::internalNowaitProbe)
+#define OPDI_NOWAIT nowait private(opdi::internalNowaitProbe)
 
 #define OPDI_CRITICAL(...) \
   OPDI_PRAGMA(omp critical __VA_ARGS__) \

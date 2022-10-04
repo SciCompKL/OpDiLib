@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -81,7 +81,11 @@ struct TestStateExport : public TestBase<4, 1, 3, TestStateExport<_Case>> {
       }
       OPDI_END_PARALLEL
 
-      T::getTape().setPassive();
+      bool wasActive = T::getTape().isActive();
+
+      if (wasActive) {
+        T::getTape().setPassive();
+      }
 
       T::getTape().resetTo(tapePosition);
       #ifdef _OPENMP
@@ -89,7 +93,9 @@ struct TestStateExport : public TestBase<4, 1, 3, TestStateExport<_Case>> {
         opdi::logic->freeState(opdiState);
       #endif
 
-      T::getTape().setActive();
+      if (wasActive) {
+        T::getTape().setActive();
+      }
 
       DESTROY_LOCK(&lock1);
       DESTROY_LOCK(&lock2);

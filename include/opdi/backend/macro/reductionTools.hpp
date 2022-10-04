@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -39,6 +39,8 @@
 
 #include "../runtime.hpp"
 
+#include "probeTools.hpp"
+
 namespace opdi {
 
   struct ReductionTools {
@@ -55,15 +57,31 @@ namespace opdi {
 
       static void endRegionWithReduction() {
         if (ReductionTools::reductionBarrierStack.top() == false) {
-          std::cerr << "ERROR: reduction barrier missing at end of region." << std::endl;
+          OPDI_ERROR("reduction barrier missing at end of region");
         }
         ReductionTools::reductionBarrierStack.pop();
+        if (ProbeScopeStatus::insideImplicitTaskProbeScope()) {
+          #if defined(__GNUC__) && !defined(__clang__)
+            opdi_set_lock(&globalReducerLock);
+            opdi_unset_lock(&globalReducerLock);
+          #else
+            logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
+                                LogicInterface::ScopeEndpoint::Begin);
+          #endif
+        }
       }
 
       static void addBarrierIfNeeded() {
         if (ReductionTools::reductionBarrierStack.top() == false) {
-          logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
-                              LogicInterface::ScopeEndpoint::Begin);
+          if (ProbeScopeStatus::insideImplicitTaskProbeScope()) {
+            #if defined(__GNUC__) && !defined(__clang__)
+              opdi_set_lock(&globalReducerLock);
+              opdi_unset_lock(&globalReducerLock);
+            #else
+              logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
+                                  LogicInterface::ScopeEndpoint::Begin);
+            #endif
+          }
           ReductionTools::reductionBarrierStack.top() = true;
         }
       }

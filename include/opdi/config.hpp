@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -36,6 +36,9 @@
 #define OPDI_MACRO_BACKEND 1
 #define OPDI_OMPT_BACKEND 2
 
+#define OPDI_ADJOINT_ACCESS_ATOMIC 1
+#define OPDI_ADJOINT_ACCESS_CLASSICAL 2
+
 /* ------------------ configuration ------------------ */
 
 /* logic options */
@@ -46,6 +49,10 @@
 
 #ifndef OPDI_VARIABLE_ADJOINT_ACCESS_MODE
   #define OPDI_VARIABLE_ADJOINT_ACCESS_MODE 1
+#endif
+
+#ifndef OPDI_DEFAULT_ADJOINT_ACCESS_MODE
+  #define OPDI_DEFAULT_ADJOINT_ACCESS_MODE OPDI_ADJOINT_ACCESS_ATOMIC
 #endif
 
 /* error handling options */

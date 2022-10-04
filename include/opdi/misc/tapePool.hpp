@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -42,7 +42,6 @@ namespace opdi {
       std::map<void*, std::map<int, void*>> tapes;
       std::set<void*> createdTapes;
 
-    protected:
       omp_lock_t lock;
 
     public:
@@ -57,6 +56,10 @@ namespace opdi {
 
       void finalize() {
         omp_destroy_lock(&this->lock);
+      }
+
+      omp_lock_t* getInternalLock() {
+        return &this->lock;
       }
 
       void* getTape(void* master, int index) {

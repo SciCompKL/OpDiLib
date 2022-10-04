@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -35,6 +35,14 @@
 #include "implicitTaskOmpLogic.hpp"
 #include "parallelOmpLogic.hpp"
 
+void opdi::ImplicitTaskOmpLogic::internalInit() {
+  this->tapePool.init();
+}
+
+void opdi::ImplicitTaskOmpLogic::internalFinalize() {
+  this->tapePool.finalize();
+}
+
 void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int index, void* parallelDataPtr) {
 
   ParallelData* parallelData = (ParallelData*) parallelDataPtr;
@@ -50,7 +58,7 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int
     data->oldTape = tool->getThreadLocalTape();
     data->parallelData = parallelData;
 
-    void* newTape = TapePool::getTape(parallelData->masterTape, index);
+    void* newTape = this->tapePool.getTape(parallelData->masterTape, index);
     tool->setActive(newTape, true);
 
     data->parallelData->tapes[index] = newTape;

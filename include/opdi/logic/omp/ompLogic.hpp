@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -31,7 +31,6 @@
 
 #include "../../backend/backendInterface.hpp"
 #include "../../misc/tapedOutput.hpp"
-#include "../../misc/tapePool.hpp"
 
 #include "../logicInterface.hpp"
 
@@ -52,8 +51,7 @@ namespace opdi {
                     public SyncRegionOmpLogic,
                     public WorkOmpLogic,
                     public virtual AdjointAccessControl,
-                    public virtual LogicInterface,
-                    public virtual TapePool
+                    public virtual LogicInterface
   {
     public:
 
@@ -62,10 +60,10 @@ namespace opdi {
       virtual void init() {
 
         MutexOmpLogic::internalInit();
+        ImplicitTaskOmpLogic::internalInit();
 
-        TapePool::init();
         // this is important to avoid deadlocks with the ompt backend
-        MutexOmpLogic::registerInactiveMutex(MutexKind::Lock, backend->getLockIdentifier(&(TapePool::lock)));
+        MutexOmpLogic::registerInactiveMutex(MutexKind::Lock, backend->getLockIdentifier(ImplicitTaskOmpLogic::tapePool.getInternalLock()));
 
         TapedOutput::init();
         MutexOmpLogic::registerInactiveMutex(MutexKind::Lock, backend->getLockIdentifier(&(TapedOutput::lock)));
@@ -73,7 +71,7 @@ namespace opdi {
 
       virtual void finalize() {
         MutexOmpLogic::internalFinalize();
-        TapePool::finalize();
+        ImplicitTaskOmpLogic::internalFinalize();
         TapedOutput::finalize();
       }
 

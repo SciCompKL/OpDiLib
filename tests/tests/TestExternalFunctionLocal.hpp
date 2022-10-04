@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -74,6 +74,7 @@ struct TestExternalFunctionLocal : public TestBase<4, 1, 3, TestExternalFunction
         for (int i = start; i < end; ++i) {
           eh->addInput(jobResults[i]);
         }
+
         for (int i = start; i < end; ++i) {
           eh->addOutput(intermediate[i]);
         }

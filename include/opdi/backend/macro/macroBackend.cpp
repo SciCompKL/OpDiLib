@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -46,6 +46,8 @@ omp_nest_lock_t opdi::Reducer<Type, identifier>::reduceLock;
 
 template<typename Type, int identifier>
 bool opdi::Reducer<Type, identifier>::isInitialized = false;
+
+std::stack<opdi::ProbeScopeStatus::Status> opdi::ProbeScopeStatus::statusStack;
 
 // global macro backend variables
 

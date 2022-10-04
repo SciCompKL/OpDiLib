@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -68,6 +68,13 @@ namespace opdi {
       static void print(Args const&... args) {
         omp_set_lock(&Output::lock);
         Output::printRec(args...);
+        omp_unset_lock(&Output::lock);
+      }
+
+      template<typename... Args>
+      static void printThread(Args const&... args) {
+        omp_set_lock(&Output::lock);
+        Output::printRec("thread", omp_get_thread_num(), args...);
         omp_unset_lock(&Output::lock);
       }
   };

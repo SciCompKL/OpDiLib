@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -150,6 +150,12 @@ void opdi::ParallelOmpLogic::setAdjointAccessMode(opdi::LogicInterface::AdjointA
 
   #if OPDI_VARIABLE_ADJOINT_ACCESS_MODE
     AdjointAccessControl::currentMode() = mode;
+
+    #if OPDI_OMP_LOGIC_INSTRUMENT
+      for (auto& instrument : ompLogicInstruments) {
+        instrument->onSetAdjointAccessMode(mode);
+      }
+    #endif
 
     Data* data = (Data*) backend->getParallelData();
     int threadNum = omp_get_thread_num();

@@ -1,7 +1,7 @@
 #
 #  OpDiLib, an Open Multiprocessing Differentiation Library
 #
-#  Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+#  Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
 #  Homepage: http://www.scicomp.uni-kl.de
 #  Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
 #
@@ -79,7 +79,7 @@ DRIVER_FILES = $(wildcard $(DRIVER_DIR)/Driver**.hpp)
 DRIVERS ?= $(patsubst $(DRIVER_DIR)/Driver%.hpp,%,$(DRIVER_FILES))
 
 # without surrounding parallel directives, privatized variables are not recognized as shared and sections are considered orphaned; hence, they need to be filtered out
-getDriverTests = $(if $(filter FirstOrderReverseNoParallel, $1), $(filter-out ParallelSections ForReduction ForReductionMultiple ForFirstprivate ForLastprivate SectionsReduction SectionsReductionMultiple SectionsFirstprivate SectionsLastprivate ReductionNested SingleFirstprivate, $(TESTS)), $(TESTS))
+getDriverTests = $(if $(filter FirstOrderReverseNoParallel, $1), $(filter-out ParallelSections ForReduction ForReductionNowait ForReductionMultiple ForFirstprivate ForLastprivate SectionsReduction SectionsReductionMultiple SectionsFirstprivate SectionsLastprivate ReductionNested SingleFirstprivate, $(TESTS)), $(TESTS))
 
 DRIVER_TESTS =
 

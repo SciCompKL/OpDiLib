@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -30,8 +30,15 @@
 #include "instrument/ompLogicInstrumentInterface.hpp"
 #include "adjointAccessControl.hpp"
 
-std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
-                                                                    {opdi::LogicInterface::AdjointAccessMode::Atomic};
+#if OPDI_DEFAULT_ADJOINT_ACCESS_MODE == OPDI_ADJOINT_ACCESS_ATOMIC
+  std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
+                                                      {opdi::LogicInterface::AdjointAccessMode::Atomic};
+#elif OPDI_DEFAULT_ADJOINT_ACCESS_MODE == OPDI_ADJOINT_ACCESS_CLASSICAL
+  std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
+                                                      {opdi::LogicInterface::AdjointAccessMode::Classical};
+#else
+  #error Unknown adjoint access mode.
+#endif
 
 std::list<opdi::OmpLogicInstrumentInterface*> opdi::ompLogicInstruments;
 

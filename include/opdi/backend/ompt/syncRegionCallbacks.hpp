@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -77,7 +77,9 @@ namespace opdi {
             break;
           case ompt_sync_region_barrier_implementation:
             logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation, endpoint);
+            break;
           case ompt_sync_region_reduction: // does not occur in this callback
+            OPDI_WARNING("Unexpected kind argument ompt_sync_region_reduction.");
             break;
           case ompt_sync_region_taskwait:  // not supported, no AD handling
           case ompt_sync_region_taskgroup:

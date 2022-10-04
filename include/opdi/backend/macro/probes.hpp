@@ -1,7 +1,7 @@
 /*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -29,11 +29,13 @@
 
 #pragma once
 
+#include "../../helpers/exceptions.hpp"
 #include "../../logic/logicInterface.hpp"
 #include "../../tool/toolInterface.hpp"
 
 #include "dataTools.hpp"
 #include "implicitBarrierTools.hpp"
+#include "probeTools.hpp"
 #include "reductionTools.hpp"
 
 namespace opdi {
@@ -44,18 +46,19 @@ namespace opdi {
       void* parallelData;
       void* taskData;
       void* masterPosition;
+      bool needsAction;
 
-      TaskProbe() : parallelData(nullptr), taskData(nullptr) {
+      TaskProbe() : parallelData(nullptr), taskData(nullptr), needsAction(false) {
         this->masterPosition = tool->allocPosition();
         opdi::tool->getTapePosition(tool->getThreadLocalTape(), this->masterPosition);
       }
 
-      TaskProbe(void* parallelData) : parallelData(parallelData), taskData(nullptr) {
+      TaskProbe(void* parallelData) : parallelData(parallelData), taskData(nullptr), needsAction(false) {
         this->masterPosition = tool->allocPosition();
         tool->getTapePosition(tool->getThreadLocalTape(), this->masterPosition);
       }
 
-      TaskProbe(TaskProbe const& other) : parallelData(other.parallelData) {
+      TaskProbe(TaskProbe const& other) : parallelData(other.parallelData), needsAction(true) {
 
         this->masterPosition = tool->allocPosition();
         if (omp_get_thread_num() == 0) {
@@ -81,10 +84,13 @@ namespace opdi {
         }
 
         tool->freePosition(currentPosition);
+
+        ProbeScopeStatus::beginImplicitTaskProbeScope();
       }
 
       ~TaskProbe() {
-        if (this->taskData != nullptr) {
+        if (needsAction) {
+          ProbeScopeStatus::endImplicitTaskProbeScope();
           logic->onImplicitTaskEnd(this->taskData);
           DataTools::popParallelData();
         }
@@ -130,6 +136,7 @@ namespace opdi {
       ReductionProbe(int) : needsAction(false) {}
 
       ReductionProbe() : needsAction(true) {
+        ProbeScopeStatus::beginReductionProbeScope();
         ReductionTools::beginRegionWithReduction();
       }
 
@@ -137,6 +144,7 @@ namespace opdi {
         if (needsAction) {
           ReductionTools::addBarrierIfNeeded();
           ReductionTools::endRegionWithReduction();
+          ProbeScopeStatus::endReductionProbeScope();
         }
       }
   };

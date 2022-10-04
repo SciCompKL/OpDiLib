@@ -1,7 +1,7 @@
 ﻿/*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
- * Copyright (C) 2020-2021 Chair for Scientific Computing (SciComp), TU Kaiserslautern
+ * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -56,6 +56,7 @@
   using TestReal = codi::RealReverseIndexGen<codi::RealForward>;
 #else
   using TestReal = codi::RealReverseIndexOpenMPGen<codi::RealForward>;
+  using NestedReal = codi::RealForward;
 
   OPDI_DECLARE_REDUCTION(plus, TestReal, +, 0.0);
   OPDI_DECLARE_REDUCTION(prod, TestReal, *, 1.0);
@@ -94,7 +95,7 @@ struct DriverSecondOrderReverseForward : public DriverBase<DriverSecondOrderReve
         for (int o = 0; o < Case::nOut; ++o) {
           for (int j = 0; j < Case::nIn; ++j) {
 
-            inputs[p][j].value().gradient() = 1.0; // forward seeding
+            inputs[p][j].value().setGradient(1.0); // forward seeding
 
             TestReal::Tape& tape = TestReal::getTape();
 
@@ -111,7 +112,7 @@ struct DriverSecondOrderReverseForward : public DriverBase<DriverSecondOrderReve
 
             tape.setPassive();
 
-            outputs[o].gradient().value() = 1.0; // reverse seeding
+            outputs[o].setGradient(NestedReal(1.0)); // reverse seeding
 
             #ifndef BUILD_REFERENCE
               opdi::logic->prepareEvaluate();
@@ -120,12 +121,12 @@ struct DriverSecondOrderReverseForward : public DriverBase<DriverSecondOrderReve
 
             for (int i = 0; i < Case::nIn; ++i)
             {
-              hessian[o][i][j] = inputs[p][i].gradient().gradient();
-              jacobian[o][i] = inputs[p][i].gradient().value();
-              inputs[p][i].gradient() = 0.0; // undo reverse results
+              hessian[o][i][j] = inputs[p][i].getGradient().getGradient();
+              jacobian[o][i] = inputs[p][i].getGradient().value();
+              inputs[p][i].setGradient(NestedReal(0.0)); // undo reverse results
             }
 
-            inputs[p][j].value().gradient() = 0.0; // undo forward seeding
+            inputs[p][j].value().setGradient(0.0); // undo forward seeding
 
             primal[o] = outputs[o].value().value();
 
