@@ -49,10 +49,12 @@ EXPLICIT_PREPROCESSOR ?= no
 
 COMPILER ?= clang++
 
+FLAGS = $(CXXFLAGS)
+
 ifeq ($(DEBUG),no)
-	FLAGS = -std=c++11 -O3 -flto -Wall -Wextra -mavx2
+	FLAGS += -std=c++11 -O3 -flto -Wall -Wextra -mavx2
 else
-  FLAGS = -std=c++11 -O0 -ggdb -Wall -Wextra
+  FLAGS += -std=c++11 -O0 -ggdb -Wall -Wextra
   ifeq ($(OUTPUT_INSTRUMENT),yes)
     FLAGS += -DOPDI_OMP_LOGIC_INSTRUMENT=1 -DOUTPUT_INSTRUMENT
   endif
