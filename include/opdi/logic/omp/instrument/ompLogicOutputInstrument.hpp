@@ -41,19 +41,19 @@ namespace opdi {
       virtual ~OmpLogicOutputInstrument() {}
 
       virtual void reverseFlush() {
-        TapedOutput::print("R FLSH l", omp_get_level(), "i", omp_get_thread_num());
+        TapedOutput::print("R FLSH l", omp_get_level(), "t", omp_get_thread_num());
       }
 
       virtual void onImplicitTaskBegin(ImplicitTaskOmpLogic::Data* data) {
         TapedOutput::print("F IMTB l", omp_get_level(),
-                           "i", data->index,
+                           "t", data->index,
                            "tape", data->parallelData->tapes[data->index],
                            "pos", tool->positionToString(data->parallelData->positions[data->index].back()));
       }
 
       virtual void onImplicitTaskEnd(ImplicitTaskOmpLogic::Data* data) {
         TapedOutput::print("F IMTE l", omp_get_level(),
-                           "i", data->index,
+                           "t", data->index,
                            "tape", data->parallelData->tapes[data->index],
                            "pos", tool->positionToString(data->parallelData->positions[data->index].back()));
       }
@@ -94,14 +94,14 @@ namespace opdi {
       }
 
       virtual void reverseParallel(ParallelOmpLogic::Data* data) {
-        TapedOutput::print("R PARA i", omp_get_thread_num(),
+        TapedOutput::print("R PARA t", omp_get_thread_num(),
                            "tape", data->tapes[omp_get_thread_num()],
                            "start", tool->positionToString(data->positions[omp_get_thread_num()].back()),
                            "end", tool->positionToString(data->positions[omp_get_thread_num()].front()));
       }
 
       virtual void reverseParallelPart(ParallelOmpLogic::Data* data, std::size_t j) {
-        TapedOutput::print("R PARP i", omp_get_thread_num(),
+        TapedOutput::print("R PARP t", omp_get_thread_num(),
                            "tape", data->tapes[omp_get_thread_num()],
                            "j", j,
                            "start", tool->positionToString(data->positions[omp_get_thread_num()][j]),
@@ -122,19 +122,19 @@ namespace opdi {
       }
 
       virtual void reverseSyncRegion(SyncRegionOmpLogic::Data* data) {
-        TapedOutput::print("R SYNC l", omp_get_level(), "i", omp_get_thread_num(), "kind", data->kind, "endp", data->endpoint);
+        TapedOutput::print("R SYNC l", omp_get_level(), "t", omp_get_thread_num(), "kind", data->kind, "endp", data->endpoint);
       }
 
       virtual void onSyncRegion(LogicInterface::SyncRegionKind kind, LogicInterface::ScopeEndpoint endpoint) {
-        TapedOutput::print("F SYNC i", omp_get_thread_num(), "kind", kind, "endp", endpoint);
+        TapedOutput::print("F SYNC t", omp_get_thread_num(), "kind", kind, "endp", endpoint);
       }
 
       virtual void reverseWork(WorkOmpLogic::Data* data) {
-        TapedOutput::print("R WORK i", omp_get_thread_num(), "kind", data->kind, "endp", data->endpoint);
+        TapedOutput::print("R WORK t", omp_get_thread_num(), "kind", data->kind, "endp", data->endpoint);
       }
 
       virtual void onWork(LogicInterface::WorksharingKind kind, LogicInterface::ScopeEndpoint endpoint) {
-        TapedOutput::print("F WORK i", omp_get_thread_num(), "kind", kind, "endp", endpoint);
+        TapedOutput::print("F WORK t", omp_get_thread_num(), "kind", kind, "endp", endpoint);
       }
   };
 }
