@@ -66,7 +66,7 @@ namespace opdi {
             opdi_unset_lock(&globalReducerLock);
           #else
             logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
-                                LogicInterface::ScopeEndpoint::Begin);
+                                LogicInterface::ScopeEndpoint::End);
           #endif
         }
       }

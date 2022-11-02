@@ -70,8 +70,8 @@ void opdi::WorkOmpLogic::onWork(WorksharingKind kind, ScopeEndpoint endpoint) {
 
         Handle* handle = new Handle;
         handle->data = (void*) data;
-        handle->reverseFunc = WorkOmpADLogic::reverseFunc;
-        handle->deleteFunc = WorkOmpADLogic::deleteFunc;
+        handle->reverseFunc = WorkOmpLogic::reverseFunc;
+        handle->deleteFunc = WorkOmpLogic::deleteFunc;
         tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
     }
   #else

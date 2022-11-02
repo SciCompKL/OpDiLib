@@ -50,7 +50,7 @@ namespace opdi {
       static void reverseFunc(void* dataPtr);
       static void deleteFunc(void* dataPtr);
 
-      void internalPushHandle(Data* data);
+      void internalPushHandle(SyncRegionKind kind, ScopeEndpoint endpoint);
 
     public:
 
