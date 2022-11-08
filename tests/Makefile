@@ -47,12 +47,14 @@ OUTPUT_INSTRUMENT ?= no
 # possibly set in the environment, enables build from source after preprocessing
 EXPLICIT_PREPROCESSOR ?= no
 
-COMPILER ?= clang++
+CXX ?= clang++
+
+FLAGS = $(CXXFLAGS)
 
 ifeq ($(DEBUG),no)
-	FLAGS = -std=c++11 -O3 -flto -Wall -Wextra -mavx2
+	FLAGS += -std=c++11 -O3 -flto -Wall -Wextra -mavx2
 else
-  FLAGS = -std=c++11 -O0 -ggdb -Wall -Wextra
+  FLAGS += -std=c++11 -O0 -ggdb -Wall -Wextra
   ifeq ($(OUTPUT_INSTRUMENT),yes)
     FLAGS += -DOPDI_OMP_LOGIC_INSTRUMENT=1 -DOUTPUT_INSTRUMENT
   endif
@@ -118,17 +120,17 @@ $(DRIVERS):
 		LINK_CASES+=" "$$driver$$test; \
 		echo $$driver$$test".o:" >> tempmakefile; \
 		if [[ $(EXPLICIT_PREPROCESSOR) == "no" ]] ; then \
-			echo -e "\t"$(COMPILER)" "$(BUILD_DIR)"/$$driver$$test.cpp -c -o "$(BUILD_DIR)"/"$$driver$$test".o "$(FLAGS)" -I "$(CODI_DIR)" -I "$(OPDI_DIR) >> tempmakefile; \
+			echo -e "\t"$(CXX)" "$(BUILD_DIR)"/$$driver$$test.cpp -c -o "$(BUILD_DIR)"/"$$driver$$test".o "$(FLAGS)" -I "$(CODI_DIR)" -I "$(OPDI_DIR) >> tempmakefile; \
 		else \
-			echo -e "\t"$(COMPILER)" -E "$(BUILD_DIR)"/$$driver$$test.cpp -o "$(BUILD_DIR)"/"$$driver$$test".temp "$(FLAGS)" -I "$(CODI_DIR)" -I "$(OPDI_DIR) >> tempmakefile; \
+			echo -e "\t"$(CXX)" -E "$(BUILD_DIR)"/$$driver$$test.cpp -o "$(BUILD_DIR)"/"$$driver$$test".temp "$(FLAGS)" -I "$(CODI_DIR)" -I "$(OPDI_DIR) >> tempmakefile; \
 			echo -e "\tcat "$(BUILD_DIR)"/"$$driver$$test".temp | grep -v \"# \" > "$(BUILD_DIR)"/"$$driver$$test"Pre.cpp" >> tempmakefile; \
-			echo -e "\t"$(COMPILER)" "$(BUILD_DIR)"/"$$driver$$test"Pre.cpp -c -o "$(BUILD_DIR)"/"$$driver$$test"Pre.o "$(FLAGS)" -I "$(CODI_DIR)" -I "$(OPDI_DIR)"\n" >> tempmakefile; \
+			echo -e "\t"$(CXX)" "$(BUILD_DIR)"/"$$driver$$test"Pre.cpp -c -o "$(BUILD_DIR)"/"$$driver$$test"Pre.o "$(FLAGS)" -I "$(CODI_DIR)" -I "$(OPDI_DIR)"\n" >> tempmakefile; \
 		fi; \
 		echo $$driver$$test":" >> tempmakefile; \
 		if [[ $(EXPLICIT_PREPROCESSOR) == "no" ]] ; then \
-			echo -e "\t"$(COMPILER)" "$(BUILD_DIR)"/$$driver$$test.o -o "$(BUILD_DIR)"/"$$driver$$test" "$(FLAGS) >> tempmakefile; \
+			echo -e "\t"$(CXX)" "$(BUILD_DIR)"/$$driver$$test.o -o "$(BUILD_DIR)"/"$$driver$$test" "$(FLAGS) >> tempmakefile; \
 		else \
-			echo -e "\t"$(COMPILER)" "$(BUILD_DIR)"/"$$driver$$test"Pre.o -o "$(BUILD_DIR)"/"$$driver$$test"Pre "$(FLAGS)"\n" >> tempmakefile; \
+			echo -e "\t"$(CXX)" "$(BUILD_DIR)"/"$$driver$$test"Pre.o -o "$(BUILD_DIR)"/"$$driver$$test"Pre "$(FLAGS)"\n" >> tempmakefile; \
 		fi \
 	done; \
 	echo -e "build_all:$$BUILD_CASES\n" >> tempmakefile; \
