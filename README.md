@@ -26,16 +26,20 @@ If you have a code that is differentiated with a serial AD tool and parallelize 
 ## Publication
 
 For further details about OpDiLib's design, features and modes of operation, please refer to our publication
-[Event-Based Automatic Differentiation of OpenMP with OpDiLib](https://arxiv.org/abs/2102.11572).
+[Event-Based Automatic Differentiation of OpenMP with OpDiLib](https://doi.org/10.1145/3570159).
 If you use OpDiLib in one of your applications and write a paper, please cite us!
 
 ~~~~{.txt}
-@misc{BluehdornSG2021,
+@article{BluehdornSG2021,
   title = {{Event-Based Automatic Differentiation of OpenMP with OpDiLib}},
   author = {Bl{\"u}hdorn, Johannes and Sagebaum, Max and Gauger, Nicolas R.},
-  url = {https://arxiv.org/abs/2102.11572},
-  year = {2021},
-  note={Preprint arXiv:2102.11572}
+  doi = {10.1145/3570159},
+  year = {2022},
+  month = {nov},
+  journal = {ACM Transactions on Mathematical Software},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  note = {Just Accepted}
 }
 ~~~~
 
