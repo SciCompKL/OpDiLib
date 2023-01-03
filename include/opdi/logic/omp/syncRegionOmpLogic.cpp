@@ -54,26 +54,25 @@ void opdi::SyncRegionOmpLogic::deleteFunc(void* dataPtr) {
   delete data;
 }
 
-void opdi::SyncRegionOmpLogic::internalPushHandle(Data* data) {
+void opdi::SyncRegionOmpLogic::internalPushHandle(SyncRegionKind kind, ScopeEndpoint endpoint) {
+
+  Data* data = new Data;
+  data->kind = kind;
+  data->endpoint = endpoint;
 
   Handle* handle = new Handle;
   handle->data = (void*) data;
   handle->reverseFunc = SyncRegionOmpLogic::reverseFunc;
   handle->deleteFunc = SyncRegionOmpLogic::deleteFunc;
+
   tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
 }
 
 void opdi::SyncRegionOmpLogic::onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint) {
 
   if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
-    if (endpoint == ScopeEndpoint::Begin) {
 
-      Data* data = new Data;
-      data->kind = kind;
-      data->endpoint = endpoint;
-
-      this->internalPushHandle(data);
-    }
+    internalPushHandle(kind, endpoint);
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
