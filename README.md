@@ -4,7 +4,7 @@
 
 It makes use of modern OpenMP features around OMPT to deduce a parallel reverse pass without any additional modifications of the parallel source code. Additionally, we provide a second mode of operation that works via replacement macros for OpenMP's directives and clauses as well as replacements for OpenMP's runtime functions. This mode of operation can also be used with compilers that do not support OMPT. There are no restrictions on data access patterns so that a first differentiated parallel code is obtained with little to no effort. As a next step, the parallel performance of the reverse pass can be optimized with various tools. One important aspect is disabling atomic updates on adjoint variables where appropriate. If the underlying AD tool is capable of differentiating MPI, for example via the add-on [MeDiPack](https://www.scicomp.uni-kl.de/software/medi/), OpDiLib can also be employed for a differentiation of OpenMP-MPI hybrid parallel codes.
 
-The [Scientific Computing Group](https://www.scicomp.uni-kl.de) at the TU Kaiserslautern develops OpDiLib and will enhance and extend OpDiLib in the future.
+The [Scientific Computing Group](https://www.scicomp.uni-kl.de) at the University of Kaiserslautern-Landau (RPTU) develops OpDiLib and will enhance and extend OpDiLib in the future.
 There is a newsletter available at [opdi-info@scicomp.uni-kl.de](https://lists.uni-kl.de/scicomp/subscribe/opdi-info).
 If you want to contact us, please write a mail to [opdi@scicomp.uni-kl.de](mailto:opdi@scicomp.uni-kl.de).
 
@@ -26,16 +26,20 @@ If you have a code that is differentiated with a serial AD tool and parallelize 
 ## Publication
 
 For further details about OpDiLib's design, features and modes of operation, please refer to our publication
-[Event-Based Automatic Differentiation of OpenMP with OpDiLib](https://arxiv.org/abs/2102.11572).
+[Event-Based Automatic Differentiation of OpenMP with OpDiLib](https://doi.org/10.1145/3570159).
 If you use OpDiLib in one of your applications and write a paper, please cite us!
 
 ~~~~{.txt}
-@misc{BluehdornSG2021,
+@article{BluehdornSG2021,
   title = {{Event-Based Automatic Differentiation of OpenMP with OpDiLib}},
   author = {Bl{\"u}hdorn, Johannes and Sagebaum, Max and Gauger, Nicolas R.},
-  url = {https://arxiv.org/abs/2102.11572},
-  year = {2021},
-  note={Preprint arXiv:2102.11572}
+  doi = {10.1145/3570159},
+  year = {2022},
+  month = {nov},
+  journal = {ACM Transactions on Mathematical Software},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  note = {Just Accepted}
 }
 ~~~~
 
