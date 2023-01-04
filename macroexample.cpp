@@ -32,11 +32,10 @@
 #include <iostream>
 
 #include <opdi/backend/macro/macroBackend.hpp>
-#include <codi/tools/parallel/openmp/codiOpenMP.hpp>
-#include <codi/tools/parallel/openmp/codiOpDiLibTool.hpp>
 #include <opdi.hpp>
+#include "opdi/logic/omp/instrument/ompLogicOutputInstrument.hpp"
 
-using Real = codi::RealReverseIndexOpenMP;
+using Real = codi::RealReverseIndexOpenMP;  // use a suitable CoDiPack type
 using Tape = typename Real::Tape;
 
 int main(int nargs, char** args) {
@@ -49,43 +48,47 @@ int main(int nargs, char** args) {
   opdi::logic->init();
   opdi::tool = new CoDiOpDiLibTool<Real>;
 
-  // initialize thread-safe version of CoDiPack
-
-  Tape& tape = Real::getTape();
-  tape.initialize();
-
   // usual AD workflow
 
   Real x = 4.0;
 
+  Tape& tape = Real::getTape();
   tape.setActive();
   tape.registerInput(x);
 
   // parallel computation
 
-  Real a[1000];
+  size_t constexpr N = 10000000;
+
   Real y = 0.0;
 
   OPDI_PARALLEL()
   {
+    Real localSum = 0.0;
+
     OPDI_FOR()
-    for (int i = 0; i < 1000; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
-      a[i] = sin(x * i);
+      localSum += sin(x * i);
     }
     OPDI_END_FOR
+
+    OPDI_CRITICAL()
+    {
+      y += localSum;
+    }
+    OPDI_END_CRITICAL
   }
   OPDI_END_PARALLEL
-
-  for (int i = 0; i < 1000; ++i) {
-    y += a[i];
-  }
 
   // usual AD workflow
 
   tape.registerOutput(y);
   tape.setPassive();
   y.setGradient(1.0);
+
+  opdi::logic->prepareEvaluate();  // prepare OpDiLib for evaluation
+
   tape.evaluate();
 
   std::cout << "f(" << x << ") = " << y << std::endl;

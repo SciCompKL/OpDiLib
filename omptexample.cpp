@@ -32,49 +32,52 @@
 #include <iostream>
 
 #include <opdi/backend/ompt/omptBackend.hpp>
-#include <codi/tools/parallel/openmp/codiOpenMP.hpp>
-#include <codi/tools/parallel/openmp/codiOpDiLibTool.hpp>
 #include <opdi.hpp>
 
-using Real = codi::RealReverseIndexOpenMP;
+using Real = codi::RealReverseIndexOpenMP;  // use a suitable CoDiPack type
 using Tape = typename Real::Tape;
 
 int main(int nargs, char** args) {
 
   // initialize OpDiLib
 
+  if (opdi::backend == nullptr) {
+    std::cout << "Could not initialize OMPT backend. Please check OMPT support." << std::endl;
+    exit(1);
+  }
+
   opdi::logic = new opdi::OmpLogic;
   opdi::logic->init();
   opdi::tool = new CoDiOpDiLibTool<Real>;
-
-  // initialize thread-safe version of CoDiPack
-
-  Tape& tape = Real::getTape();
-  tape.initialize();
 
   // usual AD workflow
 
   Real x = 4.0;
 
+  Tape& tape = Real::getTape();
   tape.setActive();
   tape.registerInput(x);
 
   // parallel computation
 
-  Real a[1000];
+  size_t constexpr N = 10000000;
+
   Real y = 0.0;
 
   #pragma omp parallel
   {
-    #pragma omp for
-    for (int i = 0; i < 1000; ++i)
-    {
-      a[i] = sin(x * i);
-    }
-  }
+    Real localSum = 0.0;
 
-  for (int i = 0; i < 1000; ++i) {
-    y += a[i];
+    #pragma omp for
+    for (size_t i = 0; i < N; ++i)
+    {
+      localSum += sin(x * i);
+    }
+
+    #pragma omp critical
+    {
+      y += localSum;
+    }
   }
 
   // usual AD workflow
@@ -82,6 +85,9 @@ int main(int nargs, char** args) {
   tape.registerOutput(y);
   tape.setPassive();
   y.setGradient(1.0);
+
+  opdi::logic->prepareEvaluate();  // prepare OpDiLib for evaluation
+
   tape.evaluate();
 
   std::cout << "f(" << x << ") = " << y << std::endl;

@@ -19,7 +19,7 @@ OpDiLib supports all directives, clauses and runtime functions of the OpenMP 2.5
 
 If you have a code that is differentiated with a serial AD tool and parallelize it using OpenMP, the procedure of obtaining an efficient parallel differentiated code with OpDiLib is as follows.
 
-1. **Couple OpDiLib with your AD tool.** This step can be skipped if you use an AD tool that already has OpDiLib bindings, for example the thread-safe version of [CoDiPack](https://www.scicomp.uni-kl.de/software/codi/). It can be found in [this](https://github.com/scicompkl/codipack/tree/experimentalOpenMPSupport) branch.
+1. **Couple OpDiLib with your AD tool.** This step can be skipped if you use an AD tool that already has OpDiLib bindings, for example [CoDiPack](https://www.scicomp.uni-kl.de/software/codi/).
 2. **Obtain a first parallel differentiated version of your code.** If your compiler supports OMPT, it suffices to add a few lines of code for the initialization and finalization of OpDiLib. Otherwise, you have to use OpDiLib's macro backend, which involves rewriting your OpenMP constructs according to OpDiLib's macro interface. Both approaches are demonstrated in the minimal example below.
 3. **Optimize the performance of the parallel reverse pass.** Check your parallel forward code for parts that do not involve shared reading. Use OpDiLib's adjoint access control tools to disable atomic adjoints for these parts. You may also revise your data access patterns to eliminate additional instances of shared reading.
 
@@ -45,7 +45,7 @@ If you use OpDiLib in one of your applications and write a paper, please cite us
 
 ## Minimal Example
 
-The following minimal example assumes that the thread-safe version of [CoDiPack](https://www.scicomp.uni-kl.de/software/codi/) is used as the underlying AD tool. For additional examples, please refer to OpDiLib's test suite.
+The following minimal example assumes that [CoDiPack](https://www.scicomp.uni-kl.de/software/codi/) is used as the underlying AD tool. For additional examples, please refer to OpDiLib's test suite.
 
 ### OMPT Backend
 
@@ -54,10 +54,9 @@ The following minimal example assumes that the thread-safe version of [CoDiPack]
 #include <iostream>
 
 #include <opdi/backend/ompt/omptBackend.hpp>
-#include <codi/externals/codiOpdiTool.hpp>
 #include <opdi.hpp>
 
-using Real = codi::RealReverseIndexParallel;
+using Real = codi::RealReverseIndexOpenMP;  // use a suitable CoDiPack type
 using Tape = typename Real::Tape;
 
 int main(int nargs, char** args) {
@@ -66,36 +65,41 @@ int main(int nargs, char** args) {
 
   opdi::logic = new opdi::OmpLogic;
   opdi::logic->init();
-  opdi::tool = new CoDiOpDiTool<Real>;
+  opdi::tool = new CoDiOpDiLibTool<Real>;
 
-  // initialize thread-safe version of CoDiPack
-
-  Tape& tape = Real::getTape();
-  tape.initialize();
+  if (opdi::backend == nullptr) {
+    std::cout << "Could not initialize OMPT backend. Please check OMPT support." << std::endl;
+    abort();
+  }
 
   // usual AD workflow
 
   Real x = 4.0;
 
+  Tape& tape = Real::getTape();
   tape.setActive();
   tape.registerInput(x);
 
   // parallel computation
 
-  Real a[1000];
+  size_t constexpr N = 10000000;
+
   Real y = 0.0;
 
   #pragma omp parallel
   {
-    #pragma omp for
-    for (int i = 0; i < 1000; ++i)
-    {
-      a[i] = sin(x * i);
-    }
-  }
+    Real localSum = 0.0;
 
-  for (int i = 0; i < 1000; ++i) {
-    y += a[i];
+    #pragma omp for
+    for (size_t i = 0; i < N; ++i)
+    {
+      localSum += sin(x * i);
+    }
+
+    #pragma omp critical
+    {
+      y += localSum;
+    }
   }
 
   // usual AD workflow
@@ -103,6 +107,9 @@ int main(int nargs, char** args) {
   tape.registerOutput(y);
   tape.setPassive();
   y.setGradient(1.0);
+
+  opdi::logic->prepareEvaluate();  // prepare OpDiLib for evaluation
+
   tape.evaluate();
 
   std::cout << "f(" << x << ") = " << y << std::endl;
@@ -119,12 +126,13 @@ int main(int nargs, char** args) {
 
 // don't forget to include the OpDiLib source file
 #include "opdi.cpp"
+
 ~~~~
 
 The following command can be used to compile the code.
 
 ~~~~{.txt}
-clang++  -I<path to codi>/include -I<path to opdi>/include --std=c++11 -fopenmp -o omptexample omptexample.cpp
+clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++11 -fopenmp -o omptexample omptexample.cpp
 ~~~~
 
 ### Macro Backend
@@ -134,10 +142,10 @@ clang++  -I<path to codi>/include -I<path to opdi>/include --std=c++11 -fopenmp 
 #include <iostream>
 
 #include <opdi/backend/macro/macroBackend.hpp>
-#include <codi/externals/codiOpdiTool.hpp>
 #include <opdi.hpp>
+#include "opdi/logic/omp/instrument/ompLogicOutputInstrument.hpp"
 
-using Real = codi::RealReverseIndexParallel;
+using Real = codi::RealReverseIndexOpenMP;  // use a suitable CoDiPack type
 using Tape = typename Real::Tape;
 
 int main(int nargs, char** args) {
@@ -148,45 +156,49 @@ int main(int nargs, char** args) {
   opdi::backend->init();
   opdi::logic = new opdi::OmpLogic;
   opdi::logic->init();
-  opdi::tool = new CoDiOpDiTool<Real>;
-
-  // initialize thread-safe version of CoDiPack
-
-  Tape& tape = Real::getTape();
-  tape.initialize();
+  opdi::tool = new CoDiOpDiLibTool<Real>;
 
   // usual AD workflow
 
   Real x = 4.0;
 
+  Tape& tape = Real::getTape();
   tape.setActive();
   tape.registerInput(x);
 
   // parallel computation
 
-  Real a[1000];
+  size_t constexpr N = 10000000;
+
   Real y = 0.0;
 
   OPDI_PARALLEL()
   {
+    Real localSum = 0.0;
+
     OPDI_FOR()
-    for (int i = 0; i < 1000; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
-      a[i] = sin(x * i);
+      localSum += sin(x * i);
     }
     OPDI_END_FOR
+
+    OPDI_CRITICAL()
+    {
+      y += localSum;
+    }
+    OPDI_END_CRITICAL
   }
   OPDI_END_PARALLEL
-
-  for (int i = 0; i < 1000; ++i) {
-    y += a[i];
-  }
 
   // usual AD workflow
 
   tape.registerOutput(y);
   tape.setPassive();
   y.setGradient(1.0);
+
+  opdi::logic->prepareEvaluate();  // prepare OpDiLib for evaluation
+
   tape.evaluate();
 
   std::cout << "f(" << x << ") = " << y << std::endl;
@@ -209,6 +221,6 @@ int main(int nargs, char** args) {
 The following command can be used to compile the code.
 
 ~~~~{.txt}
-clang++  -I<path to codi>/include -I<path to opdi>/include --std=c++11 -fopenmp -o macroexample macroexample.cpp
+clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++11 -fopenmp -o macroexample macroexample.cpp
 ~~~~
 
