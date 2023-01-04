@@ -31,6 +31,7 @@
 #pragma once
 
 #include <array>
+#include <cstdlib>
 #include <iostream>
 
 #include "codi.hpp"
@@ -75,10 +76,14 @@ struct DriverFirstOrderReverseNoOpenMP : public DriverBase<DriverFirstOrderRever
         #ifdef OPDI_USE_MACRO_BACKEND
           opdi::backend = new opdi::MacroBackend();
           opdi::backend->init();
+        #else
+          if (opdi::backend == nullptr) {
+            std::cout << "Could not initialize OMPT backend. Please check OMPT support." << std::endl;
+            exit(1);
+          }
         #endif
         opdi::logic = new opdi::OmpLogic;
         opdi::logic->init();
-        //TestReal::getTape().initialize();
         opdi::tool = new CoDiOpDiLibTool<TestReal>;
         opdi::tool->init();
         #ifdef OUTPUT_INSTRUMENT

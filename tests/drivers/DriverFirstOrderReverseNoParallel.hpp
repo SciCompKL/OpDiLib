@@ -30,9 +30,6 @@
 
 #pragma once
 
-#include <array>
-#include <iostream>
-
 #include "DriverFirstOrderReverse.hpp"
 
 #undef OPDI_PARALLEL

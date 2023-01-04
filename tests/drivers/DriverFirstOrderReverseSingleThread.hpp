@@ -30,9 +30,6 @@
 
 #pragma once
 
-#include <array>
-#include <iostream>
-
 #ifndef BUILD_REFERENCE
   #include <omp.h>
 #endif
