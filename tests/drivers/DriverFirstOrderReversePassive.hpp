@@ -76,7 +76,7 @@ struct DriverFirstOrderReversePassive : public DriverBase<DriverFirstOrderRevers
           opdi::backend = new opdi::MacroBackend();
           opdi::backend->init();
         #else
-          if (opdi::backend == nullptr) {
+          if (omp_get_num_threads() /* trigger OMPT initialization */ && opdi::backend == nullptr) {
             std::cout << "Could not initialize OMPT backend. Please check OMPT support." << std::endl;
             exit(1);
           }
