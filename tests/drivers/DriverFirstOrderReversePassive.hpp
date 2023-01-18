@@ -148,9 +148,9 @@ struct DriverFirstOrderReversePassive : public DriverBase<DriverFirstOrderRevers
           delete opdi::ompLogicInstruments.front();
           opdi::ompLogicInstruments.clear();
         #endif
-        opdi::tool->finalize();
-        //TestReal::getTape().finalize();
         opdi::backend->finalize();
+        opdi::logic->finalize();
+        opdi::tool->finalize();
         #ifdef OPDI_USE_MACRO_BACKEND
           delete opdi::backend;
         #endif

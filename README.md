@@ -63,14 +63,15 @@ int main(int nargs, char** args) {
 
   // initialize OpDiLib
 
+  if (omp_get_num_threads() /* trigger OMPT initialization */ && opdi::backend == nullptr) {
+    std::cout << "Could not initialize OMPT backend. Please check OMPT support." << std::endl;
+    exit(1);
+  }
+
   opdi::logic = new opdi::OmpLogic;
   opdi::logic->init();
   opdi::tool = new CoDiOpDiLibTool<Real>;
-
-  if (opdi::backend == nullptr) {
-    std::cout << "Could not initialize OMPT backend. Please check OMPT support." << std::endl;
-    abort();
-  }
+  opdi::tool->init();
 
   // usual AD workflow
 
@@ -118,6 +119,8 @@ int main(int nargs, char** args) {
   // finalize OpDiLib
 
   opdi::backend->finalize();
+  opdi::logic->finalize();
+  opdi::tool->finalize();
   delete opdi::logic;
   delete opdi::tool;
 
@@ -126,7 +129,6 @@ int main(int nargs, char** args) {
 
 // don't forget to include the OpDiLib source file
 #include "opdi.cpp"
-
 ~~~~
 
 The following command can be used to compile the code.
@@ -157,6 +159,7 @@ int main(int nargs, char** args) {
   opdi::logic = new opdi::OmpLogic;
   opdi::logic->init();
   opdi::tool = new CoDiOpDiLibTool<Real>;
+  opdi::tool->init();
 
   // usual AD workflow
 
@@ -207,6 +210,8 @@ int main(int nargs, char** args) {
   // finalize OpDiLib
 
   opdi::backend->finalize();
+  opdi::logic->finalize();
+  opdi::tool->finalize();
   delete opdi::backend;
   delete opdi::logic;
   delete opdi::tool;
