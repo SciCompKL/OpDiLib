@@ -30,16 +30,21 @@ For further details about OpDiLib's design, features and modes of operation, ple
 If you use OpDiLib in one of your applications and write a paper, please cite us!
 
 ~~~~{.txt}
-@article{BluehdornSG2021,
-  title = {{Event-Based Automatic Differentiation of OpenMP with OpDiLib}},
-  author = {Bl{\"u}hdorn, Johannes and Sagebaum, Max and Gauger, Nicolas R.},
-  doi = {10.1145/3570159},
-  year = {2022},
-  month = {nov},
-  journal = {ACM Transactions on Mathematical Software},
-  publisher = {Association for Computing Machinery},
-  address = {New York, NY, USA},
-  note = {Just Accepted}
+@article{BluehdornSG2023,
+author = {Bl\"{u}hdorn, Johannes and Sagebaum, Max and Gauger, Nicolas R.},
+title = {{Event-Based Automatic Differentiation of OpenMP with OpDiLib}},
+year = {2023},
+issue_date = {March 2023},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {49},
+number = {1},
+url = {https://doi.org/10.1145/3570159},
+doi = {10.1145/3570159},
+journal = {ACM Trans. Math. Softw.},
+month = {mar},
+articleno = {3},
+numpages = {31}
 }
 ~~~~
 
