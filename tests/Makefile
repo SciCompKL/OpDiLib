@@ -129,9 +129,9 @@ $(DRIVERS):
 		fi; \
 		printf "$$driver$$test: $$driver$$test.o\n" >> tempmakefile; \
 		if [ $(EXPLICIT_PREPROCESSOR) = "no" ] ; then \
-			printf "\t$(CXX) $(BUILD_DIR)/$$driver$$test.o -o $(BUILD_DIR)/$$driver$$test $(FLAGS)\n" >> tempmakefile; \
+			printf "\t$(CXX) $(BUILD_DIR)/$$driver$$test.o -o $(BUILD_DIR)/$$driver$$test $(FLAGS) $(LDFLAGS)\n" >> tempmakefile; \
 		else \
-			printf "\t$(CXX) $(BUILD_DIR)/$$driver$$(test)Pre.o -o $(BUILD_DIR)/$$driver$$(test)Pre $(FLAGS)\n" >> tempmakefile; \
+			printf "\t$(CXX) $(BUILD_DIR)/$$driver$$(test)Pre.o -o $(BUILD_DIR)/$$driver$$(test)Pre $(FLAGS) $(LDFLAGS)\n" >> tempmakefile; \
 		fi \
 	done; \
 	printf "build_all:$$BUILD_CASES\n" >> tempmakefile; \
