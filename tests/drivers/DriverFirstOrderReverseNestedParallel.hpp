@@ -42,8 +42,6 @@
   #elif OPDI_USE_OMPT_BACKEND
     #include "opdi/backend/ompt/omptBackend.hpp"
   #endif
-  #include "codi/tools/parallel/openmp/codiOpenMP.hpp"
-  #include "codi/tools/parallel/openmp/codiOpDiLibTool.hpp"
   #include "opdi.hpp"
   #ifdef OUTPUT_INSTRUMENT
     #include "opdi/logic/omp/instrument/ompLogicOutputInstrument.hpp"

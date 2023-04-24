@@ -50,7 +50,7 @@ EXPLICIT_PREPROCESSOR ?= no
 
 CXX ?= clang++
 
-FLAGS = $(CXXFLAGS) -std=c++11
+FLAGS = $(CXXFLAGS) -DCODI_EnableOpenMP -DCODI_EnableOpDiLib -std=c++11
 
 ifeq ($(DEBUG),no)
 	FLAGS += -O3
