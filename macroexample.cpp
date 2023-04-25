@@ -97,12 +97,12 @@ int main(int nargs, char** args) {
 
   // finalize OpDiLib
 
-  opdi::backend->finalize();
-  opdi::logic->finalize();
   opdi::tool->finalize();
-  delete opdi::backend;
-  delete opdi::logic;
+  opdi::logic->finalize();
+  opdi::backend->finalize();
   delete opdi::tool;
+  delete opdi::logic;
+  delete opdi::backend;
 
   return 0;
 }

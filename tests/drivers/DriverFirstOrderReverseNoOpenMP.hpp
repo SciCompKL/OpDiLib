@@ -148,14 +148,14 @@ struct DriverFirstOrderReverseNoOpenMP : public DriverBase<DriverFirstOrderRever
           delete opdi::ompLogicInstruments.front();
           opdi::ompLogicInstruments.clear();
         #endif
-        opdi::backend->finalize();
-        opdi::logic->finalize();
         opdi::tool->finalize();
+        opdi::logic->finalize();
+        opdi::backend->finalize();
         #ifdef OPDI_USE_MACRO_BACKEND
           delete opdi::backend;
         #endif
-        delete opdi::logic;
         delete opdi::tool;
+        delete opdi::logic;
       #endif
     }
 };
