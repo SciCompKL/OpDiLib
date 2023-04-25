@@ -33,7 +33,6 @@
 
 #include <opdi/backend/macro/macroBackend.hpp>
 #include <opdi.hpp>
-#include "opdi/logic/omp/instrument/ompLogicOutputInstrument.hpp"
 
 using Real = codi::RealReverseIndexOpenMP;  // use a suitable CoDiPack type
 using Tape = typename Real::Tape;
