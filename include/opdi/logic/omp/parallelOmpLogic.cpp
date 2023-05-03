@@ -139,6 +139,12 @@ void* opdi::ParallelOmpLogic::onParallelBegin(int maxThreads) {
     return (void*) data;
   }
 
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->onParallelBegin(nullptr);
+    }
+  #endif
+
   return nullptr;
 }
 
@@ -163,6 +169,13 @@ void opdi::ParallelOmpLogic::onParallelEnd(void* dataPtr) {
 
     // do not delete data, it is deleted with the handle
   }
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+  else {
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->onParallelEnd(nullptr);
+    }
+  }
+  #endif
 }
 
 void opdi::ParallelOmpLogic::setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode mode) {

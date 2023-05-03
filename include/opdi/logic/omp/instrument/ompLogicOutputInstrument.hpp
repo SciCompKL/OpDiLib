@@ -128,15 +128,27 @@ namespace opdi {
       }
 
       virtual void onParallelBegin(ParallelOmpLogic::Data* data) {
-        TapedOutput::print("F PARB l", omp_get_level(),
-                           "master", data->masterTape,
-                           "mode", data->outerAdjointAccessMode);
+        if (data == nullptr) {
+          TapedOutput::print("F PARB l", omp_get_level(),
+                             "(passive)");
+        }
+        else {
+          TapedOutput::print("F PARB l", omp_get_level(),
+                             "master", data->masterTape,
+                             "mode", data->outerAdjointAccessMode);
+        }
       }
 
       virtual void onParallelEnd(ParallelOmpLogic::Data* data) {
-        TapedOutput::print("F PARE l", omp_get_level(),
-                           "master", data->masterTape,
-                           "mode", data->outerAdjointAccessMode);
+        if (data == nullptr) {
+          TapedOutput::print("F PARE l", omp_get_level(),
+                             "(passive)");
+        }
+        else {
+          TapedOutput::print("F PARE l", omp_get_level(),
+                             "master", data->masterTape,
+                             "mode", data->outerAdjointAccessMode);
+        }
       }
 
       virtual void reverseSyncRegion(SyncRegionOmpLogic::Data* data) {
