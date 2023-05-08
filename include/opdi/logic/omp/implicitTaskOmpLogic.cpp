@@ -107,6 +107,10 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
 
     tool->setActive(data->parallelData->tapes[data->index], false);
 
+    if (data->oldTape == data->parallelData->masterTape) {
+      tool->setActive(data->oldTape, true);
+    }
+
     delete data;
   }
 }
