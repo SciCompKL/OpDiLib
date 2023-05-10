@@ -140,9 +140,13 @@
 #define OPDI_END_SECTION
 
 #define OPDI_MASTER(...) \
-  OPDI_PRAGMA(omp master __VA_ARGS__)
+  OPDI_PRAGMA(omp master __VA_ARGS__) \
+  { \
+    opdi::logic->onMaster(opdi::LogicInterface::ScopeEndpoint::Begin);
 
-#define OPDI_END_MASTER
+#define OPDI_END_MASTER \
+    opdi::logic->onMaster(opdi::LogicInterface::ScopeEndpoint::End); \
+  }
 
 // standalone macros
 
