@@ -48,6 +48,7 @@
 
 #include "implicitTaskCallbacks.hpp"
 #include "macros.hpp"
+#include "masterCallbacks.hpp"
 #include "mutexCallbacks.hpp"
 #include "parallelCallbacks.hpp"
 #include "reductionCallbacks.hpp"
@@ -58,6 +59,7 @@
 namespace opdi {
 
   struct OmptBackend : public ImplicitTaskCallbacks,
+                       public MasterCallbacks,
                        public MutexCallbacks,
                        public ParallelCallbacks,
                        public ReductionCallbacks,
@@ -105,6 +107,7 @@ namespace opdi {
         SyncRegionCallbacks::init();
         MutexCallbacks::init();
         ReductionCallbacks::init();
+        MasterCallbacks::init();
 
         return 1; // success
       }
@@ -114,6 +117,7 @@ namespace opdi {
         OPDI_UNUSED(toolData);
 
         // finalize callback structures
+        MasterCallbacks::finalize();
         ReductionCallbacks::finalize();
         MutexCallbacks::finalize();
         SyncRegionCallbacks::finalize();
