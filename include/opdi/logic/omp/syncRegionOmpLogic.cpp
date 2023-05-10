@@ -71,15 +71,15 @@ void opdi::SyncRegionOmpLogic::internalPushHandle(SyncRegionKind kind, ScopeEndp
 
 void opdi::SyncRegionOmpLogic::onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint) {
 
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->onSyncRegion(kind, endpoint);
+    }
+  #endif
+
   if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     internalPushHandle(kind, endpoint);
-
-    #if OPDI_OMP_LOGIC_INSTRUMENT
-      for (auto& instrument : ompLogicInstruments) {
-        instrument->onSyncRegion(kind, endpoint);
-      }
-    #endif
   }
 }
 
