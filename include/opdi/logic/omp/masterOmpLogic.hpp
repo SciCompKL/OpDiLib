@@ -28,24 +28,28 @@
  *
  */
 
-#include "instrument/ompLogicInstrumentInterface.hpp"
-#include "adjointAccessControl.hpp"
+#pragma once
 
-#if OPDI_DEFAULT_ADJOINT_ACCESS_MODE == OPDI_ADJOINT_ACCESS_ATOMIC
-  std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
-                                                      {opdi::LogicInterface::AdjointAccessMode::Atomic};
-#elif OPDI_DEFAULT_ADJOINT_ACCESS_MODE == OPDI_ADJOINT_ACCESS_CLASSICAL
-  std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
-                                                      {opdi::LogicInterface::AdjointAccessMode::Classical};
-#else
-  #error Unknown adjoint access mode.
-#endif
+#include "../logicInterface.hpp"
 
-std::list<opdi::OmpLogicInstrumentInterface*> opdi::ompLogicInstruments;
+namespace opdi {
 
-#include "implicitTaskOmpLogic.cpp"
-#include "masterOmpLogic.cpp"
-#include "mutexOmpLogic.cpp"
-#include "parallelOmpLogic.cpp"
-#include "syncRegionOmpLogic.cpp"
-#include "workOmpLogic.cpp"
+  struct MasterOmpLogic : public virtual LogicInterface {
+    public:
+
+      using LogicInterface::ScopeEndpoint;
+
+      struct Data {
+        ScopeEndpoint endpoint;
+      };
+
+    private:
+
+      static void reverseFunc(void* dataPtr);
+      static void deleteFunc(void* dataPtr);
+
+    public:
+
+      virtual void onMaster(ScopeEndpoint endpoint);
+  };
+}

@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include <cstdlib>
+
 namespace opdi {
 
   struct LogicInterface
@@ -70,6 +72,8 @@ namespace opdi {
       virtual void registerInactiveMutex(MutexKind kind, std::size_t waitId) = 0;
 
       virtual void onWork(WorksharingKind kind, ScopeEndpoint endpoint) = 0;
+
+      virtual void onMaster(ScopeEndpoint endpoint) = 0;
 
       virtual void onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint) = 0;
 

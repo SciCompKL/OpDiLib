@@ -28,24 +28,53 @@
  *
  */
 
+#include <omp.h>
+
+#include "../../helpers/macros.hpp"
+#include "../../config.hpp"
+#include "../../tool/toolInterface.hpp"
+
 #include "instrument/ompLogicInstrumentInterface.hpp"
-#include "adjointAccessControl.hpp"
 
-#if OPDI_DEFAULT_ADJOINT_ACCESS_MODE == OPDI_ADJOINT_ACCESS_ATOMIC
-  std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
-                                                      {opdi::LogicInterface::AdjointAccessMode::Atomic};
-#elif OPDI_DEFAULT_ADJOINT_ACCESS_MODE == OPDI_ADJOINT_ACCESS_CLASSICAL
-  std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
-                                                      {opdi::LogicInterface::AdjointAccessMode::Classical};
-#else
-  #error Unknown adjoint access mode.
-#endif
+#include "masterOmpLogic.hpp"
 
-std::list<opdi::OmpLogicInstrumentInterface*> opdi::ompLogicInstruments;
+void opdi::MasterOmpLogic::reverseFunc(void *dataPtr) {
 
-#include "implicitTaskOmpLogic.cpp"
-#include "masterOmpLogic.cpp"
-#include "mutexOmpLogic.cpp"
-#include "parallelOmpLogic.cpp"
-#include "syncRegionOmpLogic.cpp"
-#include "workOmpLogic.cpp"
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    Data* data = (Data*) dataPtr;
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->reverseMaster(data);
+    }
+  #else
+    OPDI_UNUSED(dataPtr);
+  #endif
+}
+
+void opdi::MasterOmpLogic::deleteFunc(void* dataPtr) {
+
+  Data* data = (Data*) dataPtr;
+  delete data;
+}
+
+void opdi::MasterOmpLogic::onMaster(ScopeEndpoint endpoint) {
+
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->onMaster(endpoint);
+    }
+
+    if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+
+        Data* data = new Data;
+        data->endpoint = endpoint;
+
+        Handle* handle = new Handle;
+        handle->data = (void*) data;
+        handle->reverseFunc = MasterOmpLogic::reverseFunc;
+        handle->deleteFunc = MasterOmpLogic::deleteFunc;
+        tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
+    }
+  #else
+    OPDI_UNUSED(endpoint);
+  #endif
+}
