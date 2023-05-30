@@ -48,7 +48,7 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int
 
   ParallelData* parallelData = (ParallelData*) parallelDataPtr;
 
-  if (parallelData != nullptr && tool->isActive(parallelData->masterTape)) {
+  if (parallelData != nullptr) {
     if (index == 0) {
       parallelData->actualThreads = actualParallelism;
     }
