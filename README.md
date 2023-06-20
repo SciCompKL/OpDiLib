@@ -19,7 +19,7 @@ OpDiLib supports all directives, clauses and runtime functions of the OpenMP 2.5
 
 If you have a code that is differentiated with a serial AD tool and parallelize it using OpenMP, the procedure of obtaining an efficient parallel differentiated code with OpDiLib is as follows.
 
-1. **Couple OpDiLib with your AD tool.** This step can be skipped if you use an AD tool that already has OpDiLib bindings, for example [CoDiPack](https://www.scicomp.uni-kl.de/software/codi/). OpDiLib support is available in CoDiPack's [develop branch](https://github.com/scicompkl/codipack/tree/develop).
+1. **Couple OpDiLib with your AD tool.** This step can be skipped if you use an AD tool that already has OpDiLib bindings, for example [CoDiPack](https://www.scicomp.uni-kl.de/software/codi/), which has OpDiLib support since [version 2.1](https://github.com/SciCompKL/CoDiPack/releases/tag/v2.1.0).
 2. **Obtain a first parallel differentiated version of your code.** If your compiler supports OMPT, it suffices to add a few lines of code for the initialization and finalization of OpDiLib. Otherwise, you have to use OpDiLib's macro backend, which involves rewriting your OpenMP constructs according to OpDiLib's macro interface. Both approaches are demonstrated in the minimal example below.
 3. **Optimize the performance of the parallel reverse pass.** Check your parallel forward code for parts that do not involve shared reading. Use OpDiLib's adjoint access control tools to disable atomic adjoints for these parts. You may also revise your data access patterns to eliminate additional instances of shared reading.
 
@@ -50,7 +50,7 @@ If you use OpDiLib in one of your applications and write a paper, please cite us
 
 ## Minimal Example
 
-The following minimal example assumes that [CoDiPack](https://www.scicomp.uni-kl.de/software/codi/) is used as the underlying AD tool. Specifically, you need CoDiPack's [develop branch](https://github.com/scicompkl/codipack/tree/develop). For additional examples, please refer to OpDiLib's test suite.
+The following minimal example assumes that [CoDiPack](https://www.scicomp.uni-kl.de/software/codi/) is used as the underlying AD tool. You need CoDiPack [version 2.1](https://github.com/SciCompKL/CoDiPack/releases/tag/v2.1.0) or newer. For additional examples, please refer to OpDiLib's test suite.
 
 ### OMPT Backend
 
