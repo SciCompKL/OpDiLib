@@ -38,6 +38,7 @@
 #include "adjointAccessControl.hpp"
 #include "flushOmpLogic.hpp"
 #include "implicitTaskOmpLogic.hpp"
+#include "masterOmpLogic.hpp"
 #include "mutexOmpLogic.hpp"
 #include "parallelOmpLogic.hpp"
 #include "syncRegionOmpLogic.hpp"
@@ -47,6 +48,7 @@ namespace opdi {
 
   struct OmpLogic : public FlushOmpLogic,
                     public ImplicitTaskOmpLogic,
+                    public MasterOmpLogic,
                     public MutexOmpLogic,
                     public ParallelOmpLogic,
                     public SyncRegionOmpLogic,

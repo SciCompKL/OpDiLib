@@ -28,24 +28,50 @@
  *
  */
 
-#include "instrument/ompLogicInstrumentInterface.hpp"
-#include "adjointAccessControl.hpp"
+#pragma once
 
-#if OPDI_DEFAULT_ADJOINT_ACCESS_MODE == OPDI_ADJOINT_ACCESS_ATOMIC
-  std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
-                                                      {opdi::LogicInterface::AdjointAccessMode::Atomic};
-#elif OPDI_DEFAULT_ADJOINT_ACCESS_MODE == OPDI_ADJOINT_ACCESS_CLASSICAL
-  std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
-                                                      {opdi::LogicInterface::AdjointAccessMode::Classical};
-#else
-  #error Unknown adjoint access mode.
-#endif
+#include "../../helpers/exceptions.hpp"
+#include "../../helpers/macros.hpp"
+#include "../../logic/logicInterface.hpp"
 
-std::list<opdi::OmpLogicInstrumentInterface*> opdi::ompLogicInstruments;
+#include "callbacksBase.hpp"
 
-#include "implicitTaskOmpLogic.cpp"
-#include "masterOmpLogic.cpp"
-#include "mutexOmpLogic.cpp"
-#include "parallelOmpLogic.cpp"
-#include "syncRegionOmpLogic.cpp"
-#include "workOmpLogic.cpp"
+namespace opdi {
+
+  struct MasterCallbacks : public virtual CallbacksBase {
+
+    private:
+
+      static void onMaster(ompt_scope_endpoint_t _endpoint,
+                           ompt_data_t* parallelData,
+                           ompt_data_t* taskData,
+                           void const* codeptr) {
+        OPDI_UNUSED(parallelData);
+        OPDI_UNUSED(taskData);
+        OPDI_UNUSED(codeptr);
+
+        LogicInterface::ScopeEndpoint endpoint;
+        if (ompt_scope_begin == _endpoint) {
+          endpoint = LogicInterface::ScopeEndpoint::Begin;
+        }
+        else {
+          endpoint = LogicInterface::ScopeEndpoint::End;
+        }
+
+        logic->onMaster(endpoint);
+      }
+
+    protected:
+
+      static void init() {
+        OPDI_CHECK_ERROR(CallbacksBase::registerCallback(ompt_callback_master,
+                                                        (ompt_callback_t) MasterCallbacks::onMaster));
+      }
+
+      static void finalize() {
+        OPDI_CHECK_ERROR(CallbacksBase::clearCallback(ompt_callback_master));
+      }
+
+  };
+
+}

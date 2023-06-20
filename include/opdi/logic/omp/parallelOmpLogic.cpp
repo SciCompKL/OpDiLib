@@ -41,13 +41,19 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
 
   Data* data = (Data*) dataPtr;
 
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->reverseParallelBegin(data);
+    }
+  #endif
+
   #pragma omp parallel num_threads(data->actualThreads)
   {
     int threadNum = omp_get_thread_num();
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
-        instrument->reverseParallel(data);
+        instrument->reverseImplicitTaskBegin(data, threadNum);
       }
     #endif
 
@@ -59,7 +65,7 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
 
       #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {
-          instrument->reverseParallelPart(data, j);
+          instrument->reverseImplicitTaskPart(data, threadNum, j);
         }
       #endif
 
@@ -70,7 +76,19 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
     }
 
     tool->setThreadLocalTape(oldTape);
+
+    #if OPDI_OMP_LOGIC_INSTRUMENT
+      for (auto& instrument : ompLogicInstruments) {
+        instrument->reverseImplicitTaskEnd(data, threadNum);
+      }
+    #endif
   }
+
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->reverseParallelEnd(data);
+    }
+  #endif
 }
 
 void opdi::ParallelOmpLogic::deleteFunc(void* dataPtr) {
@@ -121,6 +139,12 @@ void* opdi::ParallelOmpLogic::onParallelBegin(int maxThreads) {
     return (void*) data;
   }
 
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->onParallelBegin(nullptr);
+    }
+  #endif
+
   return nullptr;
 }
 
@@ -145,6 +169,13 @@ void opdi::ParallelOmpLogic::onParallelEnd(void* dataPtr) {
 
     // do not delete data, it is deleted with the handle
   }
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+  else {
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->onParallelEnd(nullptr);
+    }
+  }
+  #endif
 }
 
 void opdi::ParallelOmpLogic::setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode mode) {

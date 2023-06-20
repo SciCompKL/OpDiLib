@@ -45,6 +45,29 @@ namespace opdi {
         TapedOutput::print("R FLSH l", omp_get_level(), "t", omp_get_thread_num());
       }
 
+      virtual void reverseImplicitTaskBegin(ParallelOmpLogic::Data* data, int threadNum) {
+        TapedOutput::print("R IMTB l", omp_get_level(),
+                           "t", threadNum,
+                           "tape", data->tapes[threadNum],
+                           "pos", tool->positionToString(data->positions[threadNum].back()));
+      }
+
+      virtual void reverseImplicitTaskEnd(ParallelOmpLogic::Data* data, int threadNum) {
+        TapedOutput::print("R IMTE l", omp_get_level(),
+                           "t", threadNum,
+                           "tape", data->tapes[threadNum],
+                           "pos", tool->positionToString(data->positions[threadNum].front()));
+      }
+
+      virtual void reverseImplicitTaskPart(ParallelOmpLogic::Data* data, int threadNum, std::size_t part) {
+        TapedOutput::print("R IMTP l", omp_get_level(),
+                           "t", threadNum,
+                           "tape", data->tapes[threadNum],
+                           "start", tool->positionToString(data->positions[threadNum][part]),
+                           "end", tool->positionToString(data->positions[threadNum][part - 1]),
+                           "mode", data->adjointAccessModes[threadNum][part - 1]);
+      }
+
       virtual void onImplicitTaskBegin(ImplicitTaskOmpLogic::Data* data) {
         TapedOutput::print("F IMTB l", omp_get_level(),
                            "t", data->index,
@@ -94,32 +117,38 @@ namespace opdi {
                            "at", data->traceValue);
       }
 
-      virtual void reverseParallel(ParallelOmpLogic::Data* data) {
-        TapedOutput::print("R PARA t", omp_get_thread_num(),
-                           "tape", data->tapes[omp_get_thread_num()],
-                           "start", tool->positionToString(data->positions[omp_get_thread_num()].back()),
-                           "end", tool->positionToString(data->positions[omp_get_thread_num()].front()));
+      virtual void reverseParallelBegin(ParallelOmpLogic::Data* data) {
+        TapedOutput::print("R PARB l", omp_get_level(),
+                           "master", data->masterTape);
       }
 
-      virtual void reverseParallelPart(ParallelOmpLogic::Data* data, std::size_t j) {
-        TapedOutput::print("R PARP t", omp_get_thread_num(),
-                           "tape", data->tapes[omp_get_thread_num()],
-                           "j", j,
-                           "start", tool->positionToString(data->positions[omp_get_thread_num()][j]),
-                           "end", tool->positionToString(data->positions[omp_get_thread_num()][j - 1]),
-                           "mode", data->adjointAccessModes[omp_get_thread_num()][j - 1]);
+      virtual void reverseParallelEnd(ParallelOmpLogic::Data* data) {
+        TapedOutput::print("R PARE l", omp_get_level(),
+                           "master", data->masterTape);
       }
 
       virtual void onParallelBegin(ParallelOmpLogic::Data* data) {
-        TapedOutput::print("F PARB l", omp_get_level(),
-                           "master", data->masterTape,
-                           "mode", data->outerAdjointAccessMode);
+        if (data == nullptr) {
+          TapedOutput::print("F PARB l", omp_get_level(),
+                             "(passive)");
+        }
+        else {
+          TapedOutput::print("F PARB l", omp_get_level(),
+                             "master", data->masterTape,
+                             "mode", data->outerAdjointAccessMode);
+        }
       }
 
       virtual void onParallelEnd(ParallelOmpLogic::Data* data) {
-        TapedOutput::print("F PARE l", omp_get_level(),
-                           "master", data->masterTape,
-                           "mode", data->outerAdjointAccessMode);
+        if (data == nullptr) {
+          TapedOutput::print("F PARE l", omp_get_level(),
+                             "(passive)");
+        }
+        else {
+          TapedOutput::print("F PARE l", omp_get_level(),
+                             "master", data->masterTape,
+                             "mode", data->outerAdjointAccessMode);
+        }
       }
 
       virtual void reverseSyncRegion(SyncRegionOmpLogic::Data* data) {
@@ -136,6 +165,14 @@ namespace opdi {
 
       virtual void onWork(LogicInterface::WorksharingKind kind, LogicInterface::ScopeEndpoint endpoint) {
         TapedOutput::print("F WORK t", omp_get_thread_num(), "kind", kind, "endp", endpoint);
+      }
+
+      virtual void reverseMaster(MasterOmpLogic::Data* data) {
+        TapedOutput::print("R MAST t", omp_get_thread_num(), "endp", data->endpoint);
+      }
+
+      virtual void onMaster(LogicInterface::ScopeEndpoint endpoint) {
+        TapedOutput::print("F MAST t", omp_get_thread_num(), "endp", endpoint);
       }
   };
 }

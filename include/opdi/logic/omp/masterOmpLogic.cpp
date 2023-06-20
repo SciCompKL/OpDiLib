@@ -28,63 +28,53 @@
  *
  */
 
+#include <omp.h>
+
+#include "../../helpers/macros.hpp"
 #include "../../config.hpp"
 #include "../../tool/toolInterface.hpp"
 
 #include "instrument/ompLogicInstrumentInterface.hpp"
 
-#include "syncRegionOmpLogic.hpp"
+#include "masterOmpLogic.hpp"
 
-void opdi::SyncRegionOmpLogic::reverseFunc(void* dataPtr) {
+void opdi::MasterOmpLogic::reverseFunc(void *dataPtr) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     Data* data = (Data*) dataPtr;
     for (auto& instrument : ompLogicInstruments) {
-      instrument->reverseSyncRegion(data);
+      instrument->reverseMaster(data);
     }
   #else
     OPDI_UNUSED(dataPtr);
   #endif
-
-  #pragma omp barrier
 }
 
-void opdi::SyncRegionOmpLogic::deleteFunc(void* dataPtr) {
+void opdi::MasterOmpLogic::deleteFunc(void* dataPtr) {
 
   Data* data = (Data*) dataPtr;
   delete data;
 }
 
-void opdi::SyncRegionOmpLogic::internalPushHandle(SyncRegionKind kind, ScopeEndpoint endpoint) {
-
-  Data* data = new Data;
-  data->kind = kind;
-  data->endpoint = endpoint;
-
-  Handle* handle = new Handle;
-  handle->data = (void*) data;
-  handle->reverseFunc = SyncRegionOmpLogic::reverseFunc;
-  handle->deleteFunc = SyncRegionOmpLogic::deleteFunc;
-
-  tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
-}
-
-void opdi::SyncRegionOmpLogic::onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint) {
+void opdi::MasterOmpLogic::onMaster(ScopeEndpoint endpoint) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
-      instrument->onSyncRegion(kind, endpoint);
+      instrument->onMaster(endpoint);
     }
+
+    if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+
+        Data* data = new Data;
+        data->endpoint = endpoint;
+
+        Handle* handle = new Handle;
+        handle->data = (void*) data;
+        handle->reverseFunc = MasterOmpLogic::reverseFunc;
+        handle->deleteFunc = MasterOmpLogic::deleteFunc;
+        tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
+    }
+  #else
+    OPDI_UNUSED(endpoint);
   #endif
-
-  if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
-
-    internalPushHandle(kind, endpoint);
-  }
-}
-
-void opdi::SyncRegionOmpLogic::addReverseBarrier() {
-
-  this->onSyncRegion(SyncRegionKind::BarrierReverse, ScopeEndpoint::Begin);
-  this->onSyncRegion(SyncRegionKind::BarrierReverse, ScopeEndpoint::End);
 }
