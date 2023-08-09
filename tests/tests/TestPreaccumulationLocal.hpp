@@ -57,8 +57,6 @@ struct TestPreaccumulationLocal : public TestBase<4, 1, 3, TestPreaccumulationLo
           ph.addInput(prep[i]);
         }
 
-        OPDI_BARRIER()
-
         for (int j = start; j < end; ++j) {
           Base::job1(j, prep, jobResults[j]);
         }
