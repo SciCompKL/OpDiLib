@@ -1,0 +1,15 @@
+default:
+  image: ubuntu:22.04
+  tags:
+    - docker
+
+test-gcc-macro:
+  script:
+    - apt update && apt install -y build-essential binutils git
+    - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
+    - export CODI_DIR=$(pwd)/CoDiPack/include
+    - export OPDI_DIR=$(pwd)/include
+    - cd tests
+    - export COMPILER=g++
+    - make all
+
