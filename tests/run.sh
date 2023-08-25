@@ -41,9 +41,11 @@ case "$MODE" in
 		if cmp -s $RESULT_DIR/$DRIVER$TEST.ref $RESULT_DIR/$DRIVER$TEST.out;
 		then
 			echo -e $DRIVER$TEST "\e[0;32mOK\e[0m";
+			echo "0" >> testresults;
 		else
 			echo -e $DRIVER$TEST "\e[0;31mFAILED\e[0m";
 			diff $RESULT_DIR/$DRIVER$TEST.ref $RESULT_DIR/$DRIVER$TEST.out;
+			echo "1" >> testresults;
 		fi;
 		;;
 	"REF")
