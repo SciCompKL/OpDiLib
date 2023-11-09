@@ -18,7 +18,7 @@ test-clang-macro:
   image: fedora:39
   timeout: 2h
   script:
-    - dnf update && dnf install -y diffutils binutils clang git
+    - dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
     - export CODI_DIR=$(pwd)/CoDiPack/include
     - export OPDI_DIR=$(pwd)/include
@@ -29,7 +29,7 @@ test-clang-ompt:
   image: fedora:39
   timeout: 2h
   script:
-    - dnf update && dnf install -y diffutils binutils clang git
+    - dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
     - export CODI_DIR=$(pwd)/CoDiPack/include
     - export OPDI_DIR=$(pwd)/include
