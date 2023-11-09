@@ -10,6 +10,6 @@ test-gcc-macro:
     - export CODI_DIR=$(pwd)/CoDiPack/include
     - export OPDI_DIR=$(pwd)/include
     - cd tests
-    - export COMPILER=g++
+    - export CXX=g++
     - make all
 
