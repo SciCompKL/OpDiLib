@@ -4,6 +4,7 @@ default:
 
 test-gcc-macro:
   image: ubuntu:22.04
+  timeout: 2h
   script:
     - apt update && apt install -y build-essential binutils git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -15,6 +16,7 @@ test-gcc-macro:
 
 test-clang-macro:
   image: fedora:39
+  timeout: 2h
   script:
     - dnf update && dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -25,6 +27,7 @@ test-clang-macro:
 
 test-clang-ompt:
   image: fedora:39
+  timeout: 2h
   script:
     - dnf update && dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
