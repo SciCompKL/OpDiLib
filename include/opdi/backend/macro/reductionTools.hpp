@@ -57,13 +57,9 @@ namespace opdi {
         }
         ReductionTools::reductionBarrierStack.pop();
         if (ProbeScopeStatus::insideImplicitTaskProbeScope()) {
-          #if defined(__GNUC__) && !defined(__clang__)
-            opdi_set_lock(&globalReducerLock);
-            opdi_unset_lock(&globalReducerLock);
-          #else
-            logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
-                                LogicInterface::ScopeEndpoint::End);
-          #endif
+          #pragma omp barrier
+          logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
+                              LogicInterface::ScopeEndpoint::End);
         }
       }
 
