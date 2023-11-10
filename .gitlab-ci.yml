@@ -23,6 +23,7 @@ test-clang-macro:
     - export CODI_DIR=$(pwd)/CoDiPack/include
     - export OPDI_DIR=$(pwd)/include
     - cd tests
+    - export CXX=clang++
     - make all
 
 test-clang-ompt:
@@ -34,6 +35,7 @@ test-clang-ompt:
     - export CODI_DIR=$(pwd)/CoDiPack/include
     - export OPDI_DIR=$(pwd)/include
     - cd tests
+    - export CXX=clang++
     - export BACKEND=OMPT
     - make all
 
