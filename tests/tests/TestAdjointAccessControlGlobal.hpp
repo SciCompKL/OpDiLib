@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: http://www.scicomp.uni-kl.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
