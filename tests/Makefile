@@ -44,7 +44,7 @@ EXPLICIT_PREPROCESSOR ?= no
 
 CXX ?= clang++
 
-FLAGS = $(CXXFLAGS) -DCODI_EnableOpenMP -DCODI_EnableOpDiLib -std=c++11
+FLAGS = $(CXXFLAGS) -std=c++11
 
 ifeq ($(DEBUG),no)
 	FLAGS += -O3
@@ -58,7 +58,7 @@ endif
 ifeq ($(MODE),REF)
 	FLAGS += -DBUILD_REFERENCE
 else
-  FLAGS += -DRUN_TESTS -fopenmp
+  FLAGS += -DRUN_TESTS -fopenmp -DCODI_EnableOpenMP -DCODI_EnableOpDiLib
 endif
 
 ifeq ($(BACKEND),MACRO)
