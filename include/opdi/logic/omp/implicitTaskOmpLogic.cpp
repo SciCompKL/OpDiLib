@@ -55,7 +55,10 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int
     data->parallelData = parallelData;
 
     void* newTape = this->tapePool.getTape(parallelData->masterTape, index);
-    tool->setActive(newTape, true);
+
+    if (parallelData->activeParallelRegion) {
+      tool->setActive(newTape, true);
+    }
 
     data->parallelData->tapes[index] = newTape;
 
@@ -102,7 +105,7 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
 
     tool->setActive(data->parallelData->tapes[data->index], false);
 
-    if (data->oldTape == data->parallelData->masterTape) {
+    if (data->oldTape == data->parallelData->masterTape && data->parallelData->activeParallelRegion) {
       tool->setActive(data->oldTape, true);
     }
 

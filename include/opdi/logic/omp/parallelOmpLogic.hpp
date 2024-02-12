@@ -47,6 +47,7 @@ namespace opdi {
         public:
           int maxThreads;
           int actualThreads;
+          bool activeParallelRegion;
           void* masterTape;
           void** tapes;
           std::vector<std::deque<void*>> positions;
