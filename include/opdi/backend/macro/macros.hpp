@@ -79,8 +79,9 @@
 #define OPDI_SINGLE_NOWAIT(...) \
   { \
     bool constexpr opdiInternalBarrierIndicator = false; \
-    void* opdiInternalTapePosition = opdi::tool->allocPosition(); \
-    opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition); \
+    void* opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
+    void* opdiInternalTapePosition2 = opdi::tool->allocPosition(); /* for consistency with the end macro */ \
+    opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1); \
     opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
                               opdi::LogicInterface::ScopeEndpoint::Begin); \
     opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
@@ -88,7 +89,7 @@
       opdi::SingleProbe localSingleProbe; \
       OPDI_PRAGMA(omp single nowait __VA_ARGS__) \
       { \
-        opdi::tool->reset(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition);
+        opdi::tool->reset(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1);
 
 #define OPDI_END_SINGLE \
         opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
@@ -97,6 +98,8 @@
       opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
                                 opdi::LogicInterface::ScopeEndpoint::End); \
     } \
+    opdi::tool->freePosition(opdiInternalTapePosition1); \
+    opdi::tool->freePosition(opdiInternalTapePosition2); \
     opdi::ImplicitBarrierTools::implicitBarrierStack.top() = opdiInternalBarrierIndicator; \
     opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier(); \
   }
