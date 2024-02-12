@@ -1,0 +1,41 @@
+default:
+  tags:
+    - docker
+
+test-gcc-macro:
+  image: ubuntu:22.04
+  timeout: 2h
+  script:
+    - apt update && apt install -y build-essential binutils git
+    - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
+    - export CODI_DIR=$(pwd)/CoDiPack/include
+    - export OPDI_DIR=$(pwd)/include
+    - cd tests
+    - export CXX=g++
+    - make all
+
+test-clang-macro:
+  image: fedora:39
+  timeout: 2h
+  script:
+    - dnf install -y diffutils binutils clang git
+    - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
+    - export CODI_DIR=$(pwd)/CoDiPack/include
+    - export OPDI_DIR=$(pwd)/include
+    - cd tests
+    - export CXX=clang++
+    - make all
+
+test-clang-ompt:
+  image: fedora:39
+  timeout: 2h
+  script:
+    - dnf install -y diffutils binutils clang git
+    - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
+    - export CODI_DIR=$(pwd)/CoDiPack/include
+    - export OPDI_DIR=$(pwd)/include
+    - cd tests
+    - export CXX=clang++
+    - export BACKEND=OMPT
+    - make all
+
