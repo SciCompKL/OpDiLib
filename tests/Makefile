@@ -1,7 +1,7 @@
 # OpDiLib, an Open Multiprocessing Differentiation Library
 #
 # Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
-# Copyright (C) 2023 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+# Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
 # Homepage: http://www.scicomp.uni-kl.de
 # Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
 #
@@ -44,7 +44,7 @@ EXPLICIT_PREPROCESSOR ?= no
 
 CXX ?= clang++
 
-FLAGS = $(CXXFLAGS) -DCODI_EnableOpenMP -DCODI_EnableOpDiLib -std=c++11
+FLAGS = $(CXXFLAGS) -std=c++11
 
 ifeq ($(DEBUG),no)
 	FLAGS += -O3
@@ -58,7 +58,7 @@ endif
 ifeq ($(MODE),REF)
 	FLAGS += -DBUILD_REFERENCE
 else
-  FLAGS += -DRUN_TESTS -fopenmp
+  FLAGS += -DRUN_TESTS -fopenmp -DCODI_EnableOpenMP -DCODI_EnableOpDiLib
 endif
 
 ifeq ($(BACKEND),MACRO)
