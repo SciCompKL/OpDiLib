@@ -148,10 +148,14 @@ link:
 $(patsubst %,run%,$(DRIVERS)): DRIVER_TESTS = $(call getDriverTests, $(subst run,,$@))
 $(patsubst %,run%,$(DRIVERS)): DRIVER = $(subst run,,$@)
 $(patsubst %,run%,$(DRIVERS)):
-	@ for test in ${DRIVER_TESTS}; \
+	@rm -f testresults; \
+	for test in ${DRIVER_TESTS}; \
 	do \
 		bash run.sh ${DRIVER} $$test $(MODE) $(EXPLICIT_PREPROCESSOR); \
-	done;
+	done; \
+	if grep -q 1 testresults; then \
+		exit 1; \
+	fi;
 
 # execute all tests
 .PHONY: run
@@ -169,3 +173,4 @@ clean:
 	rm -r -f build
 	rm -f tempmakefile
 	rm -f results/*.out
+	rm -f testresults
