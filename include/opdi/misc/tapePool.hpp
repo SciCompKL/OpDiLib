@@ -51,6 +51,7 @@ namespace opdi {
       }
 
       void finalize() {
+        this->clear();
         omp_destroy_lock(&this->lock);
       }
 
