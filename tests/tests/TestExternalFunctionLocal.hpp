@@ -93,5 +93,6 @@ struct TestExternalFunctionLocal : public TestBase<4, 1, 3, TestExternalFunction
       }
 
       delete [] jobResults;
+      delete [] intermediate;
     }
 };

@@ -126,5 +126,6 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
       }
 
       delete [] jobResults;
+      delete [] intermediate;
     }
 };
