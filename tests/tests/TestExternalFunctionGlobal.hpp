@@ -112,6 +112,12 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
         for (int i = start; i < end; ++i) {
           jobResults[i] = cos(exp(intermediate[i]));
         }
+
+        OPDI_MASTER()
+        {
+          delete eh;
+        }
+        OPDI_END_MASTER
       }
       OPDI_END_PARALLEL
 
@@ -120,5 +126,6 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
       }
 
       delete [] jobResults;
+      delete [] intermediate;
     }
 };
