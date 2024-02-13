@@ -83,6 +83,8 @@ struct TestExternalFunctionLocal : public TestBase<4, 1, 3, TestExternalFunction
         for (int i = start; i < end; ++i) {
           jobResults[i] = cos(exp(intermediate[i]));
         }
+
+        delete eh;
       }
       OPDI_END_PARALLEL
 
