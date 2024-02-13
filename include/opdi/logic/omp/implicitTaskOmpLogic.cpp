@@ -24,6 +24,7 @@
  */
 
 #include "../../config.hpp"
+#include "../../helpers/exceptions.hpp"
 #include "../../tool/toolInterface.hpp"
 
 #include "instrument/ompLogicInstrumentInterface.hpp"
@@ -96,6 +97,14 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
     data->parallelData->positions[data->index].push_back(tool->allocPosition());
     tool->getTapePosition(data->parallelData->tapes[data->index],
                           data->parallelData->positions[data->index].back());
+
+    if (!data->parallelData->activeParallelRegion) {
+      if (tool->comparePosition(data->parallelData->positions[data->index].front(),
+                                data->parallelData->positions[data->index].back()) != 0) {
+        OPDI_WARNING("Something became active during a passive parallel region. This is not supported and will not be ",
+                     "differentiated correctly.");
+      }
+    }
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
