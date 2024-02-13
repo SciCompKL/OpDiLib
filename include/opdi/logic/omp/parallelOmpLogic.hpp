@@ -57,6 +57,9 @@ namespace opdi {
 
     private:
 
+      static int skipParallelHandling;
+      #pragma omp threadprivate(skipParallelHandling)
+
       static void reverseFunc(void* dataPtr);
       static void deleteFunc(void* dataPtr);
 
