@@ -47,6 +47,7 @@ namespace opdi {
         public:
           int maxThreads;
           int actualThreads;
+          bool activeParallelRegion;
           void* masterTape;
           void** tapes;
           std::vector<std::deque<void*>> positions;
@@ -55,6 +56,9 @@ namespace opdi {
       };
 
     private:
+
+      static int skipParallelHandling;
+      #pragma omp threadprivate(skipParallelHandling)
 
       static void reverseFunc(void* dataPtr);
       static void deleteFunc(void* dataPtr);

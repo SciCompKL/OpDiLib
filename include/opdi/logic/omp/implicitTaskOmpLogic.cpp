@@ -24,6 +24,7 @@
  */
 
 #include "../../config.hpp"
+#include "../../helpers/exceptions.hpp"
 #include "../../tool/toolInterface.hpp"
 
 #include "instrument/ompLogicInstrumentInterface.hpp"
@@ -55,7 +56,10 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int
     data->parallelData = parallelData;
 
     void* newTape = this->tapePool.getTape(parallelData->masterTape, index);
-    tool->setActive(newTape, true);
+
+    if (parallelData->activeParallelRegion) {
+      tool->setActive(newTape, true);
+    }
 
     data->parallelData->tapes[index] = newTape;
 
@@ -94,6 +98,14 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
     tool->getTapePosition(data->parallelData->tapes[data->index],
                           data->parallelData->positions[data->index].back());
 
+    if (!data->parallelData->activeParallelRegion) {
+      if (tool->comparePosition(data->parallelData->positions[data->index].front(),
+                                data->parallelData->positions[data->index].back()) != 0) {
+        OPDI_WARNING("Something became active during a passive parallel region. This is not supported and will not be ",
+                     "differentiated correctly.");
+      }
+    }
+
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
         instrument->onImplicitTaskEnd(data);
@@ -102,7 +114,7 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
 
     tool->setActive(data->parallelData->tapes[data->index], false);
 
-    if (data->oldTape == data->parallelData->masterTape) {
+    if (data->oldTape == data->parallelData->masterTape && data->parallelData->activeParallelRegion) {
       tool->setActive(data->oldTape, true);
     }
 

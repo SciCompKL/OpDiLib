@@ -32,6 +32,8 @@
 
 #include "parallelOmpLogic.hpp"
 
+int opdi::ParallelOmpLogic::skipParallelHandling = 0;
+
 void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
 
   Data* data = (Data*) dataPtr;
@@ -41,6 +43,8 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
       instrument->reverseParallelBegin(data);
     }
   #endif
+
+  ++ParallelOmpLogic::skipParallelHandling;
 
   #pragma omp parallel num_threads(data->actualThreads)
   {
@@ -70,6 +74,8 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
                      data->adjointAccessModes[threadNum][j - 1] == AdjointAccessMode::Atomic);
     }
 
+    --ParallelOmpLogic::skipParallelHandling;
+
     tool->setThreadLocalTape(oldTape);
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
@@ -90,6 +96,8 @@ void opdi::ParallelOmpLogic::deleteFunc(void* dataPtr) {
 
   Data* data = (Data*) dataPtr;
 
+  ++ParallelOmpLogic::skipParallelHandling;
+
   // this triggers possibly pending implicit task end events
   #pragma omp parallel num_threads(data->actualThreads)
   {
@@ -108,17 +116,20 @@ void opdi::ParallelOmpLogic::deleteFunc(void* dataPtr) {
     }
   }
 
+  --ParallelOmpLogic::skipParallelHandling;
+
   delete [] data->tapes;
   delete data;
 }
 
 void* opdi::ParallelOmpLogic::onParallelBegin(int maxThreads) {
 
-  if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+  if (tool->getThreadLocalTape() != nullptr && ParallelOmpLogic::skipParallelHandling == 0) {
 
     Data* data = new Data;
 
     data->maxThreads = maxThreads;
+    data->activeParallelRegion = tool->isActive(tool->getThreadLocalTape());
     data->masterTape = tool->getThreadLocalTape();
     data->tapes = new void*[maxThreads]();
     data->positions.resize(maxThreads);
@@ -155,14 +166,20 @@ void opdi::ParallelOmpLogic::onParallelEnd(void* dataPtr) {
       }
     #endif
 
-    Handle* handle = new Handle;
-    handle->data = (void*) data;
-    handle->reverseFunc = ParallelOmpLogic::reverseFunc;
-    handle->deleteFunc = ParallelOmpLogic::deleteFunc;
+    if (data->activeParallelRegion) {
 
-    tool->pushExternalFunction(data->masterTape, handle);
+      Handle* handle = new Handle;
+      handle->data = (void*) data;
+      handle->reverseFunc = ParallelOmpLogic::reverseFunc;
+      handle->deleteFunc = ParallelOmpLogic::deleteFunc;
 
-    // do not delete data, it is deleted with the handle
+      tool->pushExternalFunction(data->masterTape, handle);
+
+      // do not delete data, it is deleted with the handle
+
+    } else {
+      deleteFunc(data);
+    }
   }
   #if OPDI_OMP_LOGIC_INSTRUMENT
   else {
