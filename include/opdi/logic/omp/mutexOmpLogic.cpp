@@ -23,6 +23,8 @@
  *
  */
 
+#include <cassert>
+
 #include "../../helpers/macros.hpp"
 #include "../../helpers/exceptions.hpp"
 #include "../../config.hpp"
@@ -34,8 +36,15 @@
 
 opdi::MutexOmpLogic::State opdi::MutexOmpLogic::localState;
 opdi::MutexOmpLogic::State opdi::MutexOmpLogic::evalState;
+#ifdef __SANITIZE_THREAD__
+  opdi::MutexOmpLogic::State opdi::MutexOmpLogic::tsanDummies;
+#endif
 
-void opdi::MutexOmpLogic::internalWaitReverseFunc(std::map<std::size_t, std::size_t>& evalTrace, void* dataPtr) {
+void opdi::MutexOmpLogic::internalWaitReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
+                                                  #ifdef __SANITIZE_THREAD__
+                                                    std::map<std::size_t, std::size_t>& tsanDummies,
+                                                  #endif
+                                                  void* dataPtr) {
   Data* data = (Data*) dataPtr;
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
@@ -55,26 +64,50 @@ void opdi::MutexOmpLogic::internalWaitReverseFunc(std::map<std::size_t, std::siz
       break;
     }
   }
+
+  #ifdef __SANITIZE_THREAD__
+    ANNOTATE_RWLOCK_ACQUIRED(&tsanDummies[data->waitId], true);
+  #endif
 }
 
 void opdi::MutexOmpLogic::waitCriticalReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.criticalTrace, dataPtr);
+  internalWaitReverseFunc(MutexOmpLogic::evalState.criticalTrace,
+                          #ifdef __SANITIZE_THREAD__
+                            MutexOmpLogic::tsanDummies.criticalTrace,
+                          #endif
+                          dataPtr);
 }
 
 void opdi::MutexOmpLogic::waitLockReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.lockTrace, dataPtr);
+  internalWaitReverseFunc(MutexOmpLogic::evalState.lockTrace,
+                          #ifdef __SANITIZE_THREAD__
+                            MutexOmpLogic::tsanDummies.lockTrace,
+                          #endif
+                          dataPtr);
 }
 
 void opdi::MutexOmpLogic::waitNestedLockReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.nestedLockTrace, dataPtr);
+  internalWaitReverseFunc(MutexOmpLogic::evalState.nestedLockTrace,
+                          #ifdef __SANITIZE_THREAD__
+                            MutexOmpLogic::tsanDummies.nestedLockTrace,
+                          #endif
+                          dataPtr);
 }
 
 void opdi::MutexOmpLogic::waitOrderedReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.orderedTrace, dataPtr);
+  internalWaitReverseFunc(MutexOmpLogic::evalState.orderedTrace,
+                          #ifdef __SANITIZE_THREAD__
+                            MutexOmpLogic::tsanDummies.orderedTrace,
+                          #endif
+                          dataPtr);
 }
 
 void opdi::MutexOmpLogic::waitReductionReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.reductionTrace, dataPtr);
+  internalWaitReverseFunc(MutexOmpLogic::evalState.reductionTrace,
+                          #ifdef __SANITIZE_THREAD__
+                            MutexOmpLogic::tsanDummies.reductionTrace,
+                          #endif
+                          dataPtr);
 }
 
 void opdi::MutexOmpLogic::waitDeleteFunc(void* dataPtr) {
@@ -82,8 +115,16 @@ void opdi::MutexOmpLogic::waitDeleteFunc(void* dataPtr) {
   delete data;
 }
 
-void opdi::MutexOmpLogic::internalDecrementReverseFunc(std::map<std::size_t, std::size_t>& evalTrace, void* dataPtr) {
+void opdi::MutexOmpLogic::internalDecrementReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
+                                                       #ifdef __SANITIZE_THREAD__
+                                                         std::map<std::size_t, std::size_t>& tsanDummies,
+                                                       #endif
+                                                       void* dataPtr) {
   Data* data = (Data*) dataPtr;
+
+  #ifdef __SANITIZE_THREAD__
+    ANNOTATE_RWLOCK_RELEASED(&tsanDummies[data->waitId], true);
+  #endif
 
   // decrement trace value
   #pragma omp atomic update
@@ -97,23 +138,43 @@ void opdi::MutexOmpLogic::internalDecrementReverseFunc(std::map<std::size_t, std
 }
 
 void opdi::MutexOmpLogic::decrementCriticalReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.criticalTrace, dataPtr);
+  internalDecrementReverseFunc(MutexOmpLogic::evalState.criticalTrace,
+                               #ifdef __SANITIZE_THREAD__
+                                 MutexOmpLogic::tsanDummies.criticalTrace,
+                               #endif
+                               dataPtr);
 }
 
 void opdi::MutexOmpLogic::decrementLockReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.lockTrace, dataPtr);
+  internalDecrementReverseFunc(MutexOmpLogic::evalState.lockTrace,
+                               #ifdef __SANITIZE_THREAD__
+                                 MutexOmpLogic::tsanDummies.lockTrace,
+                               #endif
+                               dataPtr);
 }
 
 void opdi::MutexOmpLogic::decrementNestedLockReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.nestedLockTrace, dataPtr);
+  internalDecrementReverseFunc(MutexOmpLogic::evalState.nestedLockTrace,
+                               #ifdef __SANITIZE_THREAD__
+                                 MutexOmpLogic::tsanDummies.nestedLockTrace,
+                               #endif
+                               dataPtr);
 }
 
 void opdi::MutexOmpLogic::decrementOrderedReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.orderedTrace, dataPtr);
+  internalDecrementReverseFunc(MutexOmpLogic::evalState.orderedTrace,
+                               #ifdef __SANITIZE_THREAD__
+                                 MutexOmpLogic::tsanDummies.orderedTrace,
+                               #endif
+                               dataPtr);
 }
 
 void opdi::MutexOmpLogic::decrementReductionReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.reductionTrace, dataPtr);
+  internalDecrementReverseFunc(MutexOmpLogic::evalState.reductionTrace,
+                               #ifdef __SANITIZE_THREAD__
+                                 MutexOmpLogic::tsanDummies.reductionTrace,
+                               #endif
+                               dataPtr);
 }
 
 void opdi::MutexOmpLogic::decrementDeleteFunc(void* dataPtr) {
@@ -348,6 +409,47 @@ void opdi::MutexOmpLogic::prepareEvaluate() {
   MutexOmpLogic::evalState.nestedLockTrace = this->nestedLockTrace.trace;
   MutexOmpLogic::evalState.orderedTrace = this->orderedTrace.trace;
   MutexOmpLogic::evalState.reductionTrace = this->reductionTrace.trace;
+
+#ifdef __SANITIZE_THREAD__
+  /* create lock annotations for the reverse pass */
+
+  auto createReverseLocks=[](MutexOmpLogic::Trace const& evalState, MutexOmpLogic::Trace& tsanDummies) {
+    assert(tsanDummies.empty());
+    for (auto const& pair : evalState) {
+      tsanDummies[pair.first] = 0;
+    }
+
+    for (auto& pair : tsanDummies) {
+      ANNOTATE_RWLOCK_CREATE(&pair.second);
+    }
+  };
+
+  createReverseLocks(MutexOmpLogic::evalState.criticalTrace, MutexOmpLogic::tsanDummies.criticalTrace);
+  createReverseLocks(MutexOmpLogic::evalState.lockTrace, MutexOmpLogic::tsanDummies.lockTrace);
+  createReverseLocks(MutexOmpLogic::evalState.nestedLockTrace, MutexOmpLogic::tsanDummies.nestedLockTrace);
+  createReverseLocks(MutexOmpLogic::evalState.orderedTrace, MutexOmpLogic::tsanDummies.orderedTrace);
+  createReverseLocks(MutexOmpLogic::evalState.reductionTrace, MutexOmpLogic::tsanDummies.reductionTrace);
+#endif
+}
+
+void opdi::MutexOmpLogic::postEvaluate() {
+#ifdef __SANITIZE_THREAD__
+  /* destroy lock annotations */
+
+  auto destroyReverseLocks=[](MutexOmpLogic::Trace& tsanDummies) {
+    for (auto& pair : tsanDummies) {
+      ANNOTATE_RWLOCK_DESTROY(&pair.second);
+    }
+
+    tsanDummies.clear();
+  };
+
+  destroyReverseLocks(MutexOmpLogic::tsanDummies.criticalTrace);
+  destroyReverseLocks(MutexOmpLogic::tsanDummies.lockTrace);
+  destroyReverseLocks(MutexOmpLogic::tsanDummies.nestedLockTrace);
+  destroyReverseLocks(MutexOmpLogic::tsanDummies.orderedTrace);
+  destroyReverseLocks(MutexOmpLogic::tsanDummies.reductionTrace);
+#endif
 }
 
 void opdi::MutexOmpLogic::reset() {

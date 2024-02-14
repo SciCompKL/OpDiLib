@@ -75,6 +75,7 @@ namespace opdi {
       virtual void init() = 0;
       virtual void finalize() = 0;
       virtual void prepareEvaluate() = 0;
+      virtual void postEvaluate() = 0;
       virtual void reset() = 0;
 
       virtual void* exportState() = 0;
