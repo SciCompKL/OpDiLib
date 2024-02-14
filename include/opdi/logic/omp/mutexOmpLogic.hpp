@@ -65,6 +65,9 @@ namespace opdi {
       #pragma omp threadprivate(localState)
 
       static State evalState;
+#ifdef __SANITIZE_THREAD__
+      static State tsanDummies;
+#endif
 
     public:
 
@@ -77,7 +80,11 @@ namespace opdi {
 
     private:
 
-      static void internalWaitReverseFunc(std::map<std::size_t, std::size_t>& evalTrace, void* dataPtr);
+      static void internalWaitReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
+                                          #ifdef __SANITIZE_THREAD__
+                                            std::map<std::size_t, std::size_t>& tsanDummies,
+                                          #endif
+                                          void* dataPtr);
 
       static void waitCriticalReverseFunc(void* dataPtr);
       static void waitLockReverseFunc(void* dataPtr);
@@ -87,7 +94,11 @@ namespace opdi {
 
       static void waitDeleteFunc(void* dataPtr);
 
-      static void internalDecrementReverseFunc(std::map<std::size_t, std::size_t>& evalTrace, void* dataPtr);
+      static void internalDecrementReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
+                                               #ifdef __SANITIZE_THREAD__
+                                                 std::map<std::size_t, std::size_t>& tsanDummies,
+                                               #endif
+                                               void* dataPtr);
 
       static void decrementCriticalReverseFunc(void* dataPtr);
       static void decrementLockReverseFunc(void* dataPtr);
