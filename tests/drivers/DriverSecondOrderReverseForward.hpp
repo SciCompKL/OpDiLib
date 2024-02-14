@@ -117,6 +117,9 @@ struct DriverSecondOrderReverseForward : public DriverBase<DriverSecondOrderReve
               opdi::logic->prepareEvaluate();
             #endif
             tape.evaluate();
+            #ifndef BUILD_REFERENCE
+              opdi::logic->postEvaluate();
+            #endif
 
             for (int i = 0; i < Case::nIn; ++i)
             {
