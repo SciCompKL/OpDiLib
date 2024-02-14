@@ -123,6 +123,7 @@ namespace opdi {
       virtual void registerInactiveMutex(MutexKind kind, std::size_t waitId);
 
       void prepareEvaluate();
+      void postEvaluate();
       void reset();
 
       void* exportState();

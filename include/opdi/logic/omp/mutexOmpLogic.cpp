@@ -350,6 +350,11 @@ void opdi::MutexOmpLogic::prepareEvaluate() {
   MutexOmpLogic::evalState.reductionTrace = this->reductionTrace.trace;
 }
 
+
+void opdi::MutexOmpLogic::postEvaluate() {
+
+}
+
 void opdi::MutexOmpLogic::reset() {
   this->criticalTrace.trace.clear();
   this->lockTrace.trace.clear();
