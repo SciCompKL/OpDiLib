@@ -3,12 +3,12 @@
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
  * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
- * Homepage: http://www.scicomp.uni-kl.de
+ * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
  * Lead developer: Johannes Blühdorn (SciComp, University of Kaiserslautern-Landau)
  *
- * This file is part of OpDiLib (http://www.scicomp.uni-kl.de/software/opdi).
+ * This file is part of OpDiLib (https://scicomp.rptu.de/software/opdi).
  *
  * OpDiLib is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
