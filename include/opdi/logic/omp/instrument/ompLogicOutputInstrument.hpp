@@ -169,5 +169,9 @@ namespace opdi {
       virtual void onMaster(LogicInterface::ScopeEndpoint endpoint) {
         TapedOutput::print("F MAST t", omp_get_thread_num(), "endp", endpoint);
       }
+
+      virtual void onSetAdjointAccessMode(LogicInterface::AdjointAccessMode adjointAccess) {
+        TapedOutput::print("F SAAM t", omp_get_thread_num(), "mode", adjointAccess);
+      }
   };
 }
