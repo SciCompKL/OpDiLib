@@ -74,8 +74,6 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
                      data->adjointAccessModes[threadNum][j - 1] == AdjointAccessMode::Atomic);
     }
 
-    --ParallelOmpLogic::skipParallelHandling;
-
     tool->setThreadLocalTape(oldTape);
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
@@ -84,6 +82,8 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
       }
     #endif
   }
+
+  --ParallelOmpLogic::skipParallelHandling;
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
