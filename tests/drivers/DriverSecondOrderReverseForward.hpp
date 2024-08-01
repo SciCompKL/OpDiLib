@@ -49,6 +49,7 @@
 
 #ifdef BUILD_REFERENCE
   using TestReal = codi::RealReverseIndexGen<codi::RealForward>;
+  using NestedReal = codi::RealForward;
 #else
   using TestReal = codi::RealReverseIndexOpenMPGen<codi::RealForward>;
   using NestedReal = codi::RealForward;
