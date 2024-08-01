@@ -28,10 +28,10 @@
 #include "testBase.hpp"
 
 template<typename _Case>
-struct TestAdjointAccessControlNested : public TestBase<4, 1, 3, TestAdjointAccessControlNested<_Case>> {
+struct TestAdjointAccessControlNested2 : public TestBase<4, 1, 3, TestAdjointAccessControlNested2<_Case>> {
   public:
     using Case = _Case;
-    using Base = TestBase<4, 1, 3, TestAdjointAccessControlNested<Case>>;
+    using Base = TestBase<4, 1, 3, TestAdjointAccessControlNested2<Case>>;
 
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
@@ -83,18 +83,28 @@ struct TestAdjointAccessControlNested : public TestBase<4, 1, 3, TestAdjointAcce
             c[j] = cos(arg);
           }
 
-          #if _OPENMP
-            opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
-          #endif
-
-          // no shared reading
-          for (int j = innerStart; j < innerEnd; ++j) {
-            c[j] = sin(exp(c[j]));
-          }
-
-          // adjoint access mode identical at start and end of nested parallel region
+          // atomic adjoint access mode to be transported out of the nested parallel region
         }
         OPDI_END_PARALLEL
+
+        // shared reading on a
+        for (int i = outerStart; i < outerEnd; ++i) {
+          T arg = c[i];
+          for (int k = 0; k < 10; ++k) {
+            arg += sin(exp(a[(i + k) % N]));
+          }
+          c[i] += arg;
+        }
+
+        #if _OPENMP
+          opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
+          opdi::logic->addReverseBarrier();
+        #endif
+
+        // no shared reading
+        for (int i = outerStart; i < outerEnd; ++i) {
+          c[i] += sin(exp(c[i]));
+        }
 
         #if _OPENMP
           opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
