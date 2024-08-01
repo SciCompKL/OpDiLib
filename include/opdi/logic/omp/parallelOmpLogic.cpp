@@ -177,6 +177,12 @@ void opdi::ParallelOmpLogic::onParallelEnd(void* dataPtr) {
 
       // do not delete data, it is deleted with the handle
 
+      // see if the adjoint access mode changed inside the parallel region
+      // if so, we have to make sure that it carries over to the containing parallel region
+      if (data->outerAdjointAccessMode != AdjointAccessControl::currentMode()) {
+        this->setAdjointAccessMode(AdjointAccessControl::currentMode());
+      }
+
     } else {
       deleteFunc(data);
     }
