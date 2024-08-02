@@ -114,21 +114,25 @@ namespace opdi {
 
       virtual void reverseParallelBegin(ParallelOmpLogic::Data* data) {
         TapedOutput::print("R PARB l", omp_get_level(),
+                           "t", omp_get_thread_num(),
                            "master", data->masterTape);
       }
 
       virtual void reverseParallelEnd(ParallelOmpLogic::Data* data) {
         TapedOutput::print("R PARE l", omp_get_level(),
+                           "t", omp_get_thread_num(),
                            "master", data->masterTape);
       }
 
       virtual void onParallelBegin(ParallelOmpLogic::Data* data) {
         if (data == nullptr) {
           TapedOutput::print("F PARB l", omp_get_level(),
+                             "t", omp_get_thread_num(),
                              "(passive)");
         }
         else {
           TapedOutput::print("F PARB l", omp_get_level(),
+                             "t", omp_get_thread_num(),
                              "master", data->masterTape,
                              "mode", data->outerAdjointAccessMode);
         }
@@ -137,10 +141,12 @@ namespace opdi {
       virtual void onParallelEnd(ParallelOmpLogic::Data* data) {
         if (data == nullptr) {
           TapedOutput::print("F PARE l", omp_get_level(),
+                             "t", omp_get_thread_num(),
                              "(passive)");
         }
         else {
           TapedOutput::print("F PARE l", omp_get_level(),
+                             "t", omp_get_thread_num(),
                              "master", data->masterTape,
                              "mode", data->outerAdjointAccessMode);
         }
