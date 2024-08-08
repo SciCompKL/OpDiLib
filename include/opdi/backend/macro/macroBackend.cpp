@@ -30,6 +30,7 @@
 // static macro backend members
 
 std::stack<void*> opdi::DataTools::parallelData;
+std::stack<void*> opdi::DataTools::taskData;
 
 std::stack<bool> opdi::ImplicitBarrierTools::implicitBarrierStack;
 
