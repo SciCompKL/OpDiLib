@@ -54,9 +54,11 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
 
     ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(data->childTasks[threadNum]);
 
+    assert(taskData->index == threadNum);
+
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
-        instrument->reverseImplicitTaskBegin(data, threadNum);
+        instrument->reverseImplicitTaskBegin(taskData);
       }
     #endif
 
@@ -68,7 +70,7 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
 
       #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {
-          instrument->reverseImplicitTaskPart(data, threadNum, j);
+          instrument->reverseImplicitTaskPart(taskData, j);
         }
       #endif
 
@@ -82,7 +84,7 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
-        instrument->reverseImplicitTaskEnd(data, threadNum);
+        instrument->reverseImplicitTaskEnd(taskData);
       }
     #endif
   }
