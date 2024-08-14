@@ -177,4 +177,5 @@ clean:
 	rm -r -f build
 	rm -f tempmakefile
 	rm -f results/*.out
+	rm -f results/*.err
 	rm -f testresults
