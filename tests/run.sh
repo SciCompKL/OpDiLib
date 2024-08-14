@@ -37,7 +37,7 @@ fi
 
 case "$MODE" in
 	"RUN")
-		timeout 5m ./$BUILD_DIR/$LAUNCH_NAME 1> $RESULT_DIR/$DRIVER$TEST.out;
+		timeout 5m ./$BUILD_DIR/$LAUNCH_NAME 1> $RESULT_DIR/$DRIVER$TEST.out 2> $RESULT_DIR/$DRIVER$TEST.err;
 		ret=$?
 		if [[ $ret -ne 0 ]];
 		then
