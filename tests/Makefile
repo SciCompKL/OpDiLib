@@ -49,7 +49,7 @@ FLAGS = $(CXXFLAGS) -std=c++11
 ifeq ($(DEBUG),no)
 	FLAGS += -O3
 else
-  FLAGS += -O0 -ggdb -Wall -Wextra
+  FLAGS += -O0 -ggdb -Wall -Wextra -Werror
   ifeq ($(OUTPUT_INSTRUMENT),yes)
     FLAGS += -DOPDI_OMP_LOGIC_INSTRUMENT=1 -DOUTPUT_INSTRUMENT
   endif
