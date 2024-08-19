@@ -68,16 +68,15 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int
 
     tool->setThreadLocalTape(newTape);
 
-    AdjointAccessControl::pushMode(parallelData->parentAdjointAccessMode);
     data->adjointAccessModes.push_back(parallelData->parentAdjointAccessMode);
+
+    parallelData->childTasks[index] = data;
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
         instrument->onImplicitTaskBegin(data);
       }
     #endif
-
-    parallelData->childTasks[index] = data;
 
     return data;
   }
@@ -89,10 +88,6 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
 
   if (dataPtr != nullptr) {
     Data* data = (Data*) dataPtr;
-
-    AdjointAccessMode lastAccessMode = AdjointAccessControl::currentMode();
-    AdjointAccessControl::popMode();
-    AdjointAccessControl::currentMode() = lastAccessMode;
 
     tool->setThreadLocalTape(data->oldTape);
 

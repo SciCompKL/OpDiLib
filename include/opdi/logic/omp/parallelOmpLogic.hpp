@@ -35,7 +35,7 @@
 
 namespace opdi {
 
-  struct ParallelOmpLogic : public virtual AdjointAccessControl,
+  struct ParallelOmpLogic : public InitialImplicitTaskAdjointAccessControl,
                             public virtual LogicInterface,
                             public virtual TapePool {
     public:
@@ -61,12 +61,15 @@ namespace opdi {
       static void reverseFunc(void* dataPtr);
       static void deleteFunc(void* dataPtr);
 
+      AdjointAccessMode internalGetAdjointAccessMode(void* taskDataPtr) const;
+      void internalSetAdjointAccessMode(void* taskDataPtr, AdjointAccessMode mode);
+
     public:
 
       virtual void* onParallelBegin(void* encounteringTask, int maxThreads);
       virtual void onParallelEnd(void* dataPtr);
 
       virtual void setAdjointAccessMode(AdjointAccessMode mode);
-      virtual AdjointAccessMode getAdjointAccessMode();
+      virtual AdjointAccessMode getAdjointAccessMode() const;
   };
 }

@@ -31,13 +31,11 @@
 
 #include "../logicInterface.hpp"
 
-#include "adjointAccessControl.hpp"
 #include "parallelOmpLogic.hpp"
 
 namespace opdi {
 
-  struct ImplicitTaskOmpLogic : public virtual LogicInterface,
-                                public virtual AdjointAccessControl {
+  struct ImplicitTaskOmpLogic : public virtual LogicInterface {
     protected:
       TapePool tapePool;
 

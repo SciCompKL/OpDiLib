@@ -30,7 +30,6 @@
 
 #include "../logicInterface.hpp"
 
-#include "adjointAccessControl.hpp"
 #include "flushOmpLogic.hpp"
 #include "implicitTaskOmpLogic.hpp"
 #include "masterOmpLogic.hpp"
@@ -48,7 +47,6 @@ namespace opdi {
                     public ParallelOmpLogic,
                     public SyncRegionOmpLogic,
                     public WorkOmpLogic,
-                    public virtual AdjointAccessControl,
                     public virtual LogicInterface
   {
     public:

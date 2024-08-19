@@ -27,11 +27,11 @@
 #include "adjointAccessControl.hpp"
 
 #if OPDI_DEFAULT_ADJOINT_ACCESS_MODE == OPDI_ADJOINT_ACCESS_ATOMIC
-  std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
-                                                      {opdi::LogicInterface::AdjointAccessMode::Atomic};
+  opdi::LogicInterface::AdjointAccessMode opdi::InitialImplicitTaskAdjointAccessControl::currentAdjointAccess =
+                                                                    opdi::LogicInterface::AdjointAccessMode::Atomic;
 #elif OPDI_DEFAULT_ADJOINT_ACCESS_MODE == OPDI_ADJOINT_ACCESS_CLASSICAL
-  std::list<opdi::LogicInterface::AdjointAccessMode> opdi::AdjointAccessControl::currentAdjointAccess
-                                                      {opdi::LogicInterface::AdjointAccessMode::Classical};
+  opdi::LogicInterface::AdjointAccessMode opdi::InitialImplicitTaskAdjointAccessControl::currentAdjointAccess =
+                                                                    opdi::LogicInterface::AdjointAccessMode::Classical;
 #else
   #error Unknown adjoint access mode.
 #endif

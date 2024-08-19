@@ -27,36 +27,27 @@
 
 #include <list>
 
-#include "../../backend/backendInterface.hpp"
-#include "../../tool/toolInterface.hpp"
-
 #include "../logicInterface.hpp"
 
 namespace opdi {
 
-  struct AdjointAccessControl : public virtual LogicInterface {
+  // The initial implicit task has no associated task data or parallel region data. This is a drop-in to track the
+  // initial implicit task's adjoint access mode. The initial implicit task uses the adjoint access mode implied by the
+  // AD tool, but the access mode will be regarded in spawned parallel regions.
+  struct InitialImplicitTaskAdjointAccessControl {
     public:
       using AdjointAccessMode = LogicInterface::AdjointAccessMode;
 
     private:
-      static std::list<AdjointAccessMode> currentAdjointAccess;
-      #pragma omp threadprivate(currentAdjointAccess)
+      static AdjointAccessMode currentAdjointAccess;
 
     protected:
       AdjointAccessMode& currentMode() {
-        return currentAdjointAccess.back();
+        return currentAdjointAccess;
       }
 
       const AdjointAccessMode& currentMode() const {
-        return currentAdjointAccess.back();
-      }
-
-      void pushMode(AdjointAccessMode adjointAccess) {
-        currentAdjointAccess.push_back(adjointAccess);
-      }
-
-      void popMode() {
-        currentAdjointAccess.pop_back();
+        return currentAdjointAccess;
       }
   };
 }
