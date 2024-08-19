@@ -55,27 +55,29 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int
     data->oldTape = tool->getThreadLocalTape();
     data->parallelData = parallelData;
 
-    void* newTape = this->tapePool.getTape(parallelData->masterTape, index);
+    void* newTape = this->tapePool.getTape(parallelData->parentTape, index);
 
     if (parallelData->activeParallelRegion) {
       tool->setActive(newTape, true);
     }
 
-    data->parallelData->tapes[index] = newTape;
+    data->tape = newTape;
 
-    data->parallelData->positions[index].push_back(tool->allocPosition());
-    tool->getTapePosition(newTape, data->parallelData->positions[index].back());
+    data->positions.push_back(tool->allocPosition());
+    tool->getTapePosition(newTape, data->positions.back());
 
     tool->setThreadLocalTape(newTape);
 
-    AdjointAccessControl::pushMode(data->parallelData->outerAdjointAccessMode);
-    data->parallelData->adjointAccessModes[index].push_back(data->parallelData->outerAdjointAccessMode);
+    AdjointAccessControl::pushMode(parallelData->parentAdjointAccessMode);
+    data->adjointAccessModes.push_back(parallelData->parentAdjointAccessMode);
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
         instrument->onImplicitTaskBegin(data);
       }
     #endif
+
+    parallelData->childTasks[index] = data;
 
     return data;
   }
@@ -94,13 +96,11 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
 
     tool->setThreadLocalTape(data->oldTape);
 
-    data->parallelData->positions[data->index].push_back(tool->allocPosition());
-    tool->getTapePosition(data->parallelData->tapes[data->index],
-                          data->parallelData->positions[data->index].back());
+    data->positions.push_back(tool->allocPosition());
+    tool->getTapePosition(data->tape, data->positions.back());
 
     if (!data->parallelData->activeParallelRegion) {
-      if (tool->comparePosition(data->parallelData->positions[data->index].front(),
-                                data->parallelData->positions[data->index].back()) != 0) {
+      if (tool->comparePosition(data->positions.front(), data->positions.back()) != 0) {
         OPDI_WARNING("Something became active during a passive parallel region. This is not supported and will not be ",
                      "differentiated correctly.");
       }
@@ -112,12 +112,13 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
       }
     #endif
 
-    tool->setActive(data->parallelData->tapes[data->index], false);
+    tool->setActive(data->tape, false);
 
-    if (data->oldTape == data->parallelData->masterTape && data->parallelData->activeParallelRegion) {
+    // ensure that the most recent activity change *per thread* reflects the current activity
+    if (data->oldTape == data->parallelData->parentTape && data->parallelData->activeParallelRegion) {
       tool->setActive(data->oldTape, true);
     }
 
-    delete data;
+    // do not delete data, it is deleted as part of parallel regions
   }
 }

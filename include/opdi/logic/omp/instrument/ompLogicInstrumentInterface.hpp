@@ -45,9 +45,9 @@ namespace opdi {
 
       virtual void reverseFlush() {}
 
-      virtual void reverseImplicitTaskBegin(ParallelOmpLogic::Data* /*data*/, int /*threadNum*/) {}
-      virtual void reverseImplicitTaskEnd(ParallelOmpLogic::Data* /*data*/, int /*threadNum*/) {}
-      virtual void reverseImplicitTaskPart(ParallelOmpLogic::Data* /*data*/, int /*threadNum*/, std::size_t /*part*/) {}
+      virtual void reverseImplicitTaskBegin(ImplicitTaskOmpLogic::Data* /*data*/) {}
+      virtual void reverseImplicitTaskEnd(ImplicitTaskOmpLogic::Data* /*data*/) {}
+      virtual void reverseImplicitTaskPart(ImplicitTaskOmpLogic::Data* /*data*/, std::size_t /*part*/) {}
       virtual void onImplicitTaskBegin(ImplicitTaskOmpLogic::Data* /*data*/) {}
       virtual void onImplicitTaskEnd(ImplicitTaskOmpLogic::Data* /*data*/) {}
 

@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <deque>
+
 #include "../../misc/tapePool.hpp"
 
 #include "../logicInterface.hpp"
@@ -44,6 +46,8 @@ namespace opdi {
 
     public:
 
+      using LogicInterface::AdjointAccessMode;
+
       using ParallelData = typename ParallelOmpLogic::Data;
 
       struct Data {
@@ -51,7 +55,10 @@ namespace opdi {
           int level;
           int index;
           void* oldTape;
+          void* tape;
           ParallelData* parallelData;
+          std::deque<void*> positions;
+          std::deque<AdjointAccessMode> adjointAccessModes;
       };
 
       virtual void* onImplicitTaskBegin(int actualParallelism, int index, void* parallelDataPtr);

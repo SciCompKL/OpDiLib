@@ -55,7 +55,7 @@ namespace opdi {
 
       virtual ~LogicInterface() {}
 
-      virtual void* onParallelBegin(int maxThreads) = 0;
+      virtual void* onParallelBegin(void* encounteringTaskData, int maxThreads) = 0;
       virtual void onParallelEnd(void* data) = 0;
 
       virtual void* onImplicitTaskBegin(int actualParallelism, int index, void* parallelData) = 0;

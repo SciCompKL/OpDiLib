@@ -37,11 +37,11 @@ fi
 
 case "$MODE" in
 	"RUN")
-		timeout 5m ./$BUILD_DIR/$LAUNCH_NAME 1> $RESULT_DIR/$DRIVER$TEST.out;
+		timeout 5m ./$BUILD_DIR/$LAUNCH_NAME 1> $RESULT_DIR/$DRIVER$TEST.out 2> $RESULT_DIR/$DRIVER$TEST.err;
 		ret=$?
 		if [[ $ret -ne 0 ]];
 		then
-		  echo -e $DRIVER$TEST "\e[0;31mTIMEOUT\e[0m";
+		  echo -e $DRIVER$TEST "\e[0;31mTIMEOUT or ERROR\e[0m";
 			echo "1" >> testresults;
 		else
 		  if cmp -s $RESULT_DIR/$DRIVER$TEST.ref $RESULT_DIR/$DRIVER$TEST.out;

@@ -38,7 +38,7 @@
 
 #define OPDI_PARALLEL(...) \
   { \
-    void* opdiInternalParallelData = opdi::logic->onParallelBegin(omp_get_max_threads()); \
+    void* opdiInternalParallelData = opdi::logic->onParallelBegin(opdi::DataTools::getTaskData(), omp_get_max_threads()); \
     opdi::TaskProbe opdiInternalTaskProbe(opdiInternalParallelData); \
     OPDI_PRAGMA(omp parallel __VA_ARGS__ firstprivate(opdiInternalTaskProbe))
 
