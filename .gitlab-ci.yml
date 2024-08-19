@@ -39,3 +39,15 @@ test-clang-ompt:
     - export BACKEND=OMPT
     - make all
 
+test-output:
+  image: ubuntu:22.04
+  timeout: 2h
+  script:
+    - apt update && apt install -y build-essential binutils git
+    - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
+    - export CODI_DIR=$(pwd)/CoDiPack/include
+    - export OPDI_DIR=$(pwd)/include
+    - cd tests
+    - export CXX=g++
+    - export OUTPUT_INSTRUMENT=yes
+    - make all

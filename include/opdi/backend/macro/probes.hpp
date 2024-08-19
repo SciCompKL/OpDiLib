@@ -71,6 +71,7 @@ namespace opdi {
 
         DataTools::pushParallelData(this->parallelData);
         this->taskData = logic->onImplicitTaskBegin(omp_get_num_threads(), omp_get_thread_num(), this->parallelData);
+        DataTools::pushTaskData(this->taskData);
 
         // check if copy statements have been recorded before the correct tape was set
         // if so, move them to the correct tape
@@ -88,6 +89,7 @@ namespace opdi {
         if (needsAction) {
           ProbeScopeStatus::endImplicitTaskProbeScope();
           logic->onImplicitTaskEnd(this->taskData);
+          DataTools::popTaskData();
           DataTools::popParallelData();
         }
 

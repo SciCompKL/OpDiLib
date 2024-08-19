@@ -25,7 +25,6 @@
 
 #pragma once
 
-#include <deque>
 #include <vector>
 
 #include "../../misc/tapePool.hpp"
@@ -48,11 +47,10 @@ namespace opdi {
           int maxThreads;
           int actualThreads;
           bool activeParallelRegion;
-          void* masterTape;
-          void** tapes;
-          std::vector<std::deque<void*>> positions;
-          AdjointAccessMode outerAdjointAccessMode;
-          std::vector<std::deque<AdjointAccessMode>> adjointAccessModes;
+          void* parentTask;  // ParallelOmpLogic::Data of parent task
+          void* parentTape;
+          AdjointAccessMode parentAdjointAccessMode;
+          std::vector<void*> childTasks;  // ImplicitTaskOmpLogic::Data of child tasks
       };
 
     private:
@@ -65,7 +63,7 @@ namespace opdi {
 
     public:
 
-      virtual void* onParallelBegin(int maxThreads);
+      virtual void* onParallelBegin(void* encounteringTask, int maxThreads);
       virtual void onParallelEnd(void* dataPtr);
 
       virtual void setAdjointAccessMode(AdjointAccessMode mode);

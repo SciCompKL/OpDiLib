@@ -40,41 +40,41 @@ namespace opdi {
         TapedOutput::print("R FLSH l", omp_get_level(), "t", omp_get_thread_num());
       }
 
-      virtual void reverseImplicitTaskBegin(ParallelOmpLogic::Data* data, int threadNum) {
+      virtual void reverseImplicitTaskBegin(ImplicitTaskOmpLogic::Data* data) {
         TapedOutput::print("R IMTB l", omp_get_level(),
-                           "t", threadNum,
-                           "tape", data->tapes[threadNum],
-                           "pos", tool->positionToString(data->positions[threadNum].back()));
+                           "t", data->index,
+                           "tape", data->tape,
+                           "pos", tool->positionToString(data->positions.back()));
       }
 
-      virtual void reverseImplicitTaskEnd(ParallelOmpLogic::Data* data, int threadNum) {
+      virtual void reverseImplicitTaskEnd(ImplicitTaskOmpLogic::Data* data) {
         TapedOutput::print("R IMTE l", omp_get_level(),
-                           "t", threadNum,
-                           "tape", data->tapes[threadNum],
-                           "pos", tool->positionToString(data->positions[threadNum].front()));
+                           "t", data->index,
+                           "tape", data->tape,
+                           "pos", tool->positionToString(data->positions.front()));
       }
 
-      virtual void reverseImplicitTaskPart(ParallelOmpLogic::Data* data, int threadNum, std::size_t part) {
+      virtual void reverseImplicitTaskPart(ImplicitTaskOmpLogic::Data* data, std::size_t part) {
         TapedOutput::print("R IMTP l", omp_get_level(),
-                           "t", threadNum,
-                           "tape", data->tapes[threadNum],
-                           "start", tool->positionToString(data->positions[threadNum][part]),
-                           "end", tool->positionToString(data->positions[threadNum][part - 1]),
-                           "mode", data->adjointAccessModes[threadNum][part - 1]);
+                           "t", data->index,
+                           "tape", data->tape,
+                           "start", tool->positionToString(data->positions[part]),
+                           "end", tool->positionToString(data->positions[part - 1]),
+                           "mode", data->adjointAccessModes[part - 1]);
       }
 
       virtual void onImplicitTaskBegin(ImplicitTaskOmpLogic::Data* data) {
         TapedOutput::print("F IMTB l", omp_get_level(),
                            "t", data->index,
-                           "tape", data->parallelData->tapes[data->index],
-                           "pos", tool->positionToString(data->parallelData->positions[data->index].back()));
+                           "tape", data->tape,
+                           "pos", tool->positionToString(data->positions.back()));
       }
 
       virtual void onImplicitTaskEnd(ImplicitTaskOmpLogic::Data* data) {
         TapedOutput::print("F IMTE l", omp_get_level(),
                            "t", data->index,
-                           "tape", data->parallelData->tapes[data->index],
-                           "pos", tool->positionToString(data->parallelData->positions[data->index].back()));
+                           "tape", data->tape,
+                           "pos", tool->positionToString(data->positions.back()));
       }
 
       virtual void reverseMutexWait(MutexOmpLogic::Data* data) {
@@ -114,12 +114,12 @@ namespace opdi {
 
       virtual void reverseParallelBegin(ParallelOmpLogic::Data* data) {
         TapedOutput::print("R PARB l", omp_get_level(),
-                           "master", data->masterTape);
+                           "parent", data->parentTape);
       }
 
       virtual void reverseParallelEnd(ParallelOmpLogic::Data* data) {
         TapedOutput::print("R PARE l", omp_get_level(),
-                           "master", data->masterTape);
+                           "parent", data->parentTape);
       }
 
       virtual void onParallelBegin(ParallelOmpLogic::Data* data) {
@@ -129,8 +129,8 @@ namespace opdi {
         }
         else {
           TapedOutput::print("F PARB l", omp_get_level(),
-                             "master", data->masterTape,
-                             "mode", data->outerAdjointAccessMode);
+                             "parent", data->parentTape,
+                             "mode", data->parentAdjointAccessMode);
         }
       }
 
@@ -141,8 +141,8 @@ namespace opdi {
         }
         else {
           TapedOutput::print("F PARE l", omp_get_level(),
-                             "master", data->masterTape,
-                             "mode", data->outerAdjointAccessMode);
+                             "parent", data->parentTape,
+                             "mode", data->parentAdjointAccessMode);
         }
       }
 

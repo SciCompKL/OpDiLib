@@ -52,13 +52,12 @@ namespace opdi {
           int flags,
           void const* codeptr) {
 
-        OPDI_UNUSED(encounteringTaskData);
         OPDI_UNUSED(encounteringTaskFrame);
         OPDI_UNUSED(parallelData);
         OPDI_UNUSED(flags);
         OPDI_UNUSED(codeptr);
 
-        parallelData->ptr = logic->onParallelBegin(requestedParallelism);
+        parallelData->ptr = logic->onParallelBegin(encounteringTaskData->ptr, requestedParallelism);
       }
 
       static void onParallelEnd(
