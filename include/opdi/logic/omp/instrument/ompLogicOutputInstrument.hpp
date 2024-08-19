@@ -67,14 +67,16 @@ namespace opdi {
         TapedOutput::print("F IMTB l", omp_get_level(),
                            "t", data->index,
                            "tape", data->parallelData->tapes[data->index],
-                           "pos", tool->positionToString(data->parallelData->positions[data->index].back()));
+                           "pos", tool->positionToString(data->parallelData->positions[data->index].back()),
+                           "mode", data->parallelData->outerAdjointAccessMode);
       }
 
       virtual void onImplicitTaskEnd(ImplicitTaskOmpLogic::Data* data) {
         TapedOutput::print("F IMTE l", omp_get_level(),
                            "t", data->index,
                            "tape", data->parallelData->tapes[data->index],
-                           "pos", tool->positionToString(data->parallelData->positions[data->index].back()));
+                           "pos", tool->positionToString(data->parallelData->positions[data->index].back()),
+                           "mode", data->parallelData->adjointAccessModes[data->index].back());
       }
 
       virtual void reverseMutexWait(MutexOmpLogic::Data* data) {
@@ -148,7 +150,7 @@ namespace opdi {
           TapedOutput::print("F PARE l", omp_get_level(),
                              "t", omp_get_thread_num(),
                              "master", data->masterTape,
-                             "mode", data->outerAdjointAccessMode);
+                             "mode", data->adjointAccessModes[0].back());
         }
       }
 
