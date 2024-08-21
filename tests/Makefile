@@ -71,10 +71,6 @@ endif
 TEST_FILES = $(wildcard $(TEST_DIR)/Test**.hpp)
 TESTS ?= $(patsubst $(TEST_DIR)/Test%.hpp,%,$(TEST_FILES))
 
-ifeq ($(OUTPUT_INSTRUMENT),yes)
-  TESTS := $(filter-out Single%, $(TESTS))
-endif
-
 # list all driver files and extract driver names
 DRIVER_FILES = $(wildcard $(DRIVER_DIR)/Driver**.hpp)
 DRIVERS ?= $(patsubst $(DRIVER_DIR)/Driver%.hpp,%,$(DRIVER_FILES))
