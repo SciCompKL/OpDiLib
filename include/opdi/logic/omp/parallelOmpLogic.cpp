@@ -216,10 +216,11 @@ void opdi::ParallelOmpLogic::onParallelEnd(void* dataPtr) {
 
       // do not delete data, it is deleted with the handle
 
-      // transport adjoint access mode of thread 0 to parent task
+      // if needed, transport adjoint access mode of thread 0 to parent task
       ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(parallelData->childTasks[0]);
 
-      this->internalSetAdjointAccessMode(parallelData->parentTask, taskData->adjointAccessModes.back());
+      if (internalGetAdjointAccessMode(parallelData->parentTask) != taskData->adjointAccessModes.back())
+        this->internalSetAdjointAccessMode(parallelData->parentTask, taskData->adjointAccessModes.back());
 
     } else {
       deleteFunc(parallelData);
