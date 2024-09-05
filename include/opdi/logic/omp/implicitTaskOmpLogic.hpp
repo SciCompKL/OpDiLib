@@ -61,5 +61,7 @@ namespace opdi {
 
       virtual void* onImplicitTaskBegin(int actualParallelism, int index, void* parallelDataPtr);
       virtual void onImplicitTaskEnd(void* dataPtr);
+
+      virtual void resetTask(void* position);
   };
 }

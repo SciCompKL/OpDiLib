@@ -23,6 +23,9 @@
  *
  */
 
+#include <cassert>
+
+#include "../../backend/backendInterface.hpp"
 #include "../../config.hpp"
 #include "../../helpers/exceptions.hpp"
 #include "../../tool/toolInterface.hpp"
@@ -115,5 +118,23 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
     }
 
     // do not delete data, it is deleted as part of parallel regions
+  }
+}
+
+void opdi::ImplicitTaskOmpLogic::resetTask(void* position) {
+
+  void* parallelDataPtr = backend->getParallelData();
+
+  if (parallelDataPtr) {
+    opdi::ParallelOmpLogic::Data* parallelData = reinterpret_cast<opdi::ParallelOmpLogic::Data*>(parallelDataPtr);
+
+    Data* taskData = reinterpret_cast<Data*>(parallelData->childTasks[omp_get_thread_num()]);
+
+    assert(tool->comparePosition(taskData->positions.front(), position) <= 0);
+
+    while (tool->comparePosition(taskData->positions.back(), position) > 0) {
+      taskData->positions.pop_back();
+      taskData->adjointAccessModes.pop_back();
+    }
   }
 }
