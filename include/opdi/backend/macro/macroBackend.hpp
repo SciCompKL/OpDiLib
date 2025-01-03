@@ -74,6 +74,10 @@ namespace opdi {
       void* getParallelData() {
         return DataTools::getParallelData();
       }
+
+      void* getTaskData() {
+        return DataTools::getTaskData();
+      }
   };
 
 }

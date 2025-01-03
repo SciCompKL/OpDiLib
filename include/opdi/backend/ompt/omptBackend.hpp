@@ -72,6 +72,7 @@ namespace opdi {
       // runtime entry points to be queried in addition to the ones stored in CallbacksBase
 
       static ompt_get_parallel_info_t getParallelInfo;
+      static ompt_get_task_info_t getTaskInfo;
       static ompt_finalize_tool_t finalizeTool;
 
     public:
@@ -89,6 +90,7 @@ namespace opdi {
         ompt_set_callback_t setCallback = (ompt_set_callback_t) lookup("ompt_set_callback");
         ompt_get_callback_t getCallback = (ompt_get_callback_t) lookup("ompt_get_callback");
         OmptBackend::getParallelInfo = (ompt_get_parallel_info_t) lookup("ompt_get_parallel_info");
+        OmptBackend::getTaskInfo = (ompt_get_task_info_t) lookup("ompt_get_task_info");
         OmptBackend::finalizeTool = (ompt_finalize_tool_t) lookup("ompt_finalize_tool");
 
         // initialize base
@@ -162,6 +164,22 @@ namespace opdi {
         }
 
         return parallelData->ptr;
+      }
+
+      void* getTaskData() {
+        int flags;
+        ompt_data_t* taskData;
+        ompt_frame_t* taskFrame;
+        ompt_data_t* parallelData;
+        int threadNum;
+
+        int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+
+        if (result != 2) {
+          return nullptr;
+        }
+
+        return taskData->ptr;
       }
   };
 }

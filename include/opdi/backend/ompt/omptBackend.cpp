@@ -36,6 +36,7 @@ ompt_set_callback_t opdi::CallbacksBase::setCallback;
 ompt_get_callback_t opdi::CallbacksBase::getCallback;
 
 ompt_get_parallel_info_t opdi::OmptBackend::getParallelInfo = NULL;
+ompt_get_task_info_t opdi::OmptBackend::getTaskInfo = NULL;
 ompt_finalize_tool_t opdi::OmptBackend::finalizeTool = NULL;
 
 // ompt entry point
