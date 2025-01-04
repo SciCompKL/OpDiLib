@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <cassert>
+
 #include "../../backend/backendInterface.hpp"
 #include "../../misc/tapedOutput.hpp"
 
@@ -65,9 +67,19 @@ namespace opdi {
 
         TapedOutput::init();
         MutexOmpLogic::registerInactiveMutex(MutexKind::Lock, backend->getLockIdentifier(&(TapedOutput::lock)));
+
+        // deferred creation of initial implicit task data
+        backend->setInitialImplicitTaskData(onImplicitTaskBegin(true, 1, 0, nullptr));
       }
 
       virtual void finalize() {
+        // finalize initial implicit task
+        ImplicitTaskOmpLogic::Data* initialImplicitTaskData = (ImplicitTaskOmpLogic::Data*) backend->getTaskData();
+
+        assert(initialImplicitTaskData->initialImplicitTask);
+
+        onImplicitTaskEnd((void*) initialImplicitTaskData);
+
         MutexOmpLogic::internalFinalize();
         ImplicitTaskOmpLogic::internalFinalize();
         TapedOutput::finalize();

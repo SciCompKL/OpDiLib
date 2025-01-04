@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <cassert>
+
 #include "../../config.hpp"
 
 #ifdef OPDI_BACKEND
@@ -57,9 +59,15 @@ namespace opdi {
 
       void init() {
         opdi_init_lock(&ReductionTools::globalReducerLock);
+
+        // task data for initial implicit task is created in the logic layer
       }
 
       void finalize() {
+        // pop task data associated with initial implicit task
+        DataTools::popTaskData();
+        assert(DataTools::getTaskData() == nullptr);
+
         opdi_set_lock(&ReductionTools::globalReducerLock);
 
         for (auto lock : ReductionTools::individualReducerLocks) {
@@ -77,6 +85,11 @@ namespace opdi {
 
       void* getTaskData() {
         return DataTools::getTaskData();
+      }
+
+      void setInitialImplicitTaskData(void* data) {
+        assert(DataTools::getTaskData() == nullptr);
+        DataTools::pushTaskData(data);
       }
   };
 

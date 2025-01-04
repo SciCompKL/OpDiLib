@@ -135,10 +135,11 @@ void* opdi::ParallelOmpLogic::onParallelBegin(void* encounteringTask, int maxThr
 
   if (tool->getThreadLocalTape() != nullptr && ParallelOmpLogic::skipParallelHandling == 0) {
 
+    assert(encounteringTask != nullptr);
+
     ImplicitTaskOmpLogic::Data* encounteringTaskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(encounteringTask);
 
-    // encounteringTask == nullptr happens if the encountering task is the initial implicit task
-    assert(encounteringTask == nullptr || tool->getThreadLocalTape() == encounteringTaskData->tape);
+    assert(encounteringTaskData->initialImplicitTask || tool->getThreadLocalTape() == encounteringTaskData->tape);
 
     Data* data = new Data;
 

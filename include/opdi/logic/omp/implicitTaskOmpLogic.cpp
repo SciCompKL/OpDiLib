@@ -23,6 +23,8 @@
  *
  */
 
+#include <cassert>
+
 #include "../../config.hpp"
 #include "../../helpers/exceptions.hpp"
 #include "../../tool/toolInterface.hpp"
@@ -40,18 +42,26 @@ void opdi::ImplicitTaskOmpLogic::internalFinalize() {
   this->tapePool.finalize();
 }
 
-void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int index, void* parallelDataPtr) {
+void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool initialImplicitTask, int actualParallelism, int index,
+                                                      void* parallelDataPtr) {
 
   ParallelData* parallelData = (ParallelData*) parallelDataPtr;
 
-  if (parallelData != nullptr) {
+  assert(initialImplicitTask || parallelData != nullptr);
+
+  Data* data = new Data;
+  data->initialImplicitTask = initialImplicitTask;
+  data->level = omp_get_level();
+  data->index = index;
+
+  // OpDiLib does not interfere with the initial implicit task AD-wise, e.g., does not track its tape / does not assume
+  // that the tape does not change. OpDiLib uses the initial implicit task's data primarily to track its adjoint access
+  // mode.
+  if (!initialImplicitTask) {
     if (index == 0) {
       parallelData->actualThreads = actualParallelism;
     }
 
-    Data* data = new Data;
-    data->level = omp_get_level();
-    data->index = index;
     data->oldTape = tool->getThreadLocalTape();
     data->parallelData = parallelData;
 
@@ -71,29 +81,42 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int
     AdjointAccessControl::pushMode(parallelData->parentAdjointAccessMode);
     data->adjointAccessModes.push_back(parallelData->parentAdjointAccessMode);
 
-    #if OPDI_OMP_LOGIC_INSTRUMENT
-      for (auto& instrument : ompLogicInstruments) {
-        instrument->onImplicitTaskBegin(data);
-      }
-    #endif
-
     parallelData->childTasks[index] = data;
+  }
+  else {
+    data->oldTape = nullptr;
+    data->tape = nullptr;
+    data->parallelData = nullptr;
 
-    return data;
+    data->adjointAccessModes.push_back(ImplicitTaskOmpLogic::defaultAdjointAccessMode);
   }
 
-  return nullptr;
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->onImplicitTaskBegin(data);
+    }
+  #endif
+
+  return data;
 }
 
 void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
 
-  if (dataPtr != nullptr) {
-    Data* data = (Data*) dataPtr;
+  assert(dataPtr != nullptr);
 
-    AdjointAccessMode lastAccessMode = AdjointAccessControl::currentMode();
-    AdjointAccessControl::popMode();
-    AdjointAccessControl::currentMode() = lastAccessMode;
+  Data* data = (Data*) dataPtr;
 
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->onImplicitTaskEnd(data);
+    }
+  #endif
+
+  AdjointAccessMode lastAccessMode = AdjointAccessControl::currentMode();
+  AdjointAccessControl::popMode();
+  AdjointAccessControl::currentMode() = lastAccessMode;
+
+  if (!data->initialImplicitTask) {
     tool->setThreadLocalTape(data->oldTape);
 
     data->positions.push_back(tool->allocPosition());
@@ -106,12 +129,6 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
       }
     }
 
-    #if OPDI_OMP_LOGIC_INSTRUMENT
-      for (auto& instrument : ompLogicInstruments) {
-        instrument->onImplicitTaskEnd(data);
-      }
-    #endif
-
     tool->setActive(data->tape, false);
 
     // ensure that the most recent activity change *per thread* reflects the current activity
@@ -120,5 +137,9 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
     }
 
     // do not delete data, it is deleted as part of parallel regions
+  }
+  else {
+    // delete task data, there is no parallel region to do so
+    delete data;
   }
 }

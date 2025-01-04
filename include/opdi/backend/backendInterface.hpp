@@ -43,6 +43,8 @@ namespace opdi {
 
       virtual void* getParallelData() = 0;
       virtual void* getTaskData() = 0;
+
+      virtual void setInitialImplicitTaskData(void* data) = 0;
   };
 
   extern BackendInterface* backend;

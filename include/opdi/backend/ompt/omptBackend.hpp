@@ -33,6 +33,7 @@
   #define OPDI_BACKEND OPDI_OMPT_BACKEND
 #endif
 
+#include <cassert>
 #include <iostream>
 
 #include "../../helpers/exceptions.hpp"
@@ -159,9 +160,7 @@ namespace opdi {
 
         int result = getParallelInfo(0, &parallelData, &teamSize);
 
-        if (result != 2) {
-          return nullptr;
-        }
+        assert(result == 2);
 
         return parallelData->ptr;
       }
@@ -175,11 +174,25 @@ namespace opdi {
 
         int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
 
-        if (result != 2) {
-          return nullptr;
-        }
+        assert(result == 2);
 
         return taskData->ptr;
+      }
+
+      void setInitialImplicitTaskData(void* data) {
+        int flags;
+        ompt_data_t* taskData;
+        ompt_frame_t* taskFrame;
+        ompt_data_t* parallelData;
+        int threadNum;
+
+        int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+
+        assert(result == 2);
+        assert(flags & ompt_task_initial);
+        assert(taskData->ptr == nullptr);
+
+        taskData->ptr = data;
       }
   };
 }
