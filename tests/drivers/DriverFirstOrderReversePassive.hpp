@@ -74,13 +74,13 @@ struct DriverFirstOrderReversePassive : public DriverBase<DriverFirstOrderRevers
             exit(1);
           }
         #endif
+        #ifdef OUTPUT_INSTRUMENT
+          opdi::ompLogicInstruments.push_back(new opdi::OmpLogicOutputInstrument);
+        #endif
         opdi::logic = new opdi::OmpLogic;
         opdi::logic->init();
         opdi::tool = new CoDiOpDiLibTool<TestReal>;
         opdi::tool->init();
-        #ifdef OUTPUT_INSTRUMENT
-          opdi::ompLogicInstruments.push_back(new opdi::OmpLogicOutputInstrument);
-        #endif
       #endif
 
       std::array<std::array<TestReal, Case::nIn>, Case::nPoints> inputs = Case::template genPoints<TestReal>();
@@ -140,12 +140,12 @@ struct DriverFirstOrderReversePassive : public DriverBase<DriverFirstOrderRevers
       }
 
       #ifndef BUILD_REFERENCE
+        opdi::tool->finalize();
+        opdi::logic->finalize();
         #ifdef OUTPUT_INSTRUMENT
           delete opdi::ompLogicInstruments.front();
           opdi::ompLogicInstruments.clear();
         #endif
-        opdi::tool->finalize();
-        opdi::logic->finalize();
         opdi::backend->finalize();
         #ifdef OPDI_USE_MACRO_BACKEND
           delete opdi::backend;
