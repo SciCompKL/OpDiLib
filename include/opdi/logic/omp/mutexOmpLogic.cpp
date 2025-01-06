@@ -239,7 +239,7 @@ void opdi::MutexOmpLogic::internalOnMutexAcquired(MutexKind kind, MutexTrace& mu
                                                   void (*decrementReverseFunc)(void*),
                                                   std::size_t waitId) {
 
-  if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+  if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     // skip inactive mutexes
     if (mutexTrace.inactive.count(waitId) == 0) {
@@ -311,7 +311,7 @@ void opdi::MutexOmpLogic::internalOnMutexReleased(MutexKind kind, MutexTrace& mu
                                                   std::map<std::size_t, std::size_t>& localTrace,
                                                   void (*waitReverseFunc)(void*), std::size_t waitId) {
 
-  if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+  if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     // skip inactive mutexes
     if (mutexTrace.inactive.count(waitId) == 0) {
