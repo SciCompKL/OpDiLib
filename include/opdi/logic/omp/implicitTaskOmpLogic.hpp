@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -46,10 +46,13 @@ namespace opdi {
 
       using LogicInterface::AdjointAccessMode;
 
+      static AdjointAccessMode const defaultAdjointAccessMode;
+
       using ParallelData = typename ParallelOmpLogic::Data;
 
       struct Data {
         public:
+          bool initialImplicitTask;
           int level;
           int index;
           void* oldTape;
@@ -59,7 +62,8 @@ namespace opdi {
           std::deque<AdjointAccessMode> adjointAccessModes;
       };
 
-      virtual void* onImplicitTaskBegin(int actualParallelism, int index, void* parallelDataPtr);
+      virtual void* onImplicitTaskBegin(bool initialImplicitTask, int actualParallelism, int index,
+                                        void* parallelDataPtr);
       virtual void onImplicitTaskEnd(void* dataPtr);
 
       virtual void resetTask(void* position);

@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -43,37 +43,55 @@ void opdi::ImplicitTaskOmpLogic::internalFinalize() {
   this->tapePool.finalize();
 }
 
-void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(int actualParallelism, int index, void* parallelDataPtr) {
+void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool initialImplicitTask, int actualParallelism, int index,
+                                                      void* parallelDataPtr) {
 
   ParallelData* parallelData = (ParallelData*) parallelDataPtr;
 
-  if (parallelData != nullptr) {
-    if (index == 0) {
-      parallelData->actualThreads = actualParallelism;
-    }
+  // check if the handling of the parallel region was skipped
+  if (parallelData != nullptr || initialImplicitTask) {
 
     Data* data = new Data;
+    data->initialImplicitTask = initialImplicitTask;
     data->level = omp_get_level();
     data->index = index;
-    data->oldTape = tool->getThreadLocalTape();
-    data->parallelData = parallelData;
 
-    void* newTape = this->tapePool.getTape(parallelData->parentTape, index);
+    // OpDiLib does not interfere with the initial implicit task AD-wise, e.g., does not track its tape / does not assume
+    // that the tape does not change. OpDiLib uses the initial implicit task's data primarily to track its adjoint access
+    // mode.
+    if (!initialImplicitTask) {
+      if (index == 0) {
+        parallelData->actualThreads = actualParallelism;
+      }
 
-    if (parallelData->activeParallelRegion) {
-      tool->setActive(newTape, true);
+      data->oldTape = tool->getThreadLocalTape();
+      data->parallelData = parallelData;
+
+      void* newTape = this->tapePool.getTape(parallelData->parentTape, index);
+
+      if (parallelData->activeParallelRegion) {
+        tool->setActive(newTape, true);
+      }
+
+      data->tape = newTape;
+
+      data->positions.push_back(tool->allocPosition());
+      tool->getTapePosition(newTape, data->positions.back());
+
+      tool->setThreadLocalTape(newTape);
+
+      AdjointAccessControl::pushMode(parallelData->parentAdjointAccessMode);
+      data->adjointAccessModes.push_back(parallelData->parentAdjointAccessMode);
+
+      parallelData->childTasks[index] = data;
     }
+    else {
+      data->oldTape = nullptr;
+      data->tape = nullptr;
+      data->parallelData = nullptr;
 
-    data->tape = newTape;
-
-    data->positions.push_back(tool->allocPosition());
-    tool->getTapePosition(newTape, data->positions.back());
-
-    tool->setThreadLocalTape(newTape);
-
-    data->adjointAccessModes.push_back(parallelData->parentAdjointAccessMode);
-
-    parallelData->childTasks[index] = data;
+      data->adjointAccessModes.push_back(ImplicitTaskOmpLogic::defaultAdjointAccessMode);
+    }
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
@@ -92,32 +110,42 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
   if (dataPtr != nullptr) {
     Data* data = (Data*) dataPtr;
 
-    tool->setThreadLocalTape(data->oldTape);
-
-    data->positions.push_back(tool->allocPosition());
-    tool->getTapePosition(data->tape, data->positions.back());
-
-    if (!data->parallelData->activeParallelRegion) {
-      if (tool->comparePosition(data->positions.front(), data->positions.back()) != 0) {
-        OPDI_WARNING("Something became active during a passive parallel region. This is not supported and will not be ",
-                     "differentiated correctly.");
-      }
-    }
-
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
         instrument->onImplicitTaskEnd(data);
       }
     #endif
 
-    tool->setActive(data->tape, false);
+    AdjointAccessMode lastAccessMode = AdjointAccessControl::currentMode();
+    AdjointAccessControl::popMode();
+    AdjointAccessControl::currentMode() = lastAccessMode;
 
-    // ensure that the most recent activity change *per thread* reflects the current activity
-    if (data->oldTape == data->parallelData->parentTape && data->parallelData->activeParallelRegion) {
-      tool->setActive(data->oldTape, true);
+    if (!data->initialImplicitTask) {
+      tool->setThreadLocalTape(data->oldTape);
+
+      data->positions.push_back(tool->allocPosition());
+      tool->getTapePosition(data->tape, data->positions.back());
+
+      if (!data->parallelData->activeParallelRegion) {
+        if (tool->comparePosition(data->positions.front(), data->positions.back()) != 0) {
+          OPDI_WARNING("Something became active during a passive parallel region. This is not supported and will not ",
+                       "be differentiated correctly.");
+        }
+      }
+
+      tool->setActive(data->tape, false);
+
+      // ensure that the most recent activity change *per thread* reflects the current activity
+      if (data->oldTape == data->parallelData->parentTape && data->parallelData->activeParallelRegion) {
+        tool->setActive(data->oldTape, true);
+      }
+
+      // do not delete data, it is deleted as part of parallel regions
     }
-
-    // do not delete data, it is deleted as part of parallel regions
+    else {
+      // delete task data, there is no parallel region to do so
+      delete data;
+    }
   }
 }
 

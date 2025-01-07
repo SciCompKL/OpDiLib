@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -74,13 +74,13 @@ struct DriverFirstOrderReverseNestedParallel : public DriverBase<DriverFirstOrde
             exit(1);
           }
         #endif
+        #ifdef OUTPUT_INSTRUMENT
+          opdi::ompLogicInstruments.push_back(new opdi::OmpLogicOutputInstrument);
+        #endif
         opdi::logic = new opdi::OmpLogic;
         opdi::logic->init();
         opdi::tool = new CoDiOpDiLibTool<TestReal>;
         opdi::tool->init();
-        #ifdef OUTPUT_INSTRUMENT
-          opdi::ompLogicInstruments.push_back(new opdi::OmpLogicOutputInstrument);
-        #endif
       #endif
 
       std::array<std::array<TestReal, Case::nIn>, Case::nPoints> inputs = Case::template genPoints<TestReal>();
@@ -145,12 +145,12 @@ struct DriverFirstOrderReverseNestedParallel : public DriverBase<DriverFirstOrde
       }
 
       #ifndef BUILD_REFERENCE
+        opdi::tool->finalize();
+        opdi::logic->finalize();
         #ifdef OUTPUT_INSTRUMENT
           delete opdi::ompLogicInstruments.front();
           opdi::ompLogicInstruments.clear();
         #endif
-        opdi::tool->finalize();
-        opdi::logic->finalize();
         opdi::backend->finalize();
         #ifdef OPDI_USE_MACRO_BACKEND
           delete opdi::backend;

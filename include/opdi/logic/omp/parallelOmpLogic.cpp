@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -161,10 +161,11 @@ void* opdi::ParallelOmpLogic::onParallelBegin(void* encounteringTask, int maxThr
 
   if (tool->getThreadLocalTape() != nullptr && ParallelOmpLogic::skipParallelHandling == 0) {
 
+    assert(encounteringTask != nullptr);
+
     ImplicitTaskOmpLogic::Data* encounteringTaskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(encounteringTask);
 
-    // encounteringTask == nullptr happens if the encountering task is the initial implicit task
-    assert(encounteringTask == nullptr || tool->getThreadLocalTape() == encounteringTaskData->tape);
+    assert(encounteringTaskData->initialImplicitTask || tool->getThreadLocalTape() == encounteringTaskData->tape);
 
     Data* data = new Data;
 

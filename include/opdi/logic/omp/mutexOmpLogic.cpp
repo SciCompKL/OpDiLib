@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -239,7 +239,7 @@ void opdi::MutexOmpLogic::internalOnMutexAcquired(MutexKind kind, MutexTrace& mu
                                                   void (*decrementReverseFunc)(void*),
                                                   std::size_t waitId) {
 
-  if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+  if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     // skip inactive mutexes
     if (mutexTrace.inactive.count(waitId) == 0) {
@@ -311,7 +311,7 @@ void opdi::MutexOmpLogic::internalOnMutexReleased(MutexKind kind, MutexTrace& mu
                                                   std::map<std::size_t, std::size_t>& localTrace,
                                                   void (*waitReverseFunc)(void*), std::size_t waitId) {
 
-  if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+  if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     // skip inactive mutexes
     if (mutexTrace.inactive.count(waitId) == 0) {

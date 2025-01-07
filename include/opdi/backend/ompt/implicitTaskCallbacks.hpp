@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -50,13 +50,14 @@ namespace opdi {
           unsigned int index,
           int flags) {
 
-        // no callback treatment for initial task
+        // logic layer is in general not yet set up when the initial implicit task is created
+        // initial implicit task handling takes place independently in the logic layer
         if (flags & ompt_task_initial) {
           return;
         }
 
         if (ompt_scope_begin == endpoint) {
-          taskData->ptr = logic->onImplicitTaskBegin(actualParallelism, index, parallelData->ptr);
+          taskData->ptr = logic->onImplicitTaskBegin(false, actualParallelism, index, parallelData->ptr);
         }
         else {
           logic->onImplicitTaskEnd(taskData->ptr);

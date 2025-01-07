@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -70,7 +70,8 @@ namespace opdi {
         tool->getTapePosition(oldTape, currentPosition);
 
         DataTools::pushParallelData(this->parallelData);
-        this->taskData = logic->onImplicitTaskBegin(omp_get_num_threads(), omp_get_thread_num(), this->parallelData);
+        this->taskData = logic->onImplicitTaskBegin(false, omp_get_num_threads(), omp_get_thread_num(),
+                                                    this->parallelData);
         DataTools::pushTaskData(this->taskData);
 
         // check if copy statements have been recorded before the correct tape was set

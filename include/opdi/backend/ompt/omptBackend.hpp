@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -33,6 +33,7 @@
   #define OPDI_BACKEND OPDI_OMPT_BACKEND
 #endif
 
+#include <cassert>
 #include <iostream>
 
 #include "../../helpers/exceptions.hpp"
@@ -72,6 +73,7 @@ namespace opdi {
       // runtime entry points to be queried in addition to the ones stored in CallbacksBase
 
       static ompt_get_parallel_info_t getParallelInfo;
+      static ompt_get_task_info_t getTaskInfo;
       static ompt_finalize_tool_t finalizeTool;
 
     public:
@@ -89,6 +91,7 @@ namespace opdi {
         ompt_set_callback_t setCallback = (ompt_set_callback_t) lookup("ompt_set_callback");
         ompt_get_callback_t getCallback = (ompt_get_callback_t) lookup("ompt_get_callback");
         OmptBackend::getParallelInfo = (ompt_get_parallel_info_t) lookup("ompt_get_parallel_info");
+        OmptBackend::getTaskInfo = (ompt_get_task_info_t) lookup("ompt_get_task_info");
         OmptBackend::finalizeTool = (ompt_finalize_tool_t) lookup("ompt_finalize_tool");
 
         // initialize base
@@ -157,11 +160,39 @@ namespace opdi {
 
         int result = getParallelInfo(0, &parallelData, &teamSize);
 
-        if (result != 2) {
-          return nullptr;
-        }
+        assert(result == 2);
 
         return parallelData->ptr;
+      }
+
+      void* getTaskData() {
+        int flags;
+        ompt_data_t* taskData;
+        ompt_frame_t* taskFrame;
+        ompt_data_t* parallelData;
+        int threadNum;
+
+        int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+
+        assert(result == 2);
+
+        return taskData->ptr;
+      }
+
+      void setInitialImplicitTaskData(void* data) {
+        int flags;
+        ompt_data_t* taskData;
+        ompt_frame_t* taskFrame;
+        ompt_data_t* parallelData;
+        int threadNum;
+
+        int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+
+        assert(result == 2);
+        assert(flags & ompt_task_initial);
+        assert(taskData->ptr == nullptr);
+
+        taskData->ptr = data;
       }
   };
 }

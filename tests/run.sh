@@ -3,7 +3,7 @@
 # OpDiLib, an Open Multiprocessing Differentiation Library
 #
 # Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
-# Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+# Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
 # Homepage: https://scicomp.rptu.de
 # Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
 #
@@ -42,6 +42,7 @@ case "$MODE" in
 		if [[ $ret -ne 0 ]];
 		then
 		  echo -e $DRIVER$TEST "\e[0;31mTIMEOUT or ERROR\e[0m";
+		  cat $RESULT_DIR/$DRIVER$TEST.err;
 			echo "1" >> testresults;
 		else
 		  if cmp -s $RESULT_DIR/$DRIVER$TEST.ref $RESULT_DIR/$DRIVER$TEST.out;
