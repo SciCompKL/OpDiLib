@@ -133,24 +133,17 @@ void opdi::ParallelOmpLogic::deleteFunc(void* dataPtr) {
 }
 
 opdi::LogicInterface::AdjointAccessMode opdi::ParallelOmpLogic::internalGetAdjointAccessMode(void* taskDataPtr) const {
-  if (taskDataPtr == nullptr) {  // initial implicit task
-    return InitialImplicitTaskAdjointAccessControl::currentMode();
-  }
-  else {
-    ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(taskDataPtr);
-
-    return taskData->adjointAccessModes.back();
-  }
+  ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(taskDataPtr);
+  return taskData->adjointAccessModes.back();
 }
 
 void opdi::ParallelOmpLogic::internalSetAdjointAccessMode(void* taskDataPtr, AdjointAccessMode mode) {
+  ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(taskDataPtr);
 
-  if (taskDataPtr == nullptr) {  // initial implicit task
-    InitialImplicitTaskAdjointAccessControl::currentMode() = mode;
+  if (taskData->initialImplicitTask) {
+    taskData->adjointAccessModes.back() = mode;
   }
   else {
-    ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(taskDataPtr);
-
     taskData->adjointAccessModes.push_back(mode);
     taskData->positions.push_back(tool->allocPosition());
     tool->getTapePosition(taskData->tape, taskData->positions.back());
@@ -245,31 +238,15 @@ void opdi::ParallelOmpLogic::setAdjointAccessMode(opdi::LogicInterface::AdjointA
       }
     #endif
 
-    void* parallelDataPtr = backend->getParallelData();
-    void* taskDataPtr = nullptr;
-
-    if (parallelDataPtr != nullptr) {  // not initial implicit task
-      Data* parallelData = reinterpret_cast<Data*>(parallelDataPtr);
-      taskDataPtr = parallelData->childTasks[omp_get_thread_num()];
-    }
-
-    assert(taskDataPtr == nullptr || ((ImplicitTaskOmpLogic::Data*)taskDataPtr)->tape == tool->getThreadLocalTape());
-
+    void* taskDataPtr = backend->getTaskData();
+    assert(taskDataPtr != nullptr);
     internalSetAdjointAccessMode(taskDataPtr, mode);
   #endif
 }
 
 opdi::LogicInterface::AdjointAccessMode opdi::ParallelOmpLogic::getAdjointAccessMode() const {
-  void* parallelDataPtr = backend->getParallelData();
-  void* taskDataPtr = nullptr;
-
-  if (parallelDataPtr != nullptr) {  // not initial implicit task
-    Data* parallelData = reinterpret_cast<Data*>(parallelDataPtr);
-    taskDataPtr = parallelData->childTasks[omp_get_thread_num()];
-  }
-
-  assert(taskDataPtr == nullptr || ((ImplicitTaskOmpLogic::Data*)taskDataPtr)->tape == tool->getThreadLocalTape());
-
+  void* taskDataPtr = backend->getTaskData();
+  assert(taskDataPtr != nullptr);
   return internalGetAdjointAccessMode(taskDataPtr);
 }
 

@@ -31,12 +31,9 @@
 
 #include "../logicInterface.hpp"
 
-#include "adjointAccessControl.hpp"
-
 namespace opdi {
 
-  struct ParallelOmpLogic : public InitialImplicitTaskAdjointAccessControl,
-                            public virtual LogicInterface,
+  struct ParallelOmpLogic : public virtual LogicInterface,
                             public virtual TapePool {
     public:
 
