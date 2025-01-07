@@ -42,6 +42,7 @@ case "$MODE" in
 		if [[ $ret -ne 0 ]];
 		then
 		  echo -e $DRIVER$TEST "\e[0;31mTIMEOUT or ERROR\e[0m";
+		  cat $RESULT_DIR/$DRIVER$TEST.err;
 			echo "1" >> testresults;
 		else
 		  if cmp -s $RESULT_DIR/$DRIVER$TEST.ref $RESULT_DIR/$DRIVER$TEST.out;

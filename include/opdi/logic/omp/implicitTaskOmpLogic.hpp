@@ -48,10 +48,13 @@ namespace opdi {
 
       using LogicInterface::AdjointAccessMode;
 
+      static AdjointAccessMode const defaultAdjointAccessMode;
+
       using ParallelData = typename ParallelOmpLogic::Data;
 
       struct Data {
         public:
+          bool initialImplicitTask;
           int level;
           int index;
           void* oldTape;
@@ -61,7 +64,8 @@ namespace opdi {
           std::deque<AdjointAccessMode> adjointAccessModes;
       };
 
-      virtual void* onImplicitTaskBegin(int actualParallelism, int index, void* parallelDataPtr);
+      virtual void* onImplicitTaskBegin(bool initialImplicitTask, int actualParallelism, int index,
+                                        void* parallelDataPtr);
       virtual void onImplicitTaskEnd(void* dataPtr);
   };
 }

@@ -41,21 +41,21 @@ namespace opdi {
       }
 
       virtual void reverseImplicitTaskBegin(ImplicitTaskOmpLogic::Data* data) {
-        TapedOutput::print("R IMTB l", omp_get_level(),
+        TapedOutput::print("R IMTB l", data->level,
                            "t", data->index,
                            "tape", data->tape,
                            "pos", tool->positionToString(data->positions.back()));
       }
 
       virtual void reverseImplicitTaskEnd(ImplicitTaskOmpLogic::Data* data) {
-        TapedOutput::print("R IMTE l", omp_get_level(),
+        TapedOutput::print("R IMTE l", data->level,
                            "t", data->index,
                            "tape", data->tape,
                            "pos", tool->positionToString(data->positions.front()));
       }
 
       virtual void reverseImplicitTaskPart(ImplicitTaskOmpLogic::Data* data, std::size_t part) {
-        TapedOutput::print("R IMTP l", omp_get_level(),
+        TapedOutput::print("R IMTP l", data->level,
                            "t", data->index,
                            "tape", data->tape,
                            "start", tool->positionToString(data->positions[part]),
@@ -64,17 +64,27 @@ namespace opdi {
       }
 
       virtual void onImplicitTaskBegin(ImplicitTaskOmpLogic::Data* data) {
-        TapedOutput::print("F IMTB l", omp_get_level(),
-                           "t", data->index,
-                           "tape", data->tape,
-                           "pos", tool->positionToString(data->positions.back()));
+        if (data->initialImplicitTask) {
+          TapedOutput::print("F IMTB IIT");
+        }
+        else {
+          TapedOutput::print("F IMTB l", data->level,
+                             "t", data->index,
+                             "tape", data->tape,
+                             "pos", tool->positionToString(data->positions.back()));
+        }
       }
 
       virtual void onImplicitTaskEnd(ImplicitTaskOmpLogic::Data* data) {
-        TapedOutput::print("F IMTE l", omp_get_level(),
-                           "t", data->index,
-                           "tape", data->tape,
-                           "pos", tool->positionToString(data->positions.back()));
+        if (data->initialImplicitTask) {
+          TapedOutput::print("F IMTE IIT");
+        }
+        else {
+          TapedOutput::print("F IMTE l", data->level,
+                             "t", data->index,
+                             "tape", data->tape,
+                             "pos", tool->positionToString(data->positions.back()));
+        }
       }
 
       virtual void reverseMutexWait(MutexOmpLogic::Data* data) {
@@ -125,6 +135,12 @@ namespace opdi {
       virtual void onParallelBegin(ParallelOmpLogic::Data* data) {
         if (data == nullptr) {
           TapedOutput::print("F PARB l", omp_get_level(),
+                             "(skipped)");
+        }
+        else if (!data->activeParallelRegion) {
+          TapedOutput::print("F PARB l", omp_get_level(),
+                             "parent", data->parentTape,
+                             "mode", data->parentAdjointAccessMode,
                              "(passive)");
         }
         else {
@@ -137,6 +153,12 @@ namespace opdi {
       virtual void onParallelEnd(ParallelOmpLogic::Data* data) {
         if (data == nullptr) {
           TapedOutput::print("F PARE l", omp_get_level(),
+                             "(skipped)");
+        }
+        else if (!data->activeParallelRegion) {
+          TapedOutput::print("F PARE l", omp_get_level(),
+                             "parent", data->parentTape,
+                             "mode", data->parentAdjointAccessMode,
                              "(passive)");
         }
         else {
