@@ -26,6 +26,7 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 
 #ifndef _OPENMP
 
@@ -96,6 +97,12 @@ int omp_test_nest_lock(int*) {
 #define TEST_LOCK(lock) opdi::opdi_test_lock(lock)
 #define TEST_NEST_LOCK(lock) opdi::opdi_test_nest_lock(lock)
 
+#endif
+
+#if _OPENMP
+  #define assertAdjointAccessMode(mode) assert(opdi::logic->getAdjointAccessMode() == mode)
+#else
+  #define assertAdjointAccessMode(mode) /* */
 #endif
 
 template<int _nIn, int _nOut, int _nPoints, typename _Test>

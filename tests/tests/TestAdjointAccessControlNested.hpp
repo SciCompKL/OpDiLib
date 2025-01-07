@@ -41,8 +41,12 @@ struct TestAdjointAccessControlNested : public TestBase<4, 1, 3, TestAdjointAcce
       T* b = new T[N];
       T* c = new T[N];
 
+      assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
+
       OPDI_PARALLEL()
       {
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
+
         int outerNThreads = omp_get_num_threads();
         int outerStart = ((N - 1) / outerNThreads + 1) * omp_get_thread_num();
         int outerEnd = std::min(N, ((N - 1) / outerNThreads + 1) * (omp_get_thread_num() + 1));
@@ -56,6 +60,8 @@ struct TestAdjointAccessControlNested : public TestBase<4, 1, 3, TestAdjointAcce
           opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
         #endif
 
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
+
         // no shared reading
         for (int i = outerStart; i < outerEnd; ++i) {
           b[i] = sin(exp(a[i]));
@@ -65,6 +71,8 @@ struct TestAdjointAccessControlNested : public TestBase<4, 1, 3, TestAdjointAcce
 
         OPDI_PARALLEL()
         {
+          assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
+
           int innerNThreads = omp_get_num_threads();
           int innerStart = outerStart + (((outerEnd - outerStart) - 1) / innerNThreads + 1) * omp_get_thread_num();
           int innerEnd = std::min(outerEnd, outerStart + (((outerEnd - outerStart) - 1) / innerNThreads + 1)
@@ -73,6 +81,8 @@ struct TestAdjointAccessControlNested : public TestBase<4, 1, 3, TestAdjointAcce
           #if _OPENMP
             opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
           #endif
+
+          assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
           // shared reading on a
           for (int j = innerStart; j < innerEnd; ++j) {
@@ -87,6 +97,8 @@ struct TestAdjointAccessControlNested : public TestBase<4, 1, 3, TestAdjointAcce
             opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
           #endif
 
+          assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
+
           // no shared reading
           for (int j = innerStart; j < innerEnd; ++j) {
             c[j] = sin(exp(c[j]));
@@ -96,10 +108,14 @@ struct TestAdjointAccessControlNested : public TestBase<4, 1, 3, TestAdjointAcce
         }
         OPDI_END_PARALLEL
 
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
+
         #if _OPENMP
           opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
           opdi::logic->addReverseBarrier();
         #endif
+
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
         // shared reading on a
         for (int i = outerStart; i < outerEnd; ++i) {
@@ -112,6 +128,8 @@ struct TestAdjointAccessControlNested : public TestBase<4, 1, 3, TestAdjointAcce
 
       }
       OPDI_END_PARALLEL
+
+      assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
       for (int i = 0; i < N; ++i) {
         out[0] += c[i];

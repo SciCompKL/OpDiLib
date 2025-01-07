@@ -41,8 +41,11 @@ struct TestAdjointAccessControlLocal : public TestBase<4, 1, 3, TestAdjointAcces
       T* b = new T[N];
       T* c = new T[N];
 
+      assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
+
       OPDI_PARALLEL()
       {
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
         // shared reading of in
         OPDI_FOR()
@@ -54,6 +57,8 @@ struct TestAdjointAccessControlLocal : public TestBase<4, 1, 3, TestAdjointAcces
         #if _OPENMP
           opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
         #endif
+
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
 
         // reading from a, no shared reading
         OPDI_FOR()
@@ -67,6 +72,8 @@ struct TestAdjointAccessControlLocal : public TestBase<4, 1, 3, TestAdjointAcces
           opdi::logic->addReverseBarrier();
         #endif
 
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
+
         // shared reading on a
         OPDI_FOR(schedule(static, 1))
         for (int i = 0; i < N; ++i) {
@@ -79,6 +86,8 @@ struct TestAdjointAccessControlLocal : public TestBase<4, 1, 3, TestAdjointAcces
         OPDI_END_FOR
       }
       OPDI_END_PARALLEL
+
+      assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
       for (int i = 0; i < N; ++i) {
         out[0] += c[i];
