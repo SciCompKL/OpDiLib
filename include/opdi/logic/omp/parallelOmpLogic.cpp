@@ -209,14 +209,15 @@ void opdi::ParallelOmpLogic::onParallelEnd(void* dataPtr) {
       tool->pushExternalFunction(parallelData->parentTape, handle);
 
       // do not delete data, it is deleted with the handle
+    }
 
-      // if needed, transport adjoint access mode of thread 0 to parent task
-      ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(parallelData->childTasks[0]);
+    // if needed, transport adjoint access mode of thread 0 to parent task
+    ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(parallelData->childTasks[0]);
 
-      if (internalGetAdjointAccessMode(parallelData->parentTask) != taskData->adjointAccessModes.back())
-        this->internalSetAdjointAccessMode(parallelData->parentTask, taskData->adjointAccessModes.back());
+    if (internalGetAdjointAccessMode(parallelData->parentTask) != taskData->adjointAccessModes.back())
+      this->internalSetAdjointAccessMode(parallelData->parentTask, taskData->adjointAccessModes.back());
 
-    } else {
+    if (!parallelData->activeParallelRegion) {
       deleteFunc(parallelData);
     }
   }
