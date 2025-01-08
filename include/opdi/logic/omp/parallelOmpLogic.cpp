@@ -144,9 +144,17 @@ void opdi::ParallelOmpLogic::internalSetAdjointAccessMode(void* taskDataPtr, Adj
     taskData->adjointAccessModes.back() = mode;
   }
   else {
-    taskData->adjointAccessModes.push_back(mode);
-    taskData->positions.push_back(tool->allocPosition());
-    tool->getTapePosition(taskData->tape, taskData->positions.back());
+    void* position = tool->allocPosition();
+    tool->getTapePosition(taskData->tape, position);
+
+    if (tool->comparePosition(taskData->positions.back(), position) == 0) {
+      taskData->adjointAccessModes.back() = mode;
+      tool->freePosition(position);
+    }
+    else {
+      taskData->adjointAccessModes.push_back(mode);
+      taskData->positions.push_back(position);
+    }
   }
 }
 
