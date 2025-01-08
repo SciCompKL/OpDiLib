@@ -66,6 +66,6 @@ namespace opdi {
                                         void* parallelDataPtr);
       virtual void onImplicitTaskEnd(void* dataPtr);
 
-      virtual void resetTask(void* position);
+      virtual void resetTask(void* position, AdjointAccessMode mode);
   };
 }

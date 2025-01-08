@@ -83,15 +83,10 @@ namespace opdi {
       virtual void freeState(void* state) = 0;
       virtual void recoverState(void* state) = 0;
 
-      virtual void setAdjointAccessMode(AdjointAccessMode adjointAccess) = 0;
+      virtual void setAdjointAccessMode(AdjointAccessMode mode) = 0;
       virtual AdjointAccessMode getAdjointAccessMode() const = 0;
 
-      /** @brief Complement positional tape resets by OpDiLib-specific cleanup.
-       *
-       *  Cleanup performed for the task of the calling thread. Reverts changes of the adjoint access mode, up to the
-       *  last adjoint access mode that was set at this position.
-       */
-      virtual void resetTask(void* position) = 0;
+      virtual void resetTask(void* position, AdjointAccessMode mode) = 0;
 
       virtual void addReverseBarrier() = 0;
       virtual void addReverseFlush() = 0;

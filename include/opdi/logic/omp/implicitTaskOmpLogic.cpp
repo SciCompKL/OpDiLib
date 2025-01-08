@@ -144,20 +144,22 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
   }
 }
 
-void opdi::ImplicitTaskOmpLogic::resetTask(void* position) {
+void opdi::ImplicitTaskOmpLogic::resetTask(void* position, opdi::LogicInterface::AdjointAccessMode mode) {
 
-  void* parallelDataPtr = backend->getParallelData();
+  void* taskDataPtr = backend->getTaskData();
 
-  if (parallelDataPtr) {
-    opdi::ParallelOmpLogic::Data* parallelData = reinterpret_cast<opdi::ParallelOmpLogic::Data*>(parallelDataPtr);
+  if (taskDataPtr != nullptr) {
+    opdi::ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<opdi::ImplicitTaskOmpLogic::Data*>(taskDataPtr);
 
-    Data* taskData = reinterpret_cast<Data*>(parallelData->childTasks[omp_get_thread_num()]);
+    if (!taskData->initialImplicitTask) {
+      assert(tool->comparePosition(taskData->positions.front(), position) <= 0);
 
-    assert(tool->comparePosition(taskData->positions.front(), position) <= 0);
-
-    while (tool->comparePosition(taskData->positions.back(), position) > 0) {
-      taskData->positions.pop_back();
-      taskData->adjointAccessModes.pop_back();
+      while (tool->comparePosition(taskData->positions.back(), position) > 0) {
+        taskData->positions.pop_back();
+        taskData->adjointAccessModes.pop_back();
+      }
     }
+
+    taskData->adjointAccessModes.back() = mode;
   }
 }
