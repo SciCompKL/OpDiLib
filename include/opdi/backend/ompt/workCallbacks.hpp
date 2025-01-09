@@ -65,6 +65,12 @@ namespace opdi {
 
         switch (wstype) {
           case ompt_work_loop:
+        #if _OPENMP >= 202111
+          case ompt_work_loop_static:
+          case ompt_work_loop_dynamic:
+          case ompt_work_loop_guided:
+          case ompt_work_loop_other:
+        #endif
             logic->onWork(LogicInterface::WorksharingKind::Loop, endpoint);
             break;
           case ompt_work_sections:
