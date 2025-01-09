@@ -28,10 +28,10 @@
 #include "testBase.hpp"
 
 template<typename _Case>
-struct TestAdjointAccessControlGlobal : public TestBase<4, 1, 3, TestAdjointAccessControlGlobal<_Case>> {
+struct TestTaskReset : public TestBase<4, 1, 3, TestTaskReset<_Case>> {
   public:
     using Case = _Case;
-    using Base = TestBase<4, 1, 3, TestAdjointAccessControlGlobal<Case>>;
+    using Base = TestBase<4, 1, 3, TestTaskReset<Case>>;
 
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
@@ -47,33 +47,71 @@ struct TestAdjointAccessControlGlobal : public TestBase<4, 1, 3, TestAdjointAcce
       {
         assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
+        int outerNThreads = omp_get_num_threads();
+        int outerStart = ((N - 1) / outerNThreads + 1) * omp_get_thread_num();
+        int outerEnd = std::min(N, ((N - 1) / outerNThreads + 1) * (omp_get_thread_num() + 1));
+
         // shared reading of in
-        OPDI_FOR()
-        for (int i = 0; i < N; ++i) {
+        for (int i = outerStart; i < outerEnd; ++i) {
           Base::job1(i, in, a[i]);
         }
-        OPDI_END_FOR
-      }
-      OPDI_END_PARALLEL
 
-      assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
+        #if _OPENMP
+          opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
+        #endif
 
-      #if _OPENMP
-        opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
-      #endif
-
-      assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
-
-      OPDI_PARALLEL()
-      {
         assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
 
         // no shared reading
-        OPDI_FOR()
-        for (int i = 0; i < N; ++i) {
+        for (int i = outerStart; i < outerEnd; ++i) {
           b[i] = sin(exp(a[i]));
         }
-        OPDI_END_FOR
+
+        auto position = T::getTape().getPosition();
+        #if _OPENMP
+          auto mode = opdi::logic->getAdjointAccessMode();
+        #endif
+
+        OPDI_BARRIER()
+
+        OPDI_PARALLEL()
+        {
+          assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
+
+          int innerNThreads = omp_get_num_threads();
+          int innerStart = outerStart + (((outerEnd - outerStart) - 1) / innerNThreads + 1) * omp_get_thread_num();
+          int innerEnd = std::min(outerEnd, outerStart + (((outerEnd - outerStart) - 1) / innerNThreads + 1)
+                                                             * (omp_get_thread_num() + 1));
+
+          #if _OPENMP
+            opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
+          #endif
+
+          assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
+
+          // shared reading on a
+          for (int j = innerStart; j < innerEnd; ++j) {
+            T arg = b[j];
+            for (int k = 0; k < 10; ++k) {
+              arg += a[(j + k) % N];
+            }
+            c[j] = cos(arg);
+          }
+
+          // atomic adjoint access mode to be transported out of the nested parallel region
+        }
+        OPDI_END_PARALLEL
+
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
+
+        // remove the inner parallel region by positional reset
+        T::getTape().resetTo(position);
+
+        #if _OPENMP
+          opdi::logic->resetTask(&position, mode);
+        #endif
+
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
 
         #if _OPENMP
           opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
@@ -83,15 +121,14 @@ struct TestAdjointAccessControlGlobal : public TestBase<4, 1, 3, TestAdjointAcce
         assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
         // shared reading on a
-        OPDI_FOR()
-        for (int i = 0; i < N; ++i) {
-          T arg = b[i];
+        for (int i = outerStart; i < outerEnd; ++i) {
+          T arg = c[i] + b[i];
           for (int j = 0; j < 10; ++j) {
             arg += a[(i + j) % N];
           }
           c[i] = cos(arg);
         }
-        OPDI_END_FOR
+
       }
       OPDI_END_PARALLEL
 

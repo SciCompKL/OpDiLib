@@ -49,7 +49,7 @@ FLAGS = $(CXXFLAGS) -std=c++11
 ifeq ($(DEBUG),no)
 	FLAGS += -O3
 else
-  FLAGS += -O0 -ggdb -Wall -Wextra
+  FLAGS += -O0 -ggdb -Wall -Wextra -Werror
   ifeq ($(OUTPUT_INSTRUMENT),yes)
     FLAGS += -DOPDI_OMP_LOGIC_INSTRUMENT=1 -DOUTPUT_INSTRUMENT
   endif
@@ -70,10 +70,6 @@ endif
 # list all test files and extract test names
 TEST_FILES = $(wildcard $(TEST_DIR)/Test**.hpp)
 TESTS ?= $(patsubst $(TEST_DIR)/Test%.hpp,%,$(TEST_FILES))
-
-ifeq ($(OUTPUT_INSTRUMENT),yes)
-  TESTS := $(filter-out Single%, $(TESTS))
-endif
 
 # list all driver files and extract driver names
 DRIVER_FILES = $(wildcard $(DRIVER_DIR)/Driver**.hpp)

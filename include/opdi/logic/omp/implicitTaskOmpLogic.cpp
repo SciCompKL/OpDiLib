@@ -23,6 +23,9 @@
  *
  */
 
+#include <cassert>
+
+#include "../../backend/backendInterface.hpp"
 #include "../../config.hpp"
 #include "../../helpers/exceptions.hpp"
 #include "../../tool/toolInterface.hpp"
@@ -77,7 +80,6 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool initialImplicitTask, 
 
       tool->setThreadLocalTape(newTape);
 
-      AdjointAccessControl::pushMode(parallelData->parentAdjointAccessMode);
       data->adjointAccessModes.push_back(parallelData->parentAdjointAccessMode);
 
       parallelData->childTasks[index] = data;
@@ -113,10 +115,6 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
       }
     #endif
 
-    AdjointAccessMode lastAccessMode = AdjointAccessControl::currentMode();
-    AdjointAccessControl::popMode();
-    AdjointAccessControl::currentMode() = lastAccessMode;
-
     if (!data->initialImplicitTask) {
       tool->setThreadLocalTape(data->oldTape);
 
@@ -125,8 +123,8 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
 
       if (!data->parallelData->activeParallelRegion) {
         if (tool->comparePosition(data->positions.front(), data->positions.back()) != 0) {
-          OPDI_WARNING("Something became active during a passive parallel region. This is not supported and will not be ",
-                       "differentiated correctly.");
+          OPDI_WARNING("Something became active during a passive parallel region. This is not supported and will not ",
+                       "be differentiated correctly.");
         }
       }
 
@@ -143,5 +141,25 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
       // delete task data, there is no parallel region to do so
       delete data;
     }
+  }
+}
+
+void opdi::ImplicitTaskOmpLogic::resetTask(void* position, opdi::LogicInterface::AdjointAccessMode mode) {
+
+  void* taskDataPtr = backend->getTaskData();
+
+  if (taskDataPtr != nullptr) {
+    opdi::ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<opdi::ImplicitTaskOmpLogic::Data*>(taskDataPtr);
+
+    if (!taskData->initialImplicitTask) {
+      assert(tool->comparePosition(taskData->positions.front(), position) <= 0);
+
+      while (tool->comparePosition(taskData->positions.back(), position) > 0) {
+        taskData->positions.pop_back();
+        taskData->adjointAccessModes.pop_back();
+      }
+    }
+
+    taskData->adjointAccessModes.back() = mode;
   }
 }
