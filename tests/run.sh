@@ -28,16 +28,24 @@ TEST=$2
 GENFILE=$BUILD_DIR"/"$DRIVER$TEST".cpp"
 MODE=$3
 EXPLICIT_PREPROCESSOR=$4
+ERROR_OUTPUT_IS_ERROR=$5
 
 LAUNCH_NAME=$DRIVER$TEST
 if [[ "$EXPLICIT_PREPROCESSOR" == "yes" ]];
 then
   LAUNCH_NAME+="Pre";
-fi 
+fi
+
+if [[ "$ERROR_OUTPUT_IS_ERROR" == "yes" ]];
+then
+	ERROR_FILE=$RESULT_DIR/$DRIVER$TEST.err;
+else
+	ERROR_FILE=/dev/null;
+fi
 
 case "$MODE" in
 	"RUN")
-		timeout 5m ./$BUILD_DIR/$LAUNCH_NAME 1> $RESULT_DIR/$DRIVER$TEST.out 2> $RESULT_DIR/$DRIVER$TEST.err;
+		timeout 5m ./$BUILD_DIR/$LAUNCH_NAME 1> $RESULT_DIR/$DRIVER$TEST.out 2> $ERROR_FILE;
 		ret=$?
 		if [[ $ret -ne 0 ]];
 		then
