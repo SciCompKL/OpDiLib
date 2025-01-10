@@ -69,6 +69,9 @@ namespace opdi {
         #if _OPENMP >= 202011
           case ompt_sync_region_barrier_implicit_workshare:
           case ompt_sync_region_barrier_implicit_parallel:
+        #else  // fallback for compilers with _OPENMP < 202011 that already support fine-grained sync region types
+          case 8:  // ompt_sync_region_barrier_implicit_workshare
+          case 9:  // ompt_sync_region_barrier_implicit_parallel
         #endif
             logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplicit, endpoint);
             break;
