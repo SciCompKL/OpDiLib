@@ -41,20 +41,25 @@ case "$MODE" in
 		ret=$?
 		if [[ $ret -ne 0 ]];
 		then
-		  echo -e $DRIVER$TEST "\e[0;31mTIMEOUT or ERROR\e[0m";
-		  cat $RESULT_DIR/$DRIVER$TEST.err;
+			echo -e $DRIVER$TEST "\e[0;31mTIMEOUT or ERROR\e[0m";
+			cat $RESULT_DIR/$DRIVER$TEST.err;
 			echo "1" >> testresults;
 		else
-		  if cmp -s $RESULT_DIR/$DRIVER$TEST.ref $RESULT_DIR/$DRIVER$TEST.out;
-		  then
-			  echo -e $DRIVER$TEST "\e[0;32mOK\e[0m";
-			  echo "0" >> testresults;
-		  else
-			  echo -e $DRIVER$TEST "\e[0;31mFAILED\e[0m";
-			  diff $RESULT_DIR/$DRIVER$TEST.ref $RESULT_DIR/$DRIVER$TEST.out;
-			  echo "1" >> testresults;
-		  fi;
-	  fi;
+			if [[ -s $RESULT_DIR/$DRIVER$TEST.err ]]
+			then
+				echo -e $DRIVER$TEST "\e[0;31mERROR\e[0m";
+				cat $RESULT_DIR/$DRIVER$TEST.err;
+				echo "1" >> testresults;
+			elif cmp -s $RESULT_DIR/$DRIVER$TEST.ref $RESULT_DIR/$DRIVER$TEST.out;
+			then
+				echo -e $DRIVER$TEST "\e[0;32mOK\e[0m";
+				echo "0" >> testresults;
+			else
+				echo -e $DRIVER$TEST "\e[0;31mFAILED\e[0m";
+				diff $RESULT_DIR/$DRIVER$TEST.ref $RESULT_DIR/$DRIVER$TEST.out;
+				echo "1" >> testresults;
+			fi;
+		fi;
 		;;
 	"REF")
 		./$BUILD_DIR/$LAUNCH_NAME > $RESULT_DIR/$DRIVER$TEST.ref
