@@ -43,7 +43,7 @@ OUTPUT_INSTRUMENT ?= no
 EXPLICIT_PREPROCESSOR ?= no
 
 # possibly set in the environment, toggle whether nonempty output on stderr is treated as an error
-ERROR_OUTPUT_IS_ERROR ?= yes
+STDERR_OUTPUT_IS_ERROR ?= yes
 
 CXX ?= clang++
 
@@ -154,7 +154,7 @@ $(patsubst %,run%,$(DRIVERS)):
 	@rm -f testresults; \
 	for test in ${DRIVER_TESTS}; \
 	do \
-		bash run.sh ${DRIVER} $$test $(MODE) $(EXPLICIT_PREPROCESSOR) $(ERROR_OUTPUT_IS_ERROR); \
+		bash run.sh ${DRIVER} $$test $(MODE) $(EXPLICIT_PREPROCESSOR) $(STDERR_OUTPUT_IS_ERROR); \
 	done; \
 	if grep -q 1 testresults; then \
 		exit 1; \
