@@ -50,4 +50,5 @@ test-output:
     - cd tests
     - export CXX=g++
     - export OUTPUT_INSTRUMENT=yes
+    - export STDERR_OUTPUT_IS_ERROR=no
     - make all

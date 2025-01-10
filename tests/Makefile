@@ -42,6 +42,9 @@ OUTPUT_INSTRUMENT ?= no
 # possibly set in the environment, enables build from source after preprocessing
 EXPLICIT_PREPROCESSOR ?= no
 
+# possibly set in the environment, toggle whether nonempty output on stderr is treated as an error
+STDERR_OUTPUT_IS_ERROR ?= yes
+
 CXX ?= clang++
 
 FLAGS = $(CXXFLAGS) -std=c++11
@@ -151,7 +154,7 @@ $(patsubst %,run%,$(DRIVERS)):
 	@rm -f testresults; \
 	for test in ${DRIVER_TESTS}; \
 	do \
-		bash run.sh ${DRIVER} $$test $(MODE) $(EXPLICIT_PREPROCESSOR); \
+		bash run.sh ${DRIVER} $$test $(MODE) $(EXPLICIT_PREPROCESSOR) $(STDERR_OUTPUT_IS_ERROR); \
 	done; \
 	if grep -q 1 testresults; then \
 		exit 1; \
