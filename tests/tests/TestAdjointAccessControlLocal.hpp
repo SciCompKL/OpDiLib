@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -41,8 +41,11 @@ struct TestAdjointAccessControlLocal : public TestBase<4, 1, 3, TestAdjointAcces
       T* b = new T[N];
       T* c = new T[N];
 
+      assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
+
       OPDI_PARALLEL()
       {
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
         // shared reading of in
         OPDI_FOR()
@@ -54,6 +57,8 @@ struct TestAdjointAccessControlLocal : public TestBase<4, 1, 3, TestAdjointAcces
         #if _OPENMP
           opdi::logic->setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
         #endif
+
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);
 
         // reading from a, no shared reading
         OPDI_FOR()
@@ -67,6 +72,8 @@ struct TestAdjointAccessControlLocal : public TestBase<4, 1, 3, TestAdjointAcces
           opdi::logic->addReverseBarrier();
         #endif
 
+        assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
+
         // shared reading on a
         OPDI_FOR(schedule(static, 1))
         for (int i = 0; i < N; ++i) {
@@ -79,6 +86,8 @@ struct TestAdjointAccessControlLocal : public TestBase<4, 1, 3, TestAdjointAcces
         OPDI_END_FOR
       }
       OPDI_END_PARALLEL
+
+      assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
       for (int i = 0; i < N; ++i) {
         out[0] += c[i];

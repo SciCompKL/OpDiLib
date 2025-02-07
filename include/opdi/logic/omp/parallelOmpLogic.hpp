@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -25,19 +25,15 @@
 
 #pragma once
 
-#include <deque>
 #include <vector>
 
 #include "../../misc/tapePool.hpp"
 
 #include "../logicInterface.hpp"
 
-#include "adjointAccessControl.hpp"
-
 namespace opdi {
 
-  struct ParallelOmpLogic : public virtual AdjointAccessControl,
-                            public virtual LogicInterface,
+  struct ParallelOmpLogic : public virtual LogicInterface,
                             public virtual TapePool {
     public:
 
@@ -48,11 +44,10 @@ namespace opdi {
           int maxThreads;
           int actualThreads;
           bool activeParallelRegion;
-          void* masterTape;
-          void** tapes;
-          std::vector<std::deque<void*>> positions;
-          AdjointAccessMode outerAdjointAccessMode;
-          std::vector<std::deque<AdjointAccessMode>> adjointAccessModes;
+          void* parentTask;  // ParallelOmpLogic::Data of parent task
+          void* parentTape;
+          AdjointAccessMode parentAdjointAccessMode;
+          std::vector<void*> childTasks;  // ImplicitTaskOmpLogic::Data of child tasks
       };
 
     private:
@@ -63,12 +58,15 @@ namespace opdi {
       static void reverseFunc(void* dataPtr);
       static void deleteFunc(void* dataPtr);
 
+      AdjointAccessMode internalGetAdjointAccessMode(void* taskDataPtr) const;
+      void internalSetAdjointAccessMode(void* taskDataPtr, AdjointAccessMode mode);
+
     public:
 
-      virtual void* onParallelBegin(int maxThreads);
+      virtual void* onParallelBegin(void* encounteringTask, int maxThreads);
       virtual void onParallelEnd(void* dataPtr);
 
       virtual void setAdjointAccessMode(AdjointAccessMode mode);
-      virtual AdjointAccessMode getAdjointAccessMode();
+      virtual AdjointAccessMode getAdjointAccessMode() const;
   };
 }

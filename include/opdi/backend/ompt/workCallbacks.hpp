@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -65,6 +65,17 @@ namespace opdi {
 
         switch (wstype) {
           case ompt_work_loop:
+        #if _OPENMP >= 202111
+          case ompt_work_loop_static:
+          case ompt_work_loop_dynamic:
+          case ompt_work_loop_guided:
+          case ompt_work_loop_other:
+        #else  // fallback for compilers with _OPENMP < 202111 that already support fine-grained worksharing types
+          case 10:  // ompt_work_loop_static
+          case 11:  // ompt_work_loop_dynamic
+          case 12:  // ompt_work_loop_guided
+          case 13:  // ompt_work_loop_other
+        #endif
             logic->onWork(LogicInterface::WorksharingKind::Loop, endpoint);
             break;
           case ompt_work_sections:

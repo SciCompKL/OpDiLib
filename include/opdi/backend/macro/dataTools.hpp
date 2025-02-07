@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -34,6 +34,9 @@ namespace opdi {
       static std::stack<void*> parallelData;
       #pragma omp threadprivate(parallelData)
 
+      static std::stack<void*> taskData;
+      #pragma omp threadprivate(taskData)
+
     public:
       static void pushParallelData(void* parallelData) {
         DataTools::parallelData.push(parallelData);
@@ -49,6 +52,22 @@ namespace opdi {
         }
 
         return DataTools::parallelData.top();
+      }
+
+      static void pushTaskData(void* taskData) {
+        DataTools::taskData.push(taskData);
+      }
+
+      static void popTaskData() {
+        DataTools::taskData.pop();
+      }
+
+      static void* getTaskData() {
+        if (DataTools::taskData.empty()) {
+          return nullptr;
+        }
+
+        return DataTools::taskData.top();
       }
   };
 }

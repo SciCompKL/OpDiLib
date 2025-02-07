@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -31,19 +31,19 @@
 namespace opdi {
 
   struct Output {
-    private:
+    protected:
 
       // print functionality
 
       template<typename First, typename... Args>
-      static void printRec(First const& first, Args const&... args) {
-        std::cerr << first << " ";
-        Output::printRec(args...);
+      static void printRec(std::ostream& out, First const& first, Args const&... args) {
+        out << first << " ";
+        Output::printRec(out, args...);
       }
 
       template<typename Last>
-      static void printRec(Last const& last) {
-        std::cerr << last << std::endl;
+      static void printRec(std::ostream& out, Last const& last) {
+        out << last << std::endl;
       }
 
     public:
@@ -63,14 +63,14 @@ namespace opdi {
       template<typename... Args>
       static void print(Args const&... args) {
         omp_set_lock(&Output::lock);
-        Output::printRec(args...);
+        Output::printRec(std::cerr, args...);
         omp_unset_lock(&Output::lock);
       }
 
       template<typename... Args>
       static void printThread(Args const&... args) {
         omp_set_lock(&Output::lock);
-        Output::printRec("thread", omp_get_thread_num(), args...);
+        Output::printRec(std::cerr, "thread", omp_get_thread_num(), args...);
         omp_unset_lock(&Output::lock);
       }
   };

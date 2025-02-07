@@ -23,30 +23,47 @@ If you have a code that is differentiated with a serial AD tool and parallelize 
 2. **Obtain a first parallel differentiated version of your code.** If your compiler supports OMPT, it suffices to add a few lines of code for the initialization and finalization of OpDiLib. Otherwise, you have to use OpDiLib's macro backend, which involves rewriting your OpenMP constructs according to OpDiLib's macro interface. Both approaches are demonstrated in the minimal example below.
 3. **Optimize the performance of the parallel reverse pass.** Check your parallel forward code for parts that do not involve shared reading. Use OpDiLib's adjoint access control tools to disable atomic adjoints for these parts. You may also revise your data access patterns to eliminate additional instances of shared reading.
 
-## Publication
+## Publications
 
-For further details about OpDiLib's design, features and modes of operation, please refer to our publication
+For further details about OpDiLib's design, features, and modes of operation, please refer to our publication
 [Event-Based Automatic Differentiation of OpenMP with OpDiLib](https://doi.org/10.1145/3570159).
-If you use OpDiLib in one of your applications and write a paper, please cite us!
 
 ~~~~{.txt}
 @article{BluehdornSG2023,
-  author = {Bl\"{u}hdorn, Johannes and Sagebaum, Max and Gauger, Nicolas R.},
   title = {{Event-Based Automatic Differentiation of OpenMP with OpDiLib}},
+  author = {Bl\"{u}hdorn, Johannes and Sagebaum, Max and Gauger, Nicolas R.},
   year = {2023},
-  issue_date = {March 2023},
-  publisher = {Association for Computing Machinery},
-  address = {New York, NY, USA},
+  month = {03},
+  journal = {ACM Trans. Math. Softw.},
   volume = {49},
   number = {1},
-  url = {https://doi.org/10.1145/3570159},
-  doi = {10.1145/3570159},
-  journal = {ACM Trans. Math. Softw.},
-  month = {mar},
-  articleno = {3},
-  numpages = {31}
+  note = {Article No.: 3},
+  pages = {1--31},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  doi = {10.1145/3570159}
 }
 ~~~~
+
+Additional details on applying OpDiLib in a large software with an advanced AD workflow are given in our publication
+[Hybrid parallel discrete adjoints in SU2](https://doi.org/10.1016/j.compfluid.2024.106528).
+
+~~~~{.txt}
+@article{BluehdornGAG2025,
+  title = {Hybrid parallel discrete adjoints in {SU2}},
+  author = {Bl\"{u}hdorn, Johannes and Gomes, Pedro and Aehle, Max and Gauger, Nicolas R.},
+  year = {2025},
+  month = {01},
+  journal = {Computers & Fluids},
+  volume = {289},
+  note = {Article 106528},
+  pages = {1--18},
+  publisher = {Elsevier},
+  doi = {10.1016/j.compfluid.2024.106528}
+}
+~~~~
+
+If you use OpDiLib in one of your applications and write a paper, please cite us!
 
 ## Minimal Example
 

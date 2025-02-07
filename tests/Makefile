@@ -1,7 +1,7 @@
 # OpDiLib, an Open Multiprocessing Differentiation Library
 #
 # Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
-# Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+# Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
 # Homepage: https://scicomp.rptu.de
 # Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
 #
@@ -42,6 +42,9 @@ OUTPUT_INSTRUMENT ?= no
 # possibly set in the environment, enables build from source after preprocessing
 EXPLICIT_PREPROCESSOR ?= no
 
+# possibly set in the environment, toggle whether nonempty output on stderr is treated as an error
+STDERR_OUTPUT_IS_ERROR ?= yes
+
 CXX ?= clang++
 
 FLAGS = $(CXXFLAGS) -std=c++11
@@ -49,7 +52,7 @@ FLAGS = $(CXXFLAGS) -std=c++11
 ifeq ($(DEBUG),no)
 	FLAGS += -O3
 else
-  FLAGS += -O0 -ggdb -Wall -Wextra
+  FLAGS += -O0 -ggdb -Wall -Wextra -Werror
   ifeq ($(OUTPUT_INSTRUMENT),yes)
     FLAGS += -DOPDI_OMP_LOGIC_INSTRUMENT=1 -DOUTPUT_INSTRUMENT
   endif
@@ -151,7 +154,7 @@ $(patsubst %,run%,$(DRIVERS)):
 	@rm -f testresults; \
 	for test in ${DRIVER_TESTS}; \
 	do \
-		bash run.sh ${DRIVER} $$test $(MODE) $(EXPLICIT_PREPROCESSOR); \
+		bash run.sh ${DRIVER} $$test $(MODE) $(EXPLICIT_PREPROCESSOR) $(STDERR_OUTPUT_IS_ERROR); \
 	done; \
 	if grep -q 1 testresults; then \
 		exit 1; \
@@ -173,4 +176,5 @@ clean:
 	rm -r -f build
 	rm -f tempmakefile
 	rm -f results/*.out
+	rm -f results/*.err
 	rm -f testresults

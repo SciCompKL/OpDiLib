@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -24,6 +24,8 @@
  */
 
 #pragma once
+
+#include <cassert>
 
 #include "../../config.hpp"
 
@@ -57,9 +59,15 @@ namespace opdi {
 
       void init() {
         opdi_init_lock(&ReductionTools::globalReducerLock);
+
+        // task data for initial implicit task is created in the logic layer
       }
 
       void finalize() {
+        // pop task data associated with initial implicit task
+        DataTools::popTaskData();
+        assert(DataTools::getTaskData() == nullptr);
+
         opdi_set_lock(&ReductionTools::globalReducerLock);
 
         for (auto lock : ReductionTools::individualReducerLocks) {
@@ -73,6 +81,15 @@ namespace opdi {
 
       void* getParallelData() {
         return DataTools::getParallelData();
+      }
+
+      void* getTaskData() {
+        return DataTools::getTaskData();
+      }
+
+      void setInitialImplicitTaskData(void* data) {
+        assert(DataTools::getTaskData() == nullptr);
+        DataTools::pushTaskData(data);
       }
   };
 

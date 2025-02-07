@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -55,10 +55,11 @@ namespace opdi {
 
       virtual ~LogicInterface() {}
 
-      virtual void* onParallelBegin(int maxThreads) = 0;
+      virtual void* onParallelBegin(void* encounteringTaskData, int maxThreads) = 0;
       virtual void onParallelEnd(void* data) = 0;
 
-      virtual void* onImplicitTaskBegin(int actualParallelism, int index, void* parallelData) = 0;
+      virtual void* onImplicitTaskBegin(bool initialImplicitTask, int actualParallelism, int index,
+                                        void* parallelData) = 0;
       virtual void onImplicitTaskEnd(void* data) = 0;
 
       virtual void onMutexDestroyed(MutexKind kind, std::size_t waitId) = 0;
@@ -82,8 +83,10 @@ namespace opdi {
       virtual void freeState(void* state) = 0;
       virtual void recoverState(void* state) = 0;
 
-      virtual void setAdjointAccessMode(AdjointAccessMode adjointAccess) = 0;
-      virtual AdjointAccessMode getAdjointAccessMode() = 0;
+      virtual void setAdjointAccessMode(AdjointAccessMode mode) = 0;
+      virtual AdjointAccessMode getAdjointAccessMode() const = 0;
+
+      virtual void resetTask(void* position, AdjointAccessMode mode) = 0;
 
       virtual void addReverseBarrier() = 0;
       virtual void addReverseFlush() = 0;

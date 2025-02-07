@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -45,9 +45,9 @@ namespace opdi {
 
       virtual void reverseFlush() {}
 
-      virtual void reverseImplicitTaskBegin(ParallelOmpLogic::Data* /*data*/, int /*threadNum*/) {}
-      virtual void reverseImplicitTaskEnd(ParallelOmpLogic::Data* /*data*/, int /*threadNum*/) {}
-      virtual void reverseImplicitTaskPart(ParallelOmpLogic::Data* /*data*/, int /*threadNum*/, std::size_t /*part*/) {}
+      virtual void reverseImplicitTaskBegin(ImplicitTaskOmpLogic::Data* /*data*/) {}
+      virtual void reverseImplicitTaskEnd(ImplicitTaskOmpLogic::Data* /*data*/) {}
+      virtual void reverseImplicitTaskPart(ImplicitTaskOmpLogic::Data* /*data*/, std::size_t /*part*/) {}
       virtual void onImplicitTaskBegin(ImplicitTaskOmpLogic::Data* /*data*/) {}
       virtual void onImplicitTaskEnd(ImplicitTaskOmpLogic::Data* /*data*/) {}
 

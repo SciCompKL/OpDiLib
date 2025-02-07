@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -36,6 +36,7 @@ ompt_set_callback_t opdi::CallbacksBase::setCallback;
 ompt_get_callback_t opdi::CallbacksBase::getCallback;
 
 ompt_get_parallel_info_t opdi::OmptBackend::getParallelInfo = NULL;
+ompt_get_task_info_t opdi::OmptBackend::getTaskInfo = NULL;
 ompt_finalize_tool_t opdi::OmptBackend::finalizeTool = NULL;
 
 // ompt entry point

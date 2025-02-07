@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -38,7 +38,7 @@
 
 #define OPDI_PARALLEL(...) \
   { \
-    void* opdiInternalParallelData = opdi::logic->onParallelBegin(omp_get_max_threads()); \
+    void* opdiInternalParallelData = opdi::logic->onParallelBegin(opdi::DataTools::getTaskData(), omp_get_max_threads()); \
     opdi::TaskProbe opdiInternalTaskProbe(opdiInternalParallelData); \
     OPDI_PRAGMA(omp parallel __VA_ARGS__ firstprivate(opdiInternalTaskProbe))
 

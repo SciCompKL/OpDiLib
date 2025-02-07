@@ -2,7 +2,7 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2024 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2025 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <sstream>
+
 #include "../tool/toolInterface.hpp"
 
 #include "output.hpp"
@@ -40,6 +42,21 @@ namespace opdi {
 
       static void reverseDeactivate(void*) {
         TapedOutput::setActive(false);
+      }
+
+      struct ReversePrintData {
+        public:
+          std::string message;
+      };
+
+      static void reversePrint(void* dataPtr) {
+        ReversePrintData* data = (ReversePrintData*)dataPtr;
+        print(data->message);
+      }
+
+      static void reversePrintDelete(void* dataPtr) {
+        ReversePrintData* data = (ReversePrintData*)dataPtr;
+        delete data;
       }
 
       static bool active;
@@ -63,6 +80,24 @@ namespace opdi {
       static void print(Args const&... args) {
         if (TapedOutput::active) {
           Output::print(args...);
+        }
+      }
+
+      template<typename... Args>
+      static void printReverse(Args const&... args) {
+        if (TapedOutput::active) {
+          std::stringstream out;
+          Output::printRec(out, args...);
+
+          ReversePrintData* data = new ReversePrintData;
+          data->message = out.rdbuf()->str();
+
+          Handle* handle = new Handle;
+          handle->data = data;
+          handle->reverseFunc = reversePrint;
+          handle->deleteFunc = reversePrintDelete;
+
+          tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
         }
       }
   };
