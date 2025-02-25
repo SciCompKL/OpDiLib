@@ -3,7 +3,7 @@ default:
     - docker
 
 test-gcc-macro:
-  image: ubuntu:22.04
+  image: ubuntu:24.04
   timeout: 2h
   script:
     - apt update && apt install -y build-essential binutils git
@@ -15,7 +15,7 @@ test-gcc-macro:
     - make all
 
 test-clang-macro:
-  image: fedora:39
+  image: fedora:41
   timeout: 2h
   script:
     - dnf install -y diffutils binutils clang git
@@ -27,7 +27,7 @@ test-clang-macro:
     - make all
 
 test-clang-ompt:
-  image: fedora:39
+  image: fedora:41
   timeout: 2h
   script:
     - dnf install -y diffutils binutils clang git
@@ -40,7 +40,7 @@ test-clang-ompt:
     - make all
 
 test-output:
-  image: ubuntu:22.04
+  image: ubuntu:24.04
   timeout: 2h
   script:
     - apt update && apt install -y build-essential binutils git
