@@ -1,10 +1,10 @@
 default:
+  timeout: 2h
   tags:
     - docker
 
 test-gcc-macro:
   image: ubuntu:24.04
-  timeout: 2h
   script:
     - apt update && apt install -y build-essential binutils git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -16,7 +16,6 @@ test-gcc-macro:
 
 test-clang-macro:
   image: fedora:41
-  timeout: 2h
   script:
     - dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -28,7 +27,6 @@ test-clang-macro:
 
 test-clang-ompt:
   image: fedora:41
-  timeout: 2h
   script:
     - dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -41,7 +39,6 @@ test-clang-ompt:
 
 test-output:
   image: ubuntu:24.04
-  timeout: 2h
   script:
     - apt update && apt install -y build-essential binutils git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
