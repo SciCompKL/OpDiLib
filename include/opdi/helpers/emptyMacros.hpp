@@ -41,7 +41,8 @@
 #define OPDI_NOWAIT
 
 #define OPDI_CRITICAL(...)
-#define OPDI_CRITICAL_NAME(name, ...)
+#define OPDI_CRITICAL_NAME(name)
+#define OPDI_CRITICAL_NAME_ARGS(name, ...)
 #define OPDI_END_CRITICAL
 
 #define OPDI_ORDERED(...)
