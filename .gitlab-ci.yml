@@ -3,7 +3,7 @@ default:
   tags:
     - docker
 
-test-gcc-macro:
+gcc-macro:
   image: ubuntu:24.04
   script:
     - apt update && apt install -y build-essential binutils git
@@ -14,7 +14,7 @@ test-gcc-macro:
     - export CXX=g++
     - make all
 
-test-clang-macro:
+clang-macro:
   image: fedora:41
   script:
     - dnf install -y diffutils binutils clang git
@@ -25,7 +25,7 @@ test-clang-macro:
     - export CXX=clang++
     - make all
 
-test-clang-ompt:
+clang-ompt:
   image: fedora:41
   script:
     - dnf install -y diffutils binutils clang git
@@ -37,7 +37,7 @@ test-clang-ompt:
     - export BACKEND=OMPT
     - make all
 
-test-output:
+output:
   image: ubuntu:24.04
   script:
     - apt update && apt install -y build-essential binutils git
