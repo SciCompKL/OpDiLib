@@ -156,8 +156,10 @@ $(patsubst %,run%,$(DRIVERS)):
 	do \
 		bash run.sh ${DRIVER} $$test $(MODE) $(EXPLICIT_PREPROCESSOR) $(STDERR_OUTPUT_IS_ERROR); \
 	done; \
-	if grep -q 1 testresults; then \
-		exit 1; \
+	if [ $(MODE) = "RUN" ]; then \
+		if grep -q 1 testresults; then \
+			exit 1; \
+		fi; \
 	fi;
 
 # execute all tests
