@@ -242,21 +242,25 @@ void opdi::ParallelOmpLogic::onParallelEnd(void* dataPtr) {
 void opdi::ParallelOmpLogic::setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode mode) {
 
   #if OPDI_VARIABLE_ADJOINT_ACCESS_MODE
-    #if OPDI_OMP_LOGIC_INSTRUMENT
-      for (auto& instrument : ompLogicInstruments) {
-        instrument->onSetAdjointAccessMode(mode);
-      }
-    #endif
-
     void* taskDataPtr = backend->getTaskData();
-    assert(taskDataPtr != nullptr);
-    internalSetAdjointAccessMode(taskDataPtr, mode);
+    if (taskDataPtr != nullptr) {  // nullptr if called during tape evaluation
+      #if OPDI_OMP_LOGIC_INSTRUMENT
+        for (auto& instrument : ompLogicInstruments) {
+          instrument->onSetAdjointAccessMode(mode);
+        }
+      #endif
+
+      internalSetAdjointAccessMode(taskDataPtr, mode);
+    }
   #endif
 }
 
 opdi::LogicInterface::AdjointAccessMode opdi::ParallelOmpLogic::getAdjointAccessMode() const {
   void* taskDataPtr = backend->getTaskData();
-  assert(taskDataPtr != nullptr);
-  return internalGetAdjointAccessMode(taskDataPtr);
+  if (taskDataPtr != nullptr) {  // nullptr if called during tape evaluation
+    return internalGetAdjointAccessMode(taskDataPtr);
+  } else {
+    return opdi::ImplicitTaskOmpLogic::defaultAdjointAccessMode;
+  }
 }
 
