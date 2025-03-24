@@ -52,7 +52,7 @@ FLAGS = $(CXXFLAGS) -std=c++11
 ifeq ($(DEBUG),no)
 	FLAGS += -O3
 else
-  FLAGS += -O0 -ggdb -Wall -Wextra -Werror
+  FLAGS += -O0 -ggdb -Wall -Wextra -Wpedantic -Werror
   ifeq ($(OUTPUT_INSTRUMENT),yes)
     FLAGS += -DOPDI_OMP_LOGIC_INSTRUMENT=1 -DOUTPUT_INSTRUMENT
   endif
@@ -156,8 +156,10 @@ $(patsubst %,run%,$(DRIVERS)):
 	do \
 		bash run.sh ${DRIVER} $$test $(MODE) $(EXPLICIT_PREPROCESSOR) $(STDERR_OUTPUT_IS_ERROR); \
 	done; \
-	if grep -q 1 testresults; then \
-		exit 1; \
+	if [ $(MODE) = "RUN" ]; then \
+		if grep -q 1 testresults; then \
+			exit 1; \
+		fi; \
 	fi;
 
 # execute all tests

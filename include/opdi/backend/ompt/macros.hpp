@@ -55,7 +55,10 @@
 #define OPDI_CRITICAL(...) \
   OPDI_PRAGMA(omp critical __VA_ARGS__)
 
-#define OPDI_CRITICAL_NAME(name, ...) \
+#define OPDI_CRITICAL_NAME(name) \
+  OPDI_PRAGMA(omp critical (name))
+
+#define OPDI_CRITICAL_NAME_ARGS(name, ...) \
   OPDI_PRAGMA(omp critical (name) __VA_ARGS__)
 
 #define OPDI_END_CRITICAL

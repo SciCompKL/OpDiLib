@@ -112,7 +112,14 @@
     std::size_t constexpr opdiInternalCriticalIdentifier = 0; \
     opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Critical, opdiInternalCriticalIdentifier);
 
-#define OPDI_CRITICAL_NAME(name, ...) \
+#define OPDI_CRITICAL_NAME(name) \
+  OPDI_PRAGMA(omp critical (name)) \
+  { \
+    std::size_t const opdiInternalCriticalIdentifier = \
+        dynamic_cast<opdi::MacroBackend*>(opdi::backend)->getCriticalIdentifier(std::string(#name)); \
+    opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Critical, opdiInternalCriticalIdentifier);
+
+#define OPDI_CRITICAL_NAME_ARGS(name, ...) \
   OPDI_PRAGMA(omp critical (name) __VA_ARGS__) \
   { \
     std::size_t const opdiInternalCriticalIdentifier = \

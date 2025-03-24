@@ -158,9 +158,12 @@ namespace opdi {
         ompt_data_t* parallelData;
         int teamSize;
 
-        int result = getParallelInfo(0, &parallelData, &teamSize);
-
-        assert(result == 2);
+        #ifndef NDEBUG
+          int result = getParallelInfo(0, &parallelData, &teamSize);
+          assert(result == 2);
+        #else
+          getParallelInfo(0, &parallelData, &teamSize);
+        #endif
 
         return parallelData->ptr;
       }
@@ -172,9 +175,12 @@ namespace opdi {
         ompt_data_t* parallelData;
         int threadNum;
 
-        int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
-
-        assert(result == 2);
+        #ifndef NDEBUG
+          int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+          assert(result == 2);
+        #else
+          getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+        #endif
 
         return taskData->ptr;
       }
@@ -186,11 +192,14 @@ namespace opdi {
         ompt_data_t* parallelData;
         int threadNum;
 
-        int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
-
-        assert(result == 2);
-        assert(flags & ompt_task_initial);
-        assert(taskData->ptr == nullptr);
+        #ifndef NDEBUG
+          int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+          assert(result == 2);
+          assert(flags & ompt_task_initial);
+          assert(taskData->ptr == nullptr);
+        #else
+          getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+        #endif
 
         taskData->ptr = data;
       }
