@@ -53,6 +53,8 @@ namespace opdi {
         Atomic, Classical
       };
 
+      using WaitId = std::size_t;
+
       virtual ~LogicInterface() {}
 
       virtual void* onParallelBegin(void* encounteringTaskData, int maxThreads) = 0;
@@ -62,10 +64,10 @@ namespace opdi {
                                         void* parallelData) = 0;
       virtual void onImplicitTaskEnd(void* data) = 0;
 
-      virtual void onMutexDestroyed(MutexKind kind, std::size_t waitId) = 0;
-      virtual void onMutexAcquired(MutexKind kind, std::size_t waitId) = 0;
-      virtual void onMutexReleased(MutexKind kind, std::size_t waitId) = 0;
-      virtual void registerInactiveMutex(MutexKind kind, std::size_t waitId) = 0;
+      virtual void onMutexDestroyed(MutexKind kind, WaitId waitId) = 0;
+      virtual void onMutexAcquired(MutexKind kind, WaitId waitId) = 0;
+      virtual void onMutexReleased(MutexKind kind, WaitId waitId) = 0;
+      virtual void registerInactiveMutex(MutexKind kind, WaitId waitId) = 0;
 
       virtual void onWork(WorksharingKind kind, ScopeEndpoint endpoint) = 0;
 

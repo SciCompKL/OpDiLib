@@ -37,17 +37,20 @@ namespace opdi {
     public:
 
       using LogicInterface::MutexKind;
+      using LogicInterface::WaitId;
+
+      using Counter = std::size_t;
 
     private:
 
-      using Trace = std::map<std::size_t, std::size_t>;
+      using Trace = std::map<WaitId, Counter>;
 
       struct MutexTrace {
         public:
           Trace trace;
           omp_lock_t lock; // lock for internal synchronization
-          std::size_t waitId; // wait id of internal lock
-          std::set<std::size_t> inactive; // ids of inactive mutexes
+          WaitId waitId; // wait id of internal lock
+          std::set<WaitId> inactive; // ids of inactive mutexes
       };
 
       MutexTrace criticalTrace, lockTrace, nestedLockTrace, orderedTrace, reductionTrace;
@@ -74,15 +77,15 @@ namespace opdi {
       struct Data {
         public:
           MutexKind kind;
-          std::size_t traceValue;
-          std::size_t waitId;
+          Counter traceValue;
+          WaitId waitId;
       };
 
     private:
 
-      static void internalWaitReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
+      static void internalWaitReverseFunc(Trace& evalTrace,
                                           #ifdef __SANITIZE_THREAD__
-                                            std::map<std::size_t, std::size_t>& tsanDummies,
+                                            Trace& tsanDummies,
                                           #endif
                                           void* dataPtr);
 
@@ -94,9 +97,9 @@ namespace opdi {
 
       static void waitDeleteFunc(void* dataPtr);
 
-      static void internalDecrementReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
+      static void internalDecrementReverseFunc(Trace& evalTrace,
                                                #ifdef __SANITIZE_THREAD__
-                                                 std::map<std::size_t, std::size_t>& tsanDummies,
+                                                 Trace& tsanDummies,
                                                #endif
                                                void* dataPtr);
 
@@ -116,22 +119,22 @@ namespace opdi {
     private:
 
       void internalOnMutexAcquired(MutexKind kind, MutexTrace& mutexTrace,
-                                   std::map<std::size_t, std::size_t>& localTrace,
+                                   Trace& localTrace,
                                    void (*decrementReverseFunc)(void*),
-                                   std::size_t waitId);
+                                   WaitId waitId);
       void internalOnMutexReleased(MutexKind kind, MutexTrace& mutexTrace,
-                                   std::map<std::size_t, std::size_t>& localTrace,
+                                   Trace& localTrace,
                                    void (*waitReverseFunc)(void*),
-                                   std::size_t waitId);
+                                   WaitId waitId);
 
     public:
 
-      virtual void onMutexDestroyed(MutexKind kind, std::size_t waitId);
-      virtual void onMutexAcquired(MutexKind kind, std::size_t waitId);
-      virtual void onMutexReleased(MutexKind kind, std::size_t waitId);
+      virtual void onMutexDestroyed(MutexKind kind, WaitId waitId);
+      virtual void onMutexAcquired(MutexKind kind, WaitId waitId);
+      virtual void onMutexReleased(MutexKind kind, WaitId waitId);
 
       // not thread-safe! only use outside parallel regions
-      virtual void registerInactiveMutex(MutexKind kind, std::size_t waitId);
+      virtual void registerInactiveMutex(MutexKind kind, WaitId waitId);
 
       void prepareEvaluate();
       void postEvaluate();

@@ -40,9 +40,9 @@ opdi::MutexOmpLogic::State opdi::MutexOmpLogic::evalState;
   opdi::MutexOmpLogic::State opdi::MutexOmpLogic::tsanDummies;
 #endif
 
-void opdi::MutexOmpLogic::internalWaitReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
+void opdi::MutexOmpLogic::internalWaitReverseFunc(Trace& evalTrace,
                                                   #ifdef __SANITIZE_THREAD__
-                                                    std::map<std::size_t, std::size_t>& tsanDummies,
+                                                    Trace& tsanDummies,
                                                   #endif
                                                   void* dataPtr) {
   Data* data = (Data*) dataPtr;
@@ -55,12 +55,12 @@ void opdi::MutexOmpLogic::internalWaitReverseFunc(std::map<std::size_t, std::siz
 
   // busy wait until trace value is matched
   while (true) {
-    std::size_t currentId;
+    Counter currentValue;
 
     #pragma omp atomic read
-    currentId = evalTrace[data->waitId];
+    currentValue = evalTrace[data->waitId];
 
-    if (currentId == data->traceValue) {
+    if (currentValue == data->traceValue) {
       break;
     }
   }
@@ -115,9 +115,9 @@ void opdi::MutexOmpLogic::waitDeleteFunc(void* dataPtr) {
   delete data;
 }
 
-void opdi::MutexOmpLogic::internalDecrementReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
+void opdi::MutexOmpLogic::internalDecrementReverseFunc(Trace& evalTrace,
                                                        #ifdef __SANITIZE_THREAD__
-                                                         std::map<std::size_t, std::size_t>& tsanDummies,
+                                                         Trace& tsanDummies,
                                                        #endif
                                                        void* dataPtr) {
   Data* data = (Data*) dataPtr;
@@ -204,7 +204,7 @@ void opdi::MutexOmpLogic::internalFinalize() {
   omp_destroy_lock(&this->reductionTrace.lock);
 }
 
-void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind kind, std::size_t waitId) {
+void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind kind, WaitId waitId) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
@@ -235,9 +235,9 @@ void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind kind, std::size_t waitId) {
 }
 
 void opdi::MutexOmpLogic::internalOnMutexAcquired(MutexKind kind, MutexTrace& mutexTrace,
-                                                  std::map<std::size_t, std::size_t>& localTrace,
+                                                  Trace& localTrace,
                                                   void (*decrementReverseFunc)(void*),
-                                                  std::size_t waitId) {
+                                                  WaitId waitId) {
 
   if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
@@ -270,7 +270,7 @@ void opdi::MutexOmpLogic::internalOnMutexAcquired(MutexKind kind, MutexTrace& mu
   }
 }
 
-void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, std::size_t waitId) {
+void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, WaitId waitId) {
 
   switch (kind) {
     case MutexKind::Critical:
@@ -308,8 +308,8 @@ void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, std::size_t waitId) {
 }
 
 void opdi::MutexOmpLogic::internalOnMutexReleased(MutexKind kind, MutexTrace& mutexTrace,
-                                                  std::map<std::size_t, std::size_t>& localTrace,
-                                                  void (*waitReverseFunc)(void*), std::size_t waitId) {
+                                                  Trace& localTrace,
+                                                  void (*waitReverseFunc)(void*), WaitId waitId) {
 
   if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
@@ -341,7 +341,7 @@ void opdi::MutexOmpLogic::internalOnMutexReleased(MutexKind kind, MutexTrace& mu
   }
 }
 
-void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, std::size_t waitId) {
+void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, WaitId waitId) {
 
   switch (kind) {
     case MutexKind::Critical:
@@ -379,7 +379,7 @@ void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, std::size_t waitId) {
 }
 
 // not thread safe! only use outside parallel regions
-void opdi::MutexOmpLogic::registerInactiveMutex(MutexKind kind, std::size_t waitId) {
+void opdi::MutexOmpLogic::registerInactiveMutex(MutexKind kind, WaitId waitId) {
 
   switch (kind) {
     case MutexKind::Critical:
