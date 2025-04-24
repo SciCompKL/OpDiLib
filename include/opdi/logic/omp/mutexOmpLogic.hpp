@@ -57,7 +57,8 @@ namespace opdi {
 
       Recording criticalRecording, lockRecording, nestedLockRecording, orderedRecording, reductionRecording;
 
-      struct State {
+      // counters for all mutex kinds
+      struct AllCounters {
         public:
           Counters criticalCounters;
           Counters lockCounters;
@@ -66,13 +67,18 @@ namespace opdi {
           Counters reductionCounters;
       };
 
-      static State localState;
-      #pragma omp threadprivate(localState)
+      // thread-local memory used during recording for data exchange between acquire and release events
+      static AllCounters localCounters;
+      #pragma omp threadprivate(localCounters)
 
-      static State evalState;
+      // counters used during evaluations
+      static AllCounters evaluationCounters;
 #ifdef __SANITIZE_THREAD__
-      static State tsanDummies;
+      static AllCounters tsanDummies;
 #endif
+
+      // currently, OpDiLib's internal state corresponds to the values of all mutex counters
+      using State = AllCounters;
 
     public:
 

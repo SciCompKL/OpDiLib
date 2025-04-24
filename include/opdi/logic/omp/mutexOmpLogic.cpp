@@ -34,10 +34,10 @@
 
 #include "mutexOmpLogic.hpp"
 
-opdi::MutexOmpLogic::State opdi::MutexOmpLogic::localState;
-opdi::MutexOmpLogic::State opdi::MutexOmpLogic::evalState;
+opdi::MutexOmpLogic::AllCounters opdi::MutexOmpLogic::localCounters;
+opdi::MutexOmpLogic::AllCounters opdi::MutexOmpLogic::evaluationCounters;
 #ifdef __SANITIZE_THREAD__
-  opdi::MutexOmpLogic::State opdi::MutexOmpLogic::tsanDummies;
+  opdi::MutexOmpLogic::AllCounters opdi::MutexOmpLogic::tsanDummies;
 #endif
 
 void opdi::MutexOmpLogic::internalWaitReverseFunc(MutexOmpLogic::Counters& counters,
@@ -71,7 +71,7 @@ void opdi::MutexOmpLogic::internalWaitReverseFunc(MutexOmpLogic::Counters& count
 }
 
 void opdi::MutexOmpLogic::waitCriticalReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.criticalCounters,
+  internalWaitReverseFunc(MutexOmpLogic::evaluationCounters.criticalCounters,
                           #ifdef __SANITIZE_THREAD__
                             MutexOmpLogic::tsanDummies.criticalCounters,
                           #endif
@@ -79,7 +79,7 @@ void opdi::MutexOmpLogic::waitCriticalReverseFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::waitLockReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.lockCounters,
+  internalWaitReverseFunc(MutexOmpLogic::evaluationCounters.lockCounters,
                           #ifdef __SANITIZE_THREAD__
                             MutexOmpLogic::tsanDummies.lockCounters,
                           #endif
@@ -87,7 +87,7 @@ void opdi::MutexOmpLogic::waitLockReverseFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::waitNestedLockReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.nestedLockCounters,
+  internalWaitReverseFunc(MutexOmpLogic::evaluationCounters.nestedLockCounters,
                           #ifdef __SANITIZE_THREAD__
                             MutexOmpLogic::tsanDummies.nestedLockCounters,
                           #endif
@@ -95,7 +95,7 @@ void opdi::MutexOmpLogic::waitNestedLockReverseFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::waitOrderedReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.orderedCounters,
+  internalWaitReverseFunc(MutexOmpLogic::evaluationCounters.orderedCounters,
                           #ifdef __SANITIZE_THREAD__
                             MutexOmpLogic::tsanDummies.orderedCounters,
                           #endif
@@ -103,7 +103,7 @@ void opdi::MutexOmpLogic::waitOrderedReverseFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::waitReductionReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.reductionCounters,
+  internalWaitReverseFunc(MutexOmpLogic::evaluationCounters.reductionCounters,
                           #ifdef __SANITIZE_THREAD__
                             MutexOmpLogic::tsanDummies.reductionCounters,
                           #endif
@@ -138,7 +138,7 @@ void opdi::MutexOmpLogic::internalDecrementReverseFunc(MutexOmpLogic::Counters& 
 }
 
 void opdi::MutexOmpLogic::decrementCriticalReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.criticalCounters,
+  internalDecrementReverseFunc(MutexOmpLogic::evaluationCounters.criticalCounters,
                                #ifdef __SANITIZE_THREAD__
                                  MutexOmpLogic::tsanDummies.criticalCounters,
                                #endif
@@ -146,7 +146,7 @@ void opdi::MutexOmpLogic::decrementCriticalReverseFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::decrementLockReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.lockCounters,
+  internalDecrementReverseFunc(MutexOmpLogic::evaluationCounters.lockCounters,
                                #ifdef __SANITIZE_THREAD__
                                  MutexOmpLogic::tsanDummies.lockCounters,
                                #endif
@@ -154,7 +154,7 @@ void opdi::MutexOmpLogic::decrementLockReverseFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::decrementNestedLockReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.nestedLockCounters,
+  internalDecrementReverseFunc(MutexOmpLogic::evaluationCounters.nestedLockCounters,
                                #ifdef __SANITIZE_THREAD__
                                  MutexOmpLogic::tsanDummies.nestedLockCounters,
                                #endif
@@ -162,7 +162,7 @@ void opdi::MutexOmpLogic::decrementNestedLockReverseFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::decrementOrderedReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.orderedCounters,
+  internalDecrementReverseFunc(MutexOmpLogic::evaluationCounters.orderedCounters,
                                #ifdef __SANITIZE_THREAD__
                                  MutexOmpLogic::tsanDummies.orderedCounters,
                                #endif
@@ -170,7 +170,7 @@ void opdi::MutexOmpLogic::decrementOrderedReverseFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::decrementReductionReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.reductionCounters,
+  internalDecrementReverseFunc(MutexOmpLogic::evaluationCounters.reductionCounters,
                                #ifdef __SANITIZE_THREAD__
                                  MutexOmpLogic::tsanDummies.reductionCounters,
                                #endif
@@ -274,7 +274,7 @@ void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, WaitId waitId) {
 
   switch (kind) {
     case MutexKind::Critical:
-      this->internalOnMutexAcquired(kind, this->criticalRecording, MutexOmpLogic::localState.criticalCounters,
+      this->internalOnMutexAcquired(kind, this->criticalRecording, MutexOmpLogic::localCounters.criticalCounters,
                                     MutexOmpLogic::decrementCriticalReverseFunc, waitId);
       break;
     case MutexKind::Lock:
@@ -286,19 +286,19 @@ void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, WaitId waitId) {
           waitId == this->reductionRecording.waitId) {
         return;
       }
-      this->internalOnMutexAcquired(kind, this->lockRecording, MutexOmpLogic::localState.lockCounters,
+      this->internalOnMutexAcquired(kind, this->lockRecording, MutexOmpLogic::localCounters.lockCounters,
                                     MutexOmpLogic::decrementLockReverseFunc, waitId);
       break;
     case MutexKind::NestedLock:
-      this->internalOnMutexAcquired(kind, this->nestedLockRecording, MutexOmpLogic::localState.nestedLockCounters,
+      this->internalOnMutexAcquired(kind, this->nestedLockRecording, MutexOmpLogic::localCounters.nestedLockCounters,
                                     MutexOmpLogic::decrementNestedLockReverseFunc, waitId);
       break;
     case MutexKind::Ordered:
-      this->internalOnMutexAcquired(kind, this->orderedRecording, MutexOmpLogic::localState.orderedCounters,
+      this->internalOnMutexAcquired(kind, this->orderedRecording, MutexOmpLogic::localCounters.orderedCounters,
                                     MutexOmpLogic::decrementOrderedReverseFunc, waitId);
       break;
     case MutexKind::Reduction:
-      this->internalOnMutexAcquired(kind, this->reductionRecording, MutexOmpLogic::localState.reductionCounters,
+      this->internalOnMutexAcquired(kind, this->reductionRecording, MutexOmpLogic::localCounters.reductionCounters,
                                     MutexOmpLogic::decrementReductionReverseFunc, waitId);
       break;
     default:
@@ -345,7 +345,7 @@ void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, WaitId waitId) {
 
   switch (kind) {
     case MutexKind::Critical:
-      this->internalOnMutexReleased(kind, this->criticalRecording, MutexOmpLogic::localState.criticalCounters,
+      this->internalOnMutexReleased(kind, this->criticalRecording, MutexOmpLogic::localCounters.criticalCounters,
                                     MutexOmpLogic::waitCriticalReverseFunc, waitId);
       break;
     case MutexKind::Lock:
@@ -357,19 +357,19 @@ void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, WaitId waitId) {
           waitId == this->reductionRecording.waitId) {
         return;
       }
-      this->internalOnMutexReleased(kind, this->lockRecording, MutexOmpLogic::localState.lockCounters,
+      this->internalOnMutexReleased(kind, this->lockRecording, MutexOmpLogic::localCounters.lockCounters,
                                     MutexOmpLogic::waitLockReverseFunc, waitId);
       break;
     case MutexKind::NestedLock:
-      this->internalOnMutexReleased(kind, this->nestedLockRecording, MutexOmpLogic::localState.nestedLockCounters,
+      this->internalOnMutexReleased(kind, this->nestedLockRecording, MutexOmpLogic::localCounters.nestedLockCounters,
                                     MutexOmpLogic::waitNestedLockReverseFunc, waitId);
       break;
     case MutexKind::Ordered:
-      this->internalOnMutexReleased(kind, this->orderedRecording, MutexOmpLogic::localState.orderedCounters,
+      this->internalOnMutexReleased(kind, this->orderedRecording, MutexOmpLogic::localCounters.orderedCounters,
                                     MutexOmpLogic::waitOrderedReverseFunc, waitId);
       break;
     case MutexKind::Reduction:
-      this->internalOnMutexReleased(kind, this->reductionRecording, MutexOmpLogic::localState.reductionCounters,
+      this->internalOnMutexReleased(kind, this->reductionRecording, MutexOmpLogic::localCounters.reductionCounters,
                                     MutexOmpLogic::waitReductionReverseFunc, waitId);
       break;
     default:
@@ -404,11 +404,11 @@ void opdi::MutexOmpLogic::registerInactiveMutex(MutexKind kind, WaitId waitId) {
 }
 
 void opdi::MutexOmpLogic::prepareEvaluate() {
-  MutexOmpLogic::evalState.criticalCounters = this->criticalRecording.counters;
-  MutexOmpLogic::evalState.lockCounters = this->lockRecording.counters;
-  MutexOmpLogic::evalState.nestedLockCounters = this->nestedLockRecording.counters;
-  MutexOmpLogic::evalState.orderedCounters = this->orderedRecording.counters;
-  MutexOmpLogic::evalState.reductionCounters = this->reductionRecording.counters;
+  MutexOmpLogic::evaluationCounters.criticalCounters = this->criticalRecording.counters;
+  MutexOmpLogic::evaluationCounters.lockCounters = this->lockRecording.counters;
+  MutexOmpLogic::evaluationCounters.nestedLockCounters = this->nestedLockRecording.counters;
+  MutexOmpLogic::evaluationCounters.orderedCounters = this->orderedRecording.counters;
+  MutexOmpLogic::evaluationCounters.reductionCounters = this->reductionRecording.counters;
 
 #ifdef __SANITIZE_THREAD__
   /* create lock annotations for the reverse pass */
@@ -424,11 +424,11 @@ void opdi::MutexOmpLogic::prepareEvaluate() {
     }
   };
 
-  createReverseLocks(MutexOmpLogic::evalState.criticalCounters, MutexOmpLogic::tsanDummies.criticalCounters);
-  createReverseLocks(MutexOmpLogic::evalState.lockCounters, MutexOmpLogic::tsanDummies.lockCounters);
-  createReverseLocks(MutexOmpLogic::evalState.nestedLockCounters, MutexOmpLogic::tsanDummies.nestedLockCounters);
-  createReverseLocks(MutexOmpLogic::evalState.orderedCounters, MutexOmpLogic::tsanDummies.orderedCounters);
-  createReverseLocks(MutexOmpLogic::evalState.reductionCounters, MutexOmpLogic::tsanDummies.reductionCounters);
+  createReverseLocks(MutexOmpLogic::evaluationCounters.criticalCounters, MutexOmpLogic::tsanDummies.criticalCounters);
+  createReverseLocks(MutexOmpLogic::evaluationCounters.lockCounters, MutexOmpLogic::tsanDummies.lockCounters);
+  createReverseLocks(MutexOmpLogic::evaluationCounters.nestedLockCounters, MutexOmpLogic::tsanDummies.nestedLockCounters);
+  createReverseLocks(MutexOmpLogic::evaluationCounters.orderedCounters, MutexOmpLogic::tsanDummies.orderedCounters);
+  createReverseLocks(MutexOmpLogic::evaluationCounters.reductionCounters, MutexOmpLogic::tsanDummies.reductionCounters);
 #endif
 }
 
