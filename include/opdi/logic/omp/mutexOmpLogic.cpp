@@ -40,9 +40,9 @@ opdi::MutexOmpLogic::State opdi::MutexOmpLogic::evalState;
   opdi::MutexOmpLogic::State opdi::MutexOmpLogic::tsanDummies;
 #endif
 
-void opdi::MutexOmpLogic::internalWaitReverseFunc(Trace& evalTrace,
+void opdi::MutexOmpLogic::internalWaitReverseFunc(MutexOmpLogic::Counters& counters,
                                                   #ifdef __SANITIZE_THREAD__
-                                                    Trace& tsanDummies,
+                                                    MutexOmpLogic::Counters& tsanDummies,
                                                   #endif
                                                   void* dataPtr) {
   Data* data = (Data*) dataPtr;
@@ -53,14 +53,14 @@ void opdi::MutexOmpLogic::internalWaitReverseFunc(Trace& evalTrace,
     }
   #endif
 
-  // busy wait until trace value is matched
+  // busy wait until counter is matched
   while (true) {
-    Counter currentValue;
+    MutexOmpLogic::Counter currentValue;
 
     #pragma omp atomic read
-    currentValue = evalTrace[data->waitId];
+    currentValue = counters[data->waitId];
 
-    if (currentValue == data->traceValue) {
+    if (currentValue == data->counter) {
       break;
     }
   }
@@ -71,41 +71,41 @@ void opdi::MutexOmpLogic::internalWaitReverseFunc(Trace& evalTrace,
 }
 
 void opdi::MutexOmpLogic::waitCriticalReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.criticalTrace,
+  internalWaitReverseFunc(MutexOmpLogic::evalState.criticalCounters,
                           #ifdef __SANITIZE_THREAD__
-                            MutexOmpLogic::tsanDummies.criticalTrace,
+                            MutexOmpLogic::tsanDummies.criticalCounters,
                           #endif
                           dataPtr);
 }
 
 void opdi::MutexOmpLogic::waitLockReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.lockTrace,
+  internalWaitReverseFunc(MutexOmpLogic::evalState.lockCounters,
                           #ifdef __SANITIZE_THREAD__
-                            MutexOmpLogic::tsanDummies.lockTrace,
+                            MutexOmpLogic::tsanDummies.lockCounters,
                           #endif
                           dataPtr);
 }
 
 void opdi::MutexOmpLogic::waitNestedLockReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.nestedLockTrace,
+  internalWaitReverseFunc(MutexOmpLogic::evalState.nestedLockCounters,
                           #ifdef __SANITIZE_THREAD__
-                            MutexOmpLogic::tsanDummies.nestedLockTrace,
+                            MutexOmpLogic::tsanDummies.nestedLockCounters,
                           #endif
                           dataPtr);
 }
 
 void opdi::MutexOmpLogic::waitOrderedReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.orderedTrace,
+  internalWaitReverseFunc(MutexOmpLogic::evalState.orderedCounters,
                           #ifdef __SANITIZE_THREAD__
-                            MutexOmpLogic::tsanDummies.orderedTrace,
+                            MutexOmpLogic::tsanDummies.orderedCounters,
                           #endif
                           dataPtr);
 }
 
 void opdi::MutexOmpLogic::waitReductionReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.reductionTrace,
+  internalWaitReverseFunc(MutexOmpLogic::evalState.reductionCounters,
                           #ifdef __SANITIZE_THREAD__
-                            MutexOmpLogic::tsanDummies.reductionTrace,
+                            MutexOmpLogic::tsanDummies.reductionCounters,
                           #endif
                           dataPtr);
 }
@@ -115,9 +115,9 @@ void opdi::MutexOmpLogic::waitDeleteFunc(void* dataPtr) {
   delete data;
 }
 
-void opdi::MutexOmpLogic::internalDecrementReverseFunc(Trace& evalTrace,
+void opdi::MutexOmpLogic::internalDecrementReverseFunc(MutexOmpLogic::Counters& counters,
                                                        #ifdef __SANITIZE_THREAD__
-                                                         Trace& tsanDummies,
+                                                         MutexOmpLogic::Counters& tsanDummies,
                                                        #endif
                                                        void* dataPtr) {
   Data* data = (Data*) dataPtr;
@@ -126,9 +126,9 @@ void opdi::MutexOmpLogic::internalDecrementReverseFunc(Trace& evalTrace,
     ANNOTATE_RWLOCK_RELEASED(&tsanDummies[data->waitId], true);
   #endif
 
-  // decrement trace value
+  // decrement counter
   #pragma omp atomic update
-  evalTrace[data->waitId] -= 1;
+  counters[data->waitId] -= 1;
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
@@ -138,41 +138,41 @@ void opdi::MutexOmpLogic::internalDecrementReverseFunc(Trace& evalTrace,
 }
 
 void opdi::MutexOmpLogic::decrementCriticalReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.criticalTrace,
+  internalDecrementReverseFunc(MutexOmpLogic::evalState.criticalCounters,
                                #ifdef __SANITIZE_THREAD__
-                                 MutexOmpLogic::tsanDummies.criticalTrace,
+                                 MutexOmpLogic::tsanDummies.criticalCounters,
                                #endif
                                dataPtr);
 }
 
 void opdi::MutexOmpLogic::decrementLockReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.lockTrace,
+  internalDecrementReverseFunc(MutexOmpLogic::evalState.lockCounters,
                                #ifdef __SANITIZE_THREAD__
-                                 MutexOmpLogic::tsanDummies.lockTrace,
+                                 MutexOmpLogic::tsanDummies.lockCounters,
                                #endif
                                dataPtr);
 }
 
 void opdi::MutexOmpLogic::decrementNestedLockReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.nestedLockTrace,
+  internalDecrementReverseFunc(MutexOmpLogic::evalState.nestedLockCounters,
                                #ifdef __SANITIZE_THREAD__
-                                 MutexOmpLogic::tsanDummies.nestedLockTrace,
+                                 MutexOmpLogic::tsanDummies.nestedLockCounters,
                                #endif
                                dataPtr);
 }
 
 void opdi::MutexOmpLogic::decrementOrderedReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.orderedTrace,
+  internalDecrementReverseFunc(MutexOmpLogic::evalState.orderedCounters,
                                #ifdef __SANITIZE_THREAD__
-                                 MutexOmpLogic::tsanDummies.orderedTrace,
+                                 MutexOmpLogic::tsanDummies.orderedCounters,
                                #endif
                                dataPtr);
 }
 
 void opdi::MutexOmpLogic::decrementReductionReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.reductionTrace,
+  internalDecrementReverseFunc(MutexOmpLogic::evalState.reductionCounters,
                                #ifdef __SANITIZE_THREAD__
-                                 MutexOmpLogic::tsanDummies.reductionTrace,
+                                 MutexOmpLogic::tsanDummies.reductionCounters,
                                #endif
                                dataPtr);
 }
@@ -183,25 +183,25 @@ void opdi::MutexOmpLogic::decrementDeleteFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::internalInit() {
-  omp_init_lock(&this->criticalTrace.lock);
-  omp_init_lock(&this->lockTrace.lock);
-  omp_init_lock(&this->nestedLockTrace.lock);
-  omp_init_lock(&this->orderedTrace.lock);
-  omp_init_lock(&this->reductionTrace.lock);
+  omp_init_lock(&this->criticalRecording.lock);
+  omp_init_lock(&this->lockRecording.lock);
+  omp_init_lock(&this->nestedLockRecording.lock);
+  omp_init_lock(&this->orderedRecording.lock);
+  omp_init_lock(&this->reductionRecording.lock);
 
-  this->criticalTrace.waitId = backend->getLockIdentifier(&this->criticalTrace.lock);
-  this->lockTrace.waitId = backend->getLockIdentifier(&this->lockTrace.lock);
-  this->nestedLockTrace.waitId = backend->getLockIdentifier(&this->nestedLockTrace.lock);
-  this->orderedTrace.waitId = backend->getLockIdentifier(&this->orderedTrace.lock);
-  this->reductionTrace.waitId = backend->getLockIdentifier(&this->reductionTrace.lock);
+  this->criticalRecording.waitId = backend->getLockIdentifier(&this->criticalRecording.lock);
+  this->lockRecording.waitId = backend->getLockIdentifier(&this->lockRecording.lock);
+  this->nestedLockRecording.waitId = backend->getLockIdentifier(&this->nestedLockRecording.lock);
+  this->orderedRecording.waitId = backend->getLockIdentifier(&this->orderedRecording.lock);
+  this->reductionRecording.waitId = backend->getLockIdentifier(&this->reductionRecording.lock);
 }
 
 void opdi::MutexOmpLogic::internalFinalize() {
-  omp_destroy_lock(&this->criticalTrace.lock);
-  omp_destroy_lock(&this->lockTrace.lock);
-  omp_destroy_lock(&this->nestedLockTrace.lock);
-  omp_destroy_lock(&this->orderedTrace.lock);
-  omp_destroy_lock(&this->reductionTrace.lock);
+  omp_destroy_lock(&this->criticalRecording.lock);
+  omp_destroy_lock(&this->lockRecording.lock);
+  omp_destroy_lock(&this->nestedLockRecording.lock);
+  omp_destroy_lock(&this->orderedRecording.lock);
+  omp_destroy_lock(&this->reductionRecording.lock);
 }
 
 void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind kind, WaitId waitId) {
@@ -214,19 +214,19 @@ void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind kind, WaitId waitId) {
 
   switch (kind) {
     case MutexKind::Critical:
-      this->criticalTrace.inactive.erase(waitId);
+      this->criticalRecording.inactive.erase(waitId);
       break;
     case MutexKind::Lock:
-      this->lockTrace.inactive.erase(waitId);
+      this->lockRecording.inactive.erase(waitId);
       break;
     case MutexKind::NestedLock:
-      this->nestedLockTrace.inactive.erase(waitId);
+      this->nestedLockRecording.inactive.erase(waitId);
       break;
     case MutexKind::Ordered:
-      this->orderedTrace.inactive.erase(waitId);
+      this->orderedRecording.inactive.erase(waitId);
       break;
     case MutexKind::Reduction:
-      this->reductionTrace.inactive.erase(waitId);
+      this->reductionRecording.inactive.erase(waitId);
       break;
     default:
       OPDI_ERROR("Invalid kind argument.");
@@ -234,24 +234,24 @@ void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind kind, WaitId waitId) {
   }
 }
 
-void opdi::MutexOmpLogic::internalOnMutexAcquired(MutexKind kind, MutexTrace& mutexTrace,
-                                                  Trace& localTrace,
+void opdi::MutexOmpLogic::internalOnMutexAcquired(MutexKind kind, MutexOmpLogic::Recording& recording,
+                                                  MutexOmpLogic::Counters& localCounters,
                                                   void (*decrementReverseFunc)(void*),
                                                   WaitId waitId) {
 
   if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     // skip inactive mutexes
-    if (mutexTrace.inactive.count(waitId) == 0) {
+    if (recording.inactive.count(waitId) == 0) {
 
       Data* data = new Data;
       data->kind = kind;
       data->waitId = waitId;
 
-      omp_set_lock(&mutexTrace.lock);
-      data->traceValue = mutexTrace.trace[waitId]++;
-      localTrace[waitId] = mutexTrace.trace[waitId]; // remember incremented trace value for the release event
-      omp_unset_lock(&mutexTrace.lock);
+      omp_set_lock(&recording.lock);
+      data->counter = recording.counters[waitId]++;
+      localCounters[waitId] = recording.counters[waitId]; // remember incremented counter value for the release event
+      omp_unset_lock(&recording.lock);
 
       #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {
@@ -274,31 +274,31 @@ void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, WaitId waitId) {
 
   switch (kind) {
     case MutexKind::Critical:
-      this->internalOnMutexAcquired(kind, this->criticalTrace, MutexOmpLogic::localState.criticalTrace,
+      this->internalOnMutexAcquired(kind, this->criticalRecording, MutexOmpLogic::localState.criticalCounters,
                                     MutexOmpLogic::decrementCriticalReverseFunc, waitId);
       break;
     case MutexKind::Lock:
       // always skip internal locks
-      if (waitId == this->criticalTrace.waitId ||
-          waitId == this->lockTrace.waitId ||
-          waitId == this->nestedLockTrace.waitId ||
-          waitId == this->orderedTrace.waitId ||
-          waitId == this->reductionTrace.waitId) {
+      if (waitId == this->criticalRecording.waitId ||
+          waitId == this->lockRecording.waitId ||
+          waitId == this->nestedLockRecording.waitId ||
+          waitId == this->orderedRecording.waitId ||
+          waitId == this->reductionRecording.waitId) {
         return;
       }
-      this->internalOnMutexAcquired(kind, this->lockTrace, MutexOmpLogic::localState.lockTrace,
+      this->internalOnMutexAcquired(kind, this->lockRecording, MutexOmpLogic::localState.lockCounters,
                                     MutexOmpLogic::decrementLockReverseFunc, waitId);
       break;
     case MutexKind::NestedLock:
-      this->internalOnMutexAcquired(kind, this->nestedLockTrace, MutexOmpLogic::localState.nestedLockTrace,
+      this->internalOnMutexAcquired(kind, this->nestedLockRecording, MutexOmpLogic::localState.nestedLockCounters,
                                     MutexOmpLogic::decrementNestedLockReverseFunc, waitId);
       break;
     case MutexKind::Ordered:
-      this->internalOnMutexAcquired(kind, this->orderedTrace, MutexOmpLogic::localState.orderedTrace,
+      this->internalOnMutexAcquired(kind, this->orderedRecording, MutexOmpLogic::localState.orderedCounters,
                                     MutexOmpLogic::decrementOrderedReverseFunc, waitId);
       break;
     case MutexKind::Reduction:
-      this->internalOnMutexAcquired(kind, this->reductionTrace, MutexOmpLogic::localState.reductionTrace,
+      this->internalOnMutexAcquired(kind, this->reductionRecording, MutexOmpLogic::localState.reductionCounters,
                                     MutexOmpLogic::decrementReductionReverseFunc, waitId);
       break;
     default:
@@ -307,22 +307,22 @@ void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, WaitId waitId) {
   }
 }
 
-void opdi::MutexOmpLogic::internalOnMutexReleased(MutexKind kind, MutexTrace& mutexTrace,
-                                                  Trace& localTrace,
+void opdi::MutexOmpLogic::internalOnMutexReleased(MutexKind kind, MutexOmpLogic::Recording& recording,
+                                                  MutexOmpLogic::Counters& localCounters,
                                                   void (*waitReverseFunc)(void*), WaitId waitId) {
 
   if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     // skip inactive mutexes
-    if (mutexTrace.inactive.count(waitId) == 0) {
+    if (recording.inactive.count(waitId) == 0) {
 
       Data* data = new Data;
       data->kind = kind;
       data->waitId = waitId;
 
-      omp_set_lock(&mutexTrace.lock);
-      data->traceValue = localTrace[waitId];
-      omp_unset_lock(&mutexTrace.lock);
+      omp_set_lock(&recording.lock);
+      data->counter = localCounters[waitId];
+      omp_unset_lock(&recording.lock);
 
       #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {
@@ -345,31 +345,31 @@ void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, WaitId waitId) {
 
   switch (kind) {
     case MutexKind::Critical:
-      this->internalOnMutexReleased(kind, this->criticalTrace, MutexOmpLogic::localState.criticalTrace,
+      this->internalOnMutexReleased(kind, this->criticalRecording, MutexOmpLogic::localState.criticalCounters,
                                     MutexOmpLogic::waitCriticalReverseFunc, waitId);
       break;
     case MutexKind::Lock:
       // always skip internal locks
-      if (waitId == this->criticalTrace.waitId ||
-          waitId == this->lockTrace.waitId ||
-          waitId == this->nestedLockTrace.waitId ||
-          waitId == this->orderedTrace.waitId ||
-          waitId == this->reductionTrace.waitId) {
+      if (waitId == this->criticalRecording.waitId ||
+          waitId == this->lockRecording.waitId ||
+          waitId == this->nestedLockRecording.waitId ||
+          waitId == this->orderedRecording.waitId ||
+          waitId == this->reductionRecording.waitId) {
         return;
       }
-      this->internalOnMutexReleased(kind, this->lockTrace, MutexOmpLogic::localState.lockTrace,
+      this->internalOnMutexReleased(kind, this->lockRecording, MutexOmpLogic::localState.lockCounters,
                                     MutexOmpLogic::waitLockReverseFunc, waitId);
       break;
     case MutexKind::NestedLock:
-      this->internalOnMutexReleased(kind, this->nestedLockTrace, MutexOmpLogic::localState.nestedLockTrace,
+      this->internalOnMutexReleased(kind, this->nestedLockRecording, MutexOmpLogic::localState.nestedLockCounters,
                                     MutexOmpLogic::waitNestedLockReverseFunc, waitId);
       break;
     case MutexKind::Ordered:
-      this->internalOnMutexReleased(kind, this->orderedTrace, MutexOmpLogic::localState.orderedTrace,
+      this->internalOnMutexReleased(kind, this->orderedRecording, MutexOmpLogic::localState.orderedCounters,
                                     MutexOmpLogic::waitOrderedReverseFunc, waitId);
       break;
     case MutexKind::Reduction:
-      this->internalOnMutexReleased(kind, this->reductionTrace, MutexOmpLogic::localState.reductionTrace,
+      this->internalOnMutexReleased(kind, this->reductionRecording, MutexOmpLogic::localState.reductionCounters,
                                     MutexOmpLogic::waitReductionReverseFunc, waitId);
       break;
     default:
@@ -383,19 +383,19 @@ void opdi::MutexOmpLogic::registerInactiveMutex(MutexKind kind, WaitId waitId) {
 
   switch (kind) {
     case MutexKind::Critical:
-      this->criticalTrace.inactive.insert(waitId);
+      this->criticalRecording.inactive.insert(waitId);
       break;
     case MutexKind::Lock:
-      this->lockTrace.inactive.insert(waitId);
+      this->lockRecording.inactive.insert(waitId);
       break;
     case MutexKind::NestedLock:
-      this->lockTrace.inactive.insert(waitId);
+      this->lockRecording.inactive.insert(waitId);
       break;
     case MutexKind::Ordered:
-      this->orderedTrace.inactive.insert(waitId);
+      this->orderedRecording.inactive.insert(waitId);
       break;
     case MutexKind::Reduction:
-      this->reductionTrace.inactive.insert(waitId);
+      this->reductionRecording.inactive.insert(waitId);
       break;
     default:
       OPDI_ERROR("Invalid kind argument.");
@@ -404,18 +404,18 @@ void opdi::MutexOmpLogic::registerInactiveMutex(MutexKind kind, WaitId waitId) {
 }
 
 void opdi::MutexOmpLogic::prepareEvaluate() {
-  MutexOmpLogic::evalState.criticalTrace = this->criticalTrace.trace;
-  MutexOmpLogic::evalState.lockTrace = this->lockTrace.trace;
-  MutexOmpLogic::evalState.nestedLockTrace = this->nestedLockTrace.trace;
-  MutexOmpLogic::evalState.orderedTrace = this->orderedTrace.trace;
-  MutexOmpLogic::evalState.reductionTrace = this->reductionTrace.trace;
+  MutexOmpLogic::evalState.criticalCounters = this->criticalRecording.counters;
+  MutexOmpLogic::evalState.lockCounters = this->lockRecording.counters;
+  MutexOmpLogic::evalState.nestedLockCounters = this->nestedLockRecording.counters;
+  MutexOmpLogic::evalState.orderedCounters = this->orderedRecording.counters;
+  MutexOmpLogic::evalState.reductionCounters = this->reductionRecording.counters;
 
 #ifdef __SANITIZE_THREAD__
   /* create lock annotations for the reverse pass */
 
-  auto createReverseLocks=[](MutexOmpLogic::Trace const& evalState, MutexOmpLogic::Trace& tsanDummies) {
+  auto createReverseLocks=[](MutexOmpLogic::Counters const& counters, MutexOmpLogic::Counters& tsanDummies) {
     assert(tsanDummies.empty());
-    for (auto const& pair : evalState) {
+    for (auto const& pair : counters) {
       tsanDummies[pair.first] = 0;
     }
 
@@ -424,11 +424,11 @@ void opdi::MutexOmpLogic::prepareEvaluate() {
     }
   };
 
-  createReverseLocks(MutexOmpLogic::evalState.criticalTrace, MutexOmpLogic::tsanDummies.criticalTrace);
-  createReverseLocks(MutexOmpLogic::evalState.lockTrace, MutexOmpLogic::tsanDummies.lockTrace);
-  createReverseLocks(MutexOmpLogic::evalState.nestedLockTrace, MutexOmpLogic::tsanDummies.nestedLockTrace);
-  createReverseLocks(MutexOmpLogic::evalState.orderedTrace, MutexOmpLogic::tsanDummies.orderedTrace);
-  createReverseLocks(MutexOmpLogic::evalState.reductionTrace, MutexOmpLogic::tsanDummies.reductionTrace);
+  createReverseLocks(MutexOmpLogic::evalState.criticalCounters, MutexOmpLogic::tsanDummies.criticalCounters);
+  createReverseLocks(MutexOmpLogic::evalState.lockCounters, MutexOmpLogic::tsanDummies.lockCounters);
+  createReverseLocks(MutexOmpLogic::evalState.nestedLockCounters, MutexOmpLogic::tsanDummies.nestedLockCounters);
+  createReverseLocks(MutexOmpLogic::evalState.orderedCounters, MutexOmpLogic::tsanDummies.orderedCounters);
+  createReverseLocks(MutexOmpLogic::evalState.reductionCounters, MutexOmpLogic::tsanDummies.reductionCounters);
 #endif
 }
 
@@ -436,7 +436,7 @@ void opdi::MutexOmpLogic::postEvaluate() {
 #ifdef __SANITIZE_THREAD__
   /* destroy lock annotations */
 
-  auto destroyReverseLocks=[](MutexOmpLogic::Trace& tsanDummies) {
+  auto destroyReverseLocks=[](MutexOmpLogic::Counters& tsanDummies) {
     for (auto& pair : tsanDummies) {
       ANNOTATE_RWLOCK_DESTROY(&pair.second);
     }
@@ -444,29 +444,29 @@ void opdi::MutexOmpLogic::postEvaluate() {
     tsanDummies.clear();
   };
 
-  destroyReverseLocks(MutexOmpLogic::tsanDummies.criticalTrace);
-  destroyReverseLocks(MutexOmpLogic::tsanDummies.lockTrace);
-  destroyReverseLocks(MutexOmpLogic::tsanDummies.nestedLockTrace);
-  destroyReverseLocks(MutexOmpLogic::tsanDummies.orderedTrace);
-  destroyReverseLocks(MutexOmpLogic::tsanDummies.reductionTrace);
+  destroyReverseLocks(MutexOmpLogic::tsanDummies.criticalCounters);
+  destroyReverseLocks(MutexOmpLogic::tsanDummies.lockCounters);
+  destroyReverseLocks(MutexOmpLogic::tsanDummies.nestedLockCounters);
+  destroyReverseLocks(MutexOmpLogic::tsanDummies.orderedCounters);
+  destroyReverseLocks(MutexOmpLogic::tsanDummies.reductionCounters);
 #endif
 }
 
 void opdi::MutexOmpLogic::reset() {
-  this->criticalTrace.trace.clear();
-  this->lockTrace.trace.clear();
-  this->nestedLockTrace.trace.clear();
-  this->orderedTrace.trace.clear();
-  this->reductionTrace.trace.clear();
+  this->criticalRecording.counters.clear();
+  this->lockRecording.counters.clear();
+  this->nestedLockRecording.counters.clear();
+  this->orderedRecording.counters.clear();
+  this->reductionRecording.counters.clear();
 }
 
 void* opdi::MutexOmpLogic::exportState() {
   State* state = new State;
-  state->criticalTrace = this->criticalTrace.trace;
-  state->lockTrace = this->lockTrace.trace;
-  state->nestedLockTrace = this->nestedLockTrace.trace;
-  state->orderedTrace = this->orderedTrace.trace;
-  state->reductionTrace = this->reductionTrace.trace;
+  state->criticalCounters = this->criticalRecording.counters;
+  state->lockCounters = this->lockRecording.counters;
+  state->nestedLockCounters = this->nestedLockRecording.counters;
+  state->orderedCounters = this->orderedRecording.counters;
+  state->reductionCounters = this->reductionRecording.counters;
   return (void*) state;
 }
 
@@ -477,9 +477,9 @@ void opdi::MutexOmpLogic::freeState(void* statePtr) {
 
 void opdi::MutexOmpLogic::recoverState(void* statePtr) {
   State* state = (State*) statePtr;
-  this->criticalTrace.trace = state->criticalTrace;
-  this->lockTrace.trace = state->lockTrace;
-  this->nestedLockTrace.trace = state->nestedLockTrace;
-  this->orderedTrace.trace = state->orderedTrace;
-  this->reductionTrace.trace = state->reductionTrace;
+  this->criticalRecording.counters = state->criticalCounters;
+  this->lockRecording.counters = state->lockCounters;
+  this->nestedLockRecording.counters = state->nestedLockCounters;
+  this->orderedRecording.counters = state->orderedCounters;
+  this->reductionRecording.counters = state->reductionCounters;
 }

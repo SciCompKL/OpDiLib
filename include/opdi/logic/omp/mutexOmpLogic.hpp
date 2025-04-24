@@ -43,25 +43,27 @@ namespace opdi {
 
     private:
 
-      using Trace = std::map<WaitId, Counter>;
+      // for one kind of mutex, associates corresponding wait ids with counters
+      using Counters = std::map<WaitId, Counter>;
 
-      struct MutexTrace {
+      // for one kind of mutex, facilities for recording corresponding mutexes
+      struct Recording {
         public:
-          Trace trace;
+          Counters counters;
           omp_lock_t lock; // lock for internal synchronization
           WaitId waitId; // wait id of internal lock
           std::set<WaitId> inactive; // ids of inactive mutexes
       };
 
-      MutexTrace criticalTrace, lockTrace, nestedLockTrace, orderedTrace, reductionTrace;
+      Recording criticalRecording, lockRecording, nestedLockRecording, orderedRecording, reductionRecording;
 
       struct State {
         public:
-          Trace criticalTrace;
-          Trace lockTrace;
-          Trace nestedLockTrace;
-          Trace orderedTrace;
-          Trace reductionTrace;
+          Counters criticalCounters;
+          Counters lockCounters;
+          Counters nestedLockCounters;
+          Counters orderedCounters;
+          Counters reductionCounters;
       };
 
       static State localState;
@@ -77,15 +79,15 @@ namespace opdi {
       struct Data {
         public:
           MutexKind kind;
-          Counter traceValue;
+          Counter counter;
           WaitId waitId;
       };
 
     private:
 
-      static void internalWaitReverseFunc(Trace& evalTrace,
+      static void internalWaitReverseFunc(Counters& counters,
                                           #ifdef __SANITIZE_THREAD__
-                                            Trace& tsanDummies,
+                                            Counters& tsanDummies,
                                           #endif
                                           void* dataPtr);
 
@@ -97,9 +99,9 @@ namespace opdi {
 
       static void waitDeleteFunc(void* dataPtr);
 
-      static void internalDecrementReverseFunc(Trace& evalTrace,
+      static void internalDecrementReverseFunc(Counters& counters,
                                                #ifdef __SANITIZE_THREAD__
-                                                 Trace& tsanDummies,
+                                                 Counters& tsanDummies,
                                                #endif
                                                void* dataPtr);
 
@@ -118,12 +120,12 @@ namespace opdi {
 
     private:
 
-      void internalOnMutexAcquired(MutexKind kind, MutexTrace& mutexTrace,
-                                   Trace& localTrace,
+      void internalOnMutexAcquired(MutexKind kind, Recording& recording,
+                                   Counters& localCounters,
                                    void (*decrementReverseFunc)(void*),
                                    WaitId waitId);
-      void internalOnMutexReleased(MutexKind kind, MutexTrace& mutexTrace,
-                                   Trace& localTrace,
+      void internalOnMutexReleased(MutexKind kind, Recording& recording,
+                                   Counters& localCounters,
                                    void (*waitReverseFunc)(void*),
                                    WaitId waitId);
 
