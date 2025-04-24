@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <array>
 #include <map>
 #include <omp.h>
 #include <set>
@@ -37,6 +38,7 @@ namespace opdi {
     public:
 
       using LogicInterface::MutexKind;
+      using LogicInterface::nMutexKind;
       using LogicInterface::WaitId;
 
       using Counter = std::size_t;
@@ -55,17 +57,10 @@ namespace opdi {
           std::set<WaitId> inactive; // ids of inactive mutexes
       };
 
-      Recording criticalRecording, lockRecording, nestedLockRecording, orderedRecording, reductionRecording;
+      std::array<Recording, nMutexKind> recordings;  // recordings for all mutex kinds
 
       // counters for all mutex kinds
-      struct AllCounters {
-        public:
-          Counters criticalCounters;
-          Counters lockCounters;
-          Counters nestedLockCounters;
-          Counters orderedCounters;
-          Counters reductionCounters;
-      };
+      using AllCounters = std::array<Counters, nMutexKind>;
 
       // thread-local memory used during recording for data exchange between acquire and release events
       static AllCounters localCounters;
@@ -91,49 +86,18 @@ namespace opdi {
 
     private:
 
-      static void internalWaitReverseFunc(Counters& counters,
-                                          #ifdef __SANITIZE_THREAD__
-                                            Counters& tsanDummies,
-                                          #endif
-                                          void* dataPtr);
+      void checkKind(MutexKind kind);
 
-      static void waitCriticalReverseFunc(void* dataPtr);
-      static void waitLockReverseFunc(void* dataPtr);
-      static void waitNestedLockReverseFunc(void* dataPtr);
-      static void waitOrderedReverseFunc(void* dataPtr);
-      static void waitReductionReverseFunc(void* dataPtr);
-
+      static void waitReverseFunc(void* dataPtr);
       static void waitDeleteFunc(void* dataPtr);
 
-      static void internalDecrementReverseFunc(Counters& counters,
-                                               #ifdef __SANITIZE_THREAD__
-                                                 Counters& tsanDummies,
-                                               #endif
-                                               void* dataPtr);
-
-      static void decrementCriticalReverseFunc(void* dataPtr);
-      static void decrementLockReverseFunc(void* dataPtr);
-      static void decrementNestedLockReverseFunc(void* dataPtr) ;
-      static void decrementOrderedReverseFunc(void* dataPtr);
-      static void decrementReductionReverseFunc(void* dataPtr);
-
+      static void decrementReverseFunc(void* dataPtr);
       static void decrementDeleteFunc(void* dataPtr);
 
     protected:
 
       void internalInit();
       void internalFinalize();
-
-    private:
-
-      void internalOnMutexAcquired(MutexKind kind, Recording& recording,
-                                   Counters& localCounters,
-                                   void (*decrementReverseFunc)(void*),
-                                   WaitId waitId);
-      void internalOnMutexReleased(MutexKind kind, Recording& recording,
-                                   Counters& localCounters,
-                                   void (*waitReverseFunc)(void*),
-                                   WaitId waitId);
 
     public:
 

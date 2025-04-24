@@ -33,9 +33,11 @@ namespace opdi {
   {
     public:
 
-      enum MutexKind {
+      enum MutexKind : std::size_t {
         Critical, Lock, NestedLock, Ordered, Reduction
       };
+
+      static constexpr std::size_t nMutexKind = 5;
 
       enum ScopeEndpoint {
         Begin, End, BeginEnd
