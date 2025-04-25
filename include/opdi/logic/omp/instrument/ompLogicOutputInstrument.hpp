@@ -94,14 +94,14 @@ namespace opdi {
                            "t", omp_get_thread_num(),
                            "kind", data->kind,
                            "id", data->waitId,
-                           "until", data->traceValue);
+                           "until", data->counter);
       }
 
       virtual void reverseMutexDecrement(MutexOmpLogic::Data* data) {
         TapedOutput::print("R MDEC t", omp_get_thread_num(),
                            "kind", data->kind,
                            "id", data->waitId,
-                           "to", data->traceValue);
+                           "to", data->counter);
       }
 
       virtual void onMutexDestroyed(LogicInterface::MutexKind kind, std::size_t waitId) {
@@ -114,14 +114,14 @@ namespace opdi {
         TapedOutput::print("F MACQ t", omp_get_thread_num(),
                            "kind", data->kind,
                            "id", data->waitId,
-                           "at", data->traceValue);
+                           "at", data->counter);
       }
 
       virtual void onMutexReleased(MutexOmpLogic::Data* data) {
         TapedOutput::print("F MREL t", omp_get_thread_num(),
                            "kind", data->kind,
                            "id", data->waitId,
-                           "at", data->traceValue);
+                           "at", data->counter);
       }
 
       virtual void reverseParallelBegin(ParallelOmpLogic::Data* data) {

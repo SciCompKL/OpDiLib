@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <array>
 #include <map>
 #include <omp.h>
 #include <set>
@@ -37,75 +38,60 @@ namespace opdi {
     public:
 
       using LogicInterface::MutexKind;
+      using LogicInterface::nMutexKind;
+      using LogicInterface::WaitId;
+
+      using Counter = std::size_t;
 
     private:
 
-      using Trace = std::map<std::size_t, std::size_t>;
+      // for one kind of mutex, associates corresponding wait ids with counters
+      using Counters = std::map<WaitId, Counter>;
 
-      struct MutexTrace {
+      // for one kind of mutex, facilities for recording corresponding mutexes
+      struct Recording {
         public:
-          Trace trace;
+          Counters counters;
           omp_lock_t lock; // lock for internal synchronization
-          std::size_t waitId; // wait id of internal lock
-          std::set<std::size_t> inactive; // ids of inactive mutexes
+          WaitId waitId; // wait id of internal lock
+          std::set<WaitId> inactive; // ids of inactive mutexes
       };
 
-      MutexTrace criticalTrace, lockTrace, nestedLockTrace, orderedTrace, reductionTrace;
+      std::array<Recording, nMutexKind> recordings;  // recordings for all mutex kinds
 
-      struct State {
-        public:
-          Trace criticalTrace;
-          Trace lockTrace;
-          Trace nestedLockTrace;
-          Trace orderedTrace;
-          Trace reductionTrace;
-      };
+      // counters for all mutex kinds
+      using AllCounters = std::array<Counters, nMutexKind>;
 
-      static State localState;
-      #pragma omp threadprivate(localState)
+      // thread-local memory used during recording for data exchange between acquire and release events
+      static AllCounters localCounters;
+      #pragma omp threadprivate(localCounters)
 
-      static State evalState;
+      // counters used during evaluations
+      static AllCounters evaluationCounters;
 #ifdef __SANITIZE_THREAD__
-      static State tsanDummies;
+      static AllCounters tsanDummies;
 #endif
+
+      // currently, OpDiLib's internal state corresponds to the values of all mutex counters
+      using State = AllCounters;
 
     public:
 
       struct Data {
         public:
           MutexKind kind;
-          std::size_t traceValue;
-          std::size_t waitId;
+          Counter counter;
+          WaitId waitId;
       };
 
     private:
 
-      static void internalWaitReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
-                                          #ifdef __SANITIZE_THREAD__
-                                            std::map<std::size_t, std::size_t>& tsanDummies,
-                                          #endif
-                                          void* dataPtr);
+      void checkKind(MutexKind kind);
 
-      static void waitCriticalReverseFunc(void* dataPtr);
-      static void waitLockReverseFunc(void* dataPtr);
-      static void waitNestedLockReverseFunc(void* dataPtr);
-      static void waitOrderedReverseFunc(void* dataPtr);
-      static void waitReductionReverseFunc(void* dataPtr);
-
+      static void waitReverseFunc(void* dataPtr);
       static void waitDeleteFunc(void* dataPtr);
 
-      static void internalDecrementReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
-                                               #ifdef __SANITIZE_THREAD__
-                                                 std::map<std::size_t, std::size_t>& tsanDummies,
-                                               #endif
-                                               void* dataPtr);
-
-      static void decrementCriticalReverseFunc(void* dataPtr);
-      static void decrementLockReverseFunc(void* dataPtr);
-      static void decrementNestedLockReverseFunc(void* dataPtr) ;
-      static void decrementOrderedReverseFunc(void* dataPtr);
-      static void decrementReductionReverseFunc(void* dataPtr);
-
+      static void decrementReverseFunc(void* dataPtr);
       static void decrementDeleteFunc(void* dataPtr);
 
     protected:
@@ -113,25 +99,14 @@ namespace opdi {
       void internalInit();
       void internalFinalize();
 
-    private:
-
-      void internalOnMutexAcquired(MutexKind kind, MutexTrace& mutexTrace,
-                                   std::map<std::size_t, std::size_t>& localTrace,
-                                   void (*decrementReverseFunc)(void*),
-                                   std::size_t waitId);
-      void internalOnMutexReleased(MutexKind kind, MutexTrace& mutexTrace,
-                                   std::map<std::size_t, std::size_t>& localTrace,
-                                   void (*waitReverseFunc)(void*),
-                                   std::size_t waitId);
-
     public:
 
-      virtual void onMutexDestroyed(MutexKind kind, std::size_t waitId);
-      virtual void onMutexAcquired(MutexKind kind, std::size_t waitId);
-      virtual void onMutexReleased(MutexKind kind, std::size_t waitId);
+      virtual void onMutexDestroyed(MutexKind kind, WaitId waitId);
+      virtual void onMutexAcquired(MutexKind kind, WaitId waitId);
+      virtual void onMutexReleased(MutexKind kind, WaitId waitId);
 
       // not thread-safe! only use outside parallel regions
-      virtual void registerInactiveMutex(MutexKind kind, std::size_t waitId);
+      virtual void registerInactiveMutex(MutexKind kind, WaitId waitId);
 
       void prepareEvaluate();
       void postEvaluate();
