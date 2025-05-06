@@ -47,7 +47,7 @@ STDERR_OUTPUT_IS_ERROR ?= yes
 
 CXX ?= clang++
 
-FLAGS = $(CXXFLAGS) -std=c++11
+FLAGS = $(CXXFLAGS) -std=c++17
 
 ifeq ($(DEBUG),no)
 	FLAGS += -O3
