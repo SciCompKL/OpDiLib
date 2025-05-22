@@ -43,7 +43,7 @@ struct TestSectionsReduction : public TestBase<4, 1, 3, TestSectionsReduction<_C
 
       OPDI_PARALLEL()
       {
-        OPDI_SECTIONS(OPDI_REDUCTION reduction(plus: output))
+        OPDI_SECTIONS(OPDI_REDUCTION reduction(+: output))
         {
           OPDI_SECTION()
           {

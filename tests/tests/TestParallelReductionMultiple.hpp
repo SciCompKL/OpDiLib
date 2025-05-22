@@ -43,7 +43,7 @@ struct TestParallelReductionMultiple : public TestBase<4, 1, 3, TestParallelRedu
       T output2 = 1.0;
       T output3 = 1.0;
 
-      OPDI_PARALLEL(OPDI_REDUCTION reduction(plus: output1) reduction(prod: output2, output3))
+      OPDI_PARALLEL(OPDI_REDUCTION reduction(+: output1) reduction(*: output2, output3))
       {
         int nThreads = omp_get_num_threads();
         int start = ((N - 1) / nThreads + 1) * omp_get_thread_num();
