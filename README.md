@@ -156,7 +156,7 @@ int main(int nargs, char** args) {
 The following command can be used to compile the code.
 
 ~~~~{.txt}
-clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++11 -fopenmp -o omptexample omptexample.cpp
+clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++17 -fopenmp -o omptexample omptexample.cpp
 ~~~~
 
 ### Macro Backend
@@ -247,6 +247,6 @@ int main(int nargs, char** args) {
 The following command can be used to compile the code.
 
 ~~~~{.txt}
-clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++11 -fopenmp -o macroexample macroexample.cpp
+clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++17 -fopenmp -o macroexample macroexample.cpp
 ~~~~
 
