@@ -132,8 +132,8 @@ int main(int nargs, char** args) {
   y.setGradient(1.0);
 
   opdi::logic->prepareEvaluate();  // prepare OpDiLib for evaluation
-
   tape.evaluate();
+  opdi::logic->postEvaluate();  // OpDiLib-specific postprocessing
 
   std::cout << "f(" << x << ") = " << y << std::endl;
   std::cout << "df/dx(" << x << ") = " << x.getGradient() << std::endl;
@@ -156,7 +156,7 @@ int main(int nargs, char** args) {
 The following command can be used to compile the code.
 
 ~~~~{.txt}
-clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++11 -fopenmp -o omptexample omptexample.cpp
+clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++17 -fopenmp -o omptexample omptexample.cpp
 ~~~~
 
 ### Macro Backend
@@ -222,8 +222,8 @@ int main(int nargs, char** args) {
   y.setGradient(1.0);
 
   opdi::logic->prepareEvaluate();  // prepare OpDiLib for evaluation
-
   tape.evaluate();
+  opdi::logic->postEvaluate();  // OpDiLib-specific postprocessing
 
   std::cout << "f(" << x << ") = " << y << std::endl;
   std::cout << "df/dx(" << x << ") = " << x.getGradient() << std::endl;
@@ -247,6 +247,6 @@ int main(int nargs, char** args) {
 The following command can be used to compile the code.
 
 ~~~~{.txt}
-clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++11 -fopenmp -o macroexample macroexample.cpp
+clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++17 -fopenmp -o macroexample macroexample.cpp
 ~~~~
 
