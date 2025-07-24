@@ -132,8 +132,8 @@ int main(int nargs, char** args) {
   y.setGradient(1.0);
 
   opdi::logic->prepareEvaluate();  // prepare OpDiLib for evaluation
-
   tape.evaluate();
+  opdi::logic->postEvaluate();  // OpDiLib-specific postprocessing
 
   std::cout << "f(" << x << ") = " << y << std::endl;
   std::cout << "df/dx(" << x << ") = " << x.getGradient() << std::endl;
@@ -222,8 +222,8 @@ int main(int nargs, char** args) {
   y.setGradient(1.0);
 
   opdi::logic->prepareEvaluate();  // prepare OpDiLib for evaluation
-
   tape.evaluate();
+  opdi::logic->postEvaluate();  // OpDiLib-specific postprocessing
 
   std::cout << "f(" << x << ") = " << y << std::endl;
   std::cout << "df/dx(" << x << ") = " << x.getGradient() << std::endl;
