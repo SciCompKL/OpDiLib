@@ -43,7 +43,7 @@ struct TestForReduction : public TestBase<4, 1, 3, TestForReduction<_Case>> {
 
       OPDI_PARALLEL()
       {
-        OPDI_FOR(OPDI_REDUCTION reduction(plus: output))
+        OPDI_FOR(OPDI_REDUCTION reduction(+: output))
         for (int i = 0; i < N; ++i) {
           Base::job1(i, in, jobResults[i]);
           output += jobResults[i];
