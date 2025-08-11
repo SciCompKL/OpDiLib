@@ -56,9 +56,9 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool initialImplicitTask, 
     data->level = omp_get_level();
     data->index = index;
 
-    // OpDiLib does not interfere with the initial implicit task AD-wise, e.g., does not track its tape / does not assume
-    // that the tape does not change. OpDiLib uses the initial implicit task's data primarily to track its adjoint access
-    // mode.
+    // OpDiLib does not interfere with the initial implicit task AD-wise, e.g., does not track its tape / does not
+    // assume that the tape does not change. OpDiLib uses the initial implicit task's data primarily to track its
+    // adjoint access mode.
     if (!initialImplicitTask) {
       if (index == 0) {
         parallelData->actualThreads = actualParallelism;

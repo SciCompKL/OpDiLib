@@ -44,7 +44,7 @@ namespace opdi {
           int maxThreads;
           int actualThreads;
           bool activeParallelRegion;
-          void* parentTask;  // ParallelOmpLogic::Data of parent task
+          void* parentTask;  // ImplicitTaskOmpLogic::Data of parent task
           void* parentTape;
           AdjointAccessMode parentAdjointAccessMode;
           std::vector<void*> childTasks;  // ImplicitTaskOmpLogic::Data of child tasks
