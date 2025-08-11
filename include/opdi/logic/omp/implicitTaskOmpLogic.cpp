@@ -70,6 +70,10 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool initialImplicitTask, 
       void* newTape = this->tapePool.getTape(parallelData->parentTape, index);
 
       if (parallelData->activeParallelRegion) {
+        //most recent tape activity change *per thread* reflects the current activity
+        if (index == 0) {
+          tool->setActive(data->oldTape, false);  // suspend recording on encountering task's tape
+        }
         tool->setActive(newTape, true);
       }
 
@@ -127,12 +131,12 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
                        "be differentiated correctly.");
         }
       }
-
-      tool->setActive(data->tape, false);
-
-      // ensure that the most recent activity change *per thread* reflects the current activity
-      if (data->oldTape == data->parallelData->parentTape && data->parallelData->activeParallelRegion) {
-        tool->setActive(data->oldTape, true);
+      else {
+        //most recent tape activity change *per thread* reflects the current activity
+        tool->setActive(data->tape, false);
+        if (data->index == 0) {
+          tool->setActive(data->oldTape, true);  // resume recording on encountering task's tape
+        }
       }
 
       // do not delete data, it is deleted as part of parallel regions
