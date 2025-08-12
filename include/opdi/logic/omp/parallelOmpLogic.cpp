@@ -51,7 +51,9 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
 
   #pragma omp parallel num_threads(data->actualThreads)
   {
-    assert(data->actualThreads == omp_get_num_threads());
+    if (data->actualThreads != omp_get_num_threads()) {
+      OPDI_ERROR("Parallel region in the reverse pass does not use the required number of threads.");
+    }
 
     int threadNum = omp_get_thread_num();
 
@@ -110,7 +112,9 @@ void opdi::ParallelOmpLogic::deleteFunc(void* dataPtr) {
   // this triggers possibly pending implicit task end events
   #pragma omp parallel num_threads(data->actualThreads)
   {
-    assert(data->actualThreads == omp_get_num_threads());
+    if (data->actualThreads != omp_get_num_threads()) {
+      OPDI_WARNING("Parallel region during cleanup does not use the required number of threads.");
+    }
 
     int threadNum = omp_get_thread_num();
 
