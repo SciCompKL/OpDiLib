@@ -127,8 +127,8 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
 
       if (!data->parallelData->activeParallelRegion) {
         if (tool->comparePosition(data->positions.front(), data->positions.back()) != 0) {
-          OPDI_WARNING("Something became active during a passive parallel region. This is not supported and will not ",
-                       "be differentiated correctly.");
+          OPDI_ERROR("Something became active during a passive parallel region. This is not supported and will not be",
+                     "differentiated correctly.");
         }
       }
       else {
