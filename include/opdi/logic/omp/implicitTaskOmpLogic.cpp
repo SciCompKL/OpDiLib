@@ -61,6 +61,9 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool initialImplicitTask, 
     // adjoint access mode.
     if (!initialImplicitTask) {
       if (index == 0) {
+        if (parallelData->maxThreads < actualParallelism) {
+          OPDI_ERROR("Actual number of threads exceeds maximum number of threads.");
+        }
         parallelData->actualThreads = actualParallelism;
       }
 
