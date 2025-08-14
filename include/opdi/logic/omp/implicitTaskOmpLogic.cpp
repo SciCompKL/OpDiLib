@@ -61,6 +61,9 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool initialImplicitTask, 
     // adjoint access mode.
     if (!initialImplicitTask) {
       if (index == 0) {
+        if (parallelData->maxThreads < actualParallelism) {
+          OPDI_ERROR("Actual number of threads exceeds maximum number of threads.");
+        }
         parallelData->actualThreads = actualParallelism;
       }
 
@@ -127,8 +130,8 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
 
       if (!data->parallelData->activeParallelRegion) {
         if (tool->comparePosition(data->positions.front(), data->positions.back()) != 0) {
-          OPDI_WARNING("Something became active during a passive parallel region. This is not supported and will not ",
-                       "be differentiated correctly.");
+          OPDI_ERROR("Something became active during a passive parallel region. This is not supported and will not be",
+                     "differentiated correctly.");
         }
       }
       else {
