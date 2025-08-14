@@ -73,8 +73,9 @@ void opdi::SyncRegionOmpLogic::onSyncRegion(SyncRegionKind kind, ScopeEndpoint e
   #endif
 
   if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
-
-    internalPushHandle(kind, endpoint);
+    if (syncRegionBehaviour[kind] & endpoint) {
+      internalPushHandle(kind, endpoint);
+    }
   }
 }
 

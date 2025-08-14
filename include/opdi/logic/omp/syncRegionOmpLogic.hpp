@@ -25,12 +25,21 @@
 
 #pragma once
 
+#include "../../config.hpp"
+
 #include "../logicInterface.hpp"
 
 namespace opdi {
 
   struct SyncRegionOmpLogic : public virtual LogicInterface {
     public:
+
+      static int constexpr syncRegionBehaviour[] = {
+        OPDI_SYNC_REGION_BARRIER_BEHAVIOUR,
+        OPDI_SYNC_REGION_BARRIER_IMPLICIT_BEHAVIOUR,
+        OPDI_SYNC_REGION_BARRIER_EXPLICIT_BEHAVIOUR,
+        OPDI_SYNC_REGION_BARRIER_IMPLEMENTATION_BEHAVIOUR
+      };
 
       using LogicInterface::ScopeEndpoint;
       using LogicInterface::SyncRegionKind;
