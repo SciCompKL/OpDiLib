@@ -44,7 +44,7 @@ namespace opdi {
       };
 
       enum SyncRegionKind : std::size_t {
-        Barrier = 0, BarrierImplicit, BarrierExplicit, BarrierImplementation, BarrierReverse
+        Barrier = 1, BarrierImplicit, BarrierExplicit, BarrierImplementation, BarrierReverse
       };
 
       enum WorksharingKind {

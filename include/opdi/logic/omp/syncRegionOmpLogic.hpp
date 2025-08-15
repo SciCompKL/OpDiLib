@@ -35,6 +35,7 @@ namespace opdi {
     public:
 
       static int constexpr syncRegionBehaviour[] = {
+        0,  /* array offset */
         OPDI_SYNC_REGION_BARRIER_BEHAVIOUR,
         OPDI_SYNC_REGION_BARRIER_IMPLICIT_BEHAVIOUR,
         OPDI_SYNC_REGION_BARRIER_EXPLICIT_BEHAVIOUR,
