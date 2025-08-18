@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "../../config.hpp"
+
 #include "../logicInterface.hpp"
 
 namespace opdi {
@@ -40,6 +42,8 @@ namespace opdi {
           SyncRegionKind kind;
           ScopeEndpoint endpoint;
       };
+
+      bool requiresReverseBarrier(SyncRegionKind kind, ScopeEndpoint endpoint);
 
     private:
 

@@ -34,17 +34,17 @@ namespace opdi {
     public:
 
       enum MutexKind : std::size_t {
-        Critical, Lock, NestedLock, Ordered, Reduction
+        Critical = 0, Lock, NestedLock, Ordered, Reduction
       };
 
       static constexpr std::size_t nMutexKind = 5;
 
-      enum ScopeEndpoint {
-        Begin, End, BeginEnd
+      enum ScopeEndpoint : std::size_t {
+        Begin = 1, End, BeginEnd
       };
 
-      enum SyncRegionKind {
-        Barrier, BarrierImplicit, BarrierExplicit, BarrierImplementation, BarrierReverse
+      enum SyncRegionKind : std::size_t {
+        Barrier = 1, BarrierImplicit, BarrierExplicit, BarrierImplementation, BarrierReverse
       };
 
       enum WorksharingKind {
