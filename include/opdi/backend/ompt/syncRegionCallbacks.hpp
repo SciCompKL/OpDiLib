@@ -68,10 +68,8 @@ namespace opdi {
           case ompt_sync_region_barrier_implicit:
         #if _OPENMP >= 202011
           case ompt_sync_region_barrier_implicit_workshare:
-          case ompt_sync_region_barrier_implicit_parallel:
         #else  // fallback for compilers with _OPENMP < 202011 that already support fine-grained sync region types
           case 8:  // ompt_sync_region_barrier_implicit_workshare
-          case 9:  // ompt_sync_region_barrier_implicit_parallel
         #endif
             logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplicit, endpoint);
             break;
@@ -81,6 +79,12 @@ namespace opdi {
           case ompt_sync_region_barrier_implementation:
             logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation, endpoint);
             break;
+#if _OPENMP >= 202011
+          case ompt_sync_region_barrier_implicit_parallel:
+#else  // fallback for compilers with _OPENMP < 202011 that already support fine-grained sync region types
+          case 9:  // ompt_sync_region_barrier_implicit_parallel
+#endif
+            break;  // no treatment needed
           case ompt_sync_region_reduction: // does not occur in this callback
             OPDI_WARNING("Unexpected kind argument ompt_sync_region_reduction.");
             break;
