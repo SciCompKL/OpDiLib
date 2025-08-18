@@ -66,7 +66,7 @@ void opdi::SyncRegionOmpLogic::internalPushHandle(SyncRegionKind kind, ScopeEndp
 
 bool opdi::SyncRegionOmpLogic::requiresReverseBarrier(SyncRegionKind kind, ScopeEndpoint endpoint) {
 
-  static int constexpr syncRegionBehaviour[] = {
+  static std::size_t constexpr syncRegionBehaviour[] = {
       OPDI_SYNC_REGION_BARRIER_BEHAVIOUR,
       OPDI_SYNC_REGION_BARRIER_IMPLICIT_BEHAVIOUR,
       OPDI_SYNC_REGION_BARRIER_EXPLICIT_BEHAVIOUR,
