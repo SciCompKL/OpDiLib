@@ -34,15 +34,6 @@ namespace opdi {
   struct SyncRegionOmpLogic : public virtual LogicInterface {
     public:
 
-      static int constexpr syncRegionBehaviour[] = {
-        0,  /* array offset */
-        OPDI_SYNC_REGION_BARRIER_BEHAVIOUR,
-        OPDI_SYNC_REGION_BARRIER_IMPLICIT_BEHAVIOUR,
-        OPDI_SYNC_REGION_BARRIER_EXPLICIT_BEHAVIOUR,
-        OPDI_SYNC_REGION_BARRIER_IMPLEMENTATION_BEHAVIOUR,
-        OPDI_SYNC_REGION_BARRIER_REVERSE_BEHAVIOUR
-      };
-
       using LogicInterface::ScopeEndpoint;
       using LogicInterface::SyncRegionKind;
 
@@ -51,6 +42,8 @@ namespace opdi {
           SyncRegionKind kind;
           ScopeEndpoint endpoint;
       };
+
+      bool requiresReverseBarrier(SyncRegionKind kind, ScopeEndpoint endpoint);
 
     private:
 
