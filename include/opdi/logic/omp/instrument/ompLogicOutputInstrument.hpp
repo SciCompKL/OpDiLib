@@ -127,13 +127,13 @@ namespace opdi {
       virtual void reverseParallelBegin(ParallelOmpLogic::Data* data) {
         TapedOutput::print("R PARB l", omp_get_level(),
                            "t", omp_get_thread_num(),
-                           "parent", data->parentTape);
+                           "parent", data->encounteringTaskTape);
       }
 
       virtual void reverseParallelEnd(ParallelOmpLogic::Data* data) {
         TapedOutput::print("R PARE l", omp_get_level(),
                            "t", omp_get_thread_num(),
-                           "parent", data->parentTape);
+                           "parent", data->encounteringTaskTape);
       }
 
       virtual void onParallelBegin(ParallelOmpLogic::Data* data) {
@@ -142,18 +142,18 @@ namespace opdi {
                              "t", omp_get_thread_num(),
                              "(skipped)");
         }
-        else if (!data->activeParallelRegion) {
+        else if (!data->isActiveParallelRegion) {
           TapedOutput::print("F PARB l", omp_get_level(),
                              "t", omp_get_thread_num(),
-                             "parent", data->parentTape,
-                             "mode", data->parentAdjointAccessMode,
+                             "parent", data->encounteringTaskTape,
+                             "mode", data->encounteringTaskAdjointAccessMode,
                              "(passive)");
         }
         else {
           TapedOutput::print("F PARB l", omp_get_level(),
                              "t", omp_get_thread_num(),
-                             "parent", data->parentTape,
-                             "mode", data->parentAdjointAccessMode);
+                             "parent", data->encounteringTaskTape,
+                             "mode", data->encounteringTaskAdjointAccessMode);
         }
       }
 
@@ -163,18 +163,18 @@ namespace opdi {
                              "t", omp_get_thread_num(),
                              "(skipped)");
         }
-        else if (!data->activeParallelRegion) {
+        else if (!data->isActiveParallelRegion) {
           TapedOutput::print("F PARE l", omp_get_level(),
                              "t", omp_get_thread_num(),
-                             "parent", data->parentTape,
-                             "mode", data->parentAdjointAccessMode,
+                             "parent", data->encounteringTaskTape,
+                             "mode", data->encounteringTaskAdjointAccessMode,
                              "(passive)");
         }
         else {
           TapedOutput::print("F PARE l", omp_get_level(),
                              "t", omp_get_thread_num(),
-                             "parent", data->parentTape,
-                             "mode", data->parentAdjointAccessMode);
+                             "parent", data->encounteringTaskTape,
+                             "mode", data->encounteringTaskAdjointAccessMode);
         }
       }
 

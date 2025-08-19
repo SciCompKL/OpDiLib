@@ -41,13 +41,13 @@ namespace opdi {
 
       struct Data {
         public:
-          int maxThreads;
-          int actualThreads;
-          bool activeParallelRegion;
-          void* parentTask;  // ImplicitTaskOmpLogic::Data of parent task
-          void* parentTape;
-          AdjointAccessMode parentAdjointAccessMode;
-          std::vector<void*> childTasks;  // ImplicitTaskOmpLogic::Data of child tasks
+          int maximumSizeOfTeam;
+          int actualSizeOfTeam;
+          bool isActiveParallelRegion;
+          void* encounteringTaskData;  // ImplicitTaskOmpLogic::Data of encountering task
+          void* encounteringTaskTape;
+          AdjointAccessMode encounteringTaskAdjointAccessMode;
+          std::vector<void*> childTaskData;  // ImplicitTaskOmpLogic::Data of child tasks
       };
 
     private:
@@ -63,7 +63,7 @@ namespace opdi {
 
     public:
 
-      virtual void* onParallelBegin(void* encounteringTask, int maxThreads);
+      virtual void* onParallelBegin(void* encounteringTaskDataPtr, int maximumSizeOfTeam);
       virtual void onParallelEnd(void* dataPtr);
 
       virtual void setAdjointAccessMode(AdjointAccessMode mode);

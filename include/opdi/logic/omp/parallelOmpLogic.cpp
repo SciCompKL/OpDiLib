@@ -49,15 +49,15 @@ void opdi::ParallelOmpLogic::reverseFunc(void* dataPtr) {
 
   ++ParallelOmpLogic::skipParallelHandling;
 
-  #pragma omp parallel num_threads(data->actualThreads)
+  #pragma omp parallel num_threads(data->actualSizeOfTeam)
   {
-    if (data->actualThreads != omp_get_num_threads()) {
+    if (data->actualSizeOfTeam != omp_get_num_threads()) {
       OPDI_ERROR("Parallel region in the reverse pass does not use the required number of threads.");
     }
 
     int threadNum = omp_get_thread_num();
 
-    ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(data->childTasks[threadNum]);
+    ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(data->childTaskData[threadNum]);
 
     assert(taskData->index == threadNum);
 
@@ -110,15 +110,15 @@ void opdi::ParallelOmpLogic::deleteFunc(void* dataPtr) {
   ++ParallelOmpLogic::skipParallelHandling;
 
   // this triggers possibly pending implicit task end events
-  #pragma omp parallel num_threads(data->actualThreads)
+  #pragma omp parallel num_threads(data->actualSizeOfTeam)
   {
-    if (data->actualThreads != omp_get_num_threads()) {
+    if (data->actualSizeOfTeam != omp_get_num_threads()) {
       OPDI_WARNING("Parallel region during cleanup does not use the required number of threads.");
     }
 
     int threadNum = omp_get_thread_num();
 
-    ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(data->childTasks[threadNum]);
+    ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(data->childTaskData[threadNum]);
 
     void* oldTape = tool->getThreadLocalTape();
     tool->setThreadLocalTape(taskData->tape);
@@ -166,25 +166,25 @@ void opdi::ParallelOmpLogic::internalSetAdjointAccessMode(void* taskDataPtr, Adj
   }
 }
 
-void* opdi::ParallelOmpLogic::onParallelBegin(void* encounteringTask, int maxThreads) {
+void* opdi::ParallelOmpLogic::onParallelBegin(void* encounteringTaskDataPtr, int maximumSizeOfTeam) {
 
   if (tool->getThreadLocalTape() != nullptr && ParallelOmpLogic::skipParallelHandling == 0) {
 
-    assert(encounteringTask != nullptr);
+    assert(encounteringTaskDataPtr != nullptr);
 
     #ifndef NDEBUG
-      ImplicitTaskOmpLogic::Data* encounteringTaskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(encounteringTask);
+      ImplicitTaskOmpLogic::Data* encounteringTaskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(encounteringTaskDataPtr);
       assert(encounteringTaskData->initialImplicitTask || tool->getThreadLocalTape() == encounteringTaskData->tape);
     #endif
 
     Data* data = new Data;
 
-    data->maxThreads = maxThreads;
-    data->activeParallelRegion = tool->isActive(tool->getThreadLocalTape());
-    data->parentTask = encounteringTask;
-    data->parentTape = tool->getThreadLocalTape();
-    data->parentAdjointAccessMode = internalGetAdjointAccessMode(encounteringTask);
-    data->childTasks.resize(maxThreads);
+    data->maximumSizeOfTeam = maximumSizeOfTeam;
+    data->isActiveParallelRegion = tool->isActive(tool->getThreadLocalTape());
+    data->encounteringTaskData = encounteringTaskDataPtr;
+    data->encounteringTaskTape = tool->getThreadLocalTape();
+    data->encounteringTaskAdjointAccessMode = internalGetAdjointAccessMode(encounteringTaskDataPtr);
+    data->childTaskData.resize(maximumSizeOfTeam);
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
@@ -216,25 +216,25 @@ void opdi::ParallelOmpLogic::onParallelEnd(void* dataPtr) {
       }
     #endif
 
-    if (parallelData->activeParallelRegion) {
+    if (parallelData->isActiveParallelRegion) {
 
       Handle* handle = new Handle;
       handle->data = (void*) parallelData;
       handle->reverseFunc = ParallelOmpLogic::reverseFunc;
       handle->deleteFunc = ParallelOmpLogic::deleteFunc;
 
-      tool->pushExternalFunction(parallelData->parentTape, handle);
+      tool->pushExternalFunction(parallelData->encounteringTaskTape, handle);
 
       // do not delete data, it is deleted with the handle
     }
 
-    // if needed, transport adjoint access mode of thread 0 to parent task
-    ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(parallelData->childTasks[0]);
+    // if needed, transport adjoint access mode of thread 0 to encountering task
+    ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<ImplicitTaskOmpLogic::Data*>(parallelData->childTaskData[0]);
 
-    if (internalGetAdjointAccessMode(parallelData->parentTask) != taskData->adjointAccessModes.back())
-      this->internalSetAdjointAccessMode(parallelData->parentTask, taskData->adjointAccessModes.back());
+    if (internalGetAdjointAccessMode(parallelData->encounteringTaskData) != taskData->adjointAccessModes.back())
+      this->internalSetAdjointAccessMode(parallelData->encounteringTaskData, taskData->adjointAccessModes.back());
 
-    if (!parallelData->activeParallelRegion) {
+    if (!parallelData->isActiveParallelRegion) {
       deleteFunc(parallelData);
     }
   }

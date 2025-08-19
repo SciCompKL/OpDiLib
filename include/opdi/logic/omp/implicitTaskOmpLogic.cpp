@@ -61,18 +61,18 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool initialImplicitTask, 
     // adjoint access mode.
     if (!initialImplicitTask) {
       if (index == 0) {
-        if (parallelData->maxThreads < actualParallelism) {
+        if (parallelData->maximumSizeOfTeam < actualParallelism) {
           OPDI_ERROR("Actual number of threads exceeds maximum number of threads.");
         }
-        parallelData->actualThreads = actualParallelism;
+        parallelData->actualSizeOfTeam = actualParallelism;
       }
 
       data->oldTape = tool->getThreadLocalTape();
       data->parallelData = parallelData;
 
-      void* newTape = this->tapePool.getTape(parallelData->parentTape, index);
+      void* newTape = this->tapePool.getTape(parallelData->encounteringTaskTape, index);
 
-      if (parallelData->activeParallelRegion) {
+      if (parallelData->isActiveParallelRegion) {
         //most recent tape activity change *per thread* reflects the current activity
         if (index == 0) {
           tool->setActive(data->oldTape, false);  // suspend recording on encountering task's tape
@@ -87,9 +87,9 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool initialImplicitTask, 
 
       tool->setThreadLocalTape(newTape);
 
-      data->adjointAccessModes.push_back(parallelData->parentAdjointAccessMode);
+      data->adjointAccessModes.push_back(parallelData->encounteringTaskAdjointAccessMode);
 
-      parallelData->childTasks[index] = data;
+      parallelData->childTaskData[index] = data;
     }
     else {
       data->oldTape = nullptr;
@@ -128,7 +128,7 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
       data->positions.push_back(tool->allocPosition());
       tool->getTapePosition(data->tape, data->positions.back());
 
-      if (!data->parallelData->activeParallelRegion) {
+      if (!data->parallelData->isActiveParallelRegion) {
         if (tool->comparePosition(data->positions.front(), data->positions.back()) != 0) {
           OPDI_ERROR("Something became active during a passive parallel region. This is not supported and will not be",
                      "differentiated correctly.");
