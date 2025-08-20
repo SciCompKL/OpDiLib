@@ -46,8 +46,7 @@ namespace opdi {
       std::vector<ImplicitTaskData*> childTaskData;
   };
 
-  struct ParallelOmpLogic : public virtual LogicInterface,
-                            public virtual TapePool {
+  struct ParallelOmpLogic : public virtual LogicInterface {
     public:
 
       using LogicInterface::AdjointAccessMode;
