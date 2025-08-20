@@ -40,21 +40,21 @@ namespace opdi {
         TapedOutput::print("R FLSH l", omp_get_level(), "t", omp_get_thread_num());
       }
 
-      virtual void reverseImplicitTaskBegin(ImplicitTaskOmpLogic::Data* data) {
+      virtual void reverseImplicitTaskBegin(ImplicitTaskData* data) {
         TapedOutput::print("R IMTB l", data->level,
                            "t", data->indexInTeam,
                            "tape", data->newTape,
                            "pos", tool->positionToString(data->positions.back()));
       }
 
-      virtual void reverseImplicitTaskEnd(ImplicitTaskOmpLogic::Data* data) {
+      virtual void reverseImplicitTaskEnd(ImplicitTaskData* data) {
         TapedOutput::print("R IMTE l", data->level,
                            "t", data->indexInTeam,
                            "tape", data->newTape,
                            "pos", tool->positionToString(data->positions.front()));
       }
 
-      virtual void reverseImplicitTaskPart(ImplicitTaskOmpLogic::Data* data, std::size_t part) {
+      virtual void reverseImplicitTaskPart(ImplicitTaskData* data, std::size_t part) {
         TapedOutput::print("R IMTP l", data->level,
                            "t", data->indexInTeam,
                            "tape", data->newTape,
@@ -63,7 +63,7 @@ namespace opdi {
                            "mode", data->adjointAccessModes[part - 1]);
       }
 
-      virtual void onImplicitTaskBegin(ImplicitTaskOmpLogic::Data* data) {
+      virtual void onImplicitTaskBegin(ImplicitTaskData* data) {
         if (data->isInitialImplicitTask) {
           TapedOutput::print("F IMTB IIT");
         }
@@ -76,7 +76,7 @@ namespace opdi {
         }
       }
 
-      virtual void onImplicitTaskEnd(ImplicitTaskOmpLogic::Data* data) {
+      virtual void onImplicitTaskEnd(ImplicitTaskData* data) {
         if (data->isInitialImplicitTask) {
           TapedOutput::print("F IMTE IIT");
         }
@@ -124,19 +124,19 @@ namespace opdi {
                            "at", data->counter);
       }
 
-      virtual void reverseParallelBegin(ParallelOmpLogic::Data* data) {
+      virtual void reverseParallelBegin(ParallelData* data) {
         TapedOutput::print("R PARB l", omp_get_level(),
                            "t", omp_get_thread_num(),
                            "parent", data->encounteringTaskTape);
       }
 
-      virtual void reverseParallelEnd(ParallelOmpLogic::Data* data) {
+      virtual void reverseParallelEnd(ParallelData* data) {
         TapedOutput::print("R PARE l", omp_get_level(),
                            "t", omp_get_thread_num(),
                            "parent", data->encounteringTaskTape);
       }
 
-      virtual void onParallelBegin(ParallelOmpLogic::Data* data) {
+      virtual void onParallelBegin(ParallelData* data) {
         if (data == nullptr) {
           TapedOutput::print("F PARB l", omp_get_level(),
                              "t", omp_get_thread_num(),
@@ -157,7 +157,7 @@ namespace opdi {
         }
       }
 
-      virtual void onParallelEnd(ParallelOmpLogic::Data* data) {
+      virtual void onParallelEnd(ParallelData* data) {
         if (data == nullptr) {
           TapedOutput::print("F PARE l", omp_get_level(),
                              "t", omp_get_thread_num(),
