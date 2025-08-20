@@ -42,48 +42,48 @@ namespace opdi {
 
       virtual void reverseImplicitTaskBegin(ImplicitTaskOmpLogic::Data* data) {
         TapedOutput::print("R IMTB l", data->level,
-                           "t", data->index,
-                           "tape", data->tape,
+                           "t", data->indexInTeam,
+                           "tape", data->newTape,
                            "pos", tool->positionToString(data->positions.back()));
       }
 
       virtual void reverseImplicitTaskEnd(ImplicitTaskOmpLogic::Data* data) {
         TapedOutput::print("R IMTE l", data->level,
-                           "t", data->index,
-                           "tape", data->tape,
+                           "t", data->indexInTeam,
+                           "tape", data->newTape,
                            "pos", tool->positionToString(data->positions.front()));
       }
 
       virtual void reverseImplicitTaskPart(ImplicitTaskOmpLogic::Data* data, std::size_t part) {
         TapedOutput::print("R IMTP l", data->level,
-                           "t", data->index,
-                           "tape", data->tape,
+                           "t", data->indexInTeam,
+                           "tape", data->newTape,
                            "start", tool->positionToString(data->positions[part]),
                            "end", tool->positionToString(data->positions[part - 1]),
                            "mode", data->adjointAccessModes[part - 1]);
       }
 
       virtual void onImplicitTaskBegin(ImplicitTaskOmpLogic::Data* data) {
-        if (data->initialImplicitTask) {
+        if (data->isInitialImplicitTask) {
           TapedOutput::print("F IMTB IIT");
         }
         else {
           TapedOutput::print("F IMTB l", data->level,
-                             "t", data->index,
-                             "tape", data->tape,
+                             "t", data->indexInTeam,
+                             "tape", data->newTape,
                              "pos", tool->positionToString(data->positions.back()),
                              "mode", data->adjointAccessModes[0]);
         }
       }
 
       virtual void onImplicitTaskEnd(ImplicitTaskOmpLogic::Data* data) {
-        if (data->initialImplicitTask) {
+        if (data->isInitialImplicitTask) {
           TapedOutput::print("F IMTE IIT");
         }
         else {
           TapedOutput::print("F IMTE l", data->level,
-                             "t", data->index,
-                             "tape", data->tape,
+                             "t", data->indexInTeam,
+                             "tape", data->newTape,
                              "pos", tool->positionToString(data->positions.back()),
                              "mode", data->adjointAccessModes.back());
         }

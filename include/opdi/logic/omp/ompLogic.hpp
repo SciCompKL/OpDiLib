@@ -74,7 +74,7 @@ namespace opdi {
         // finalize initial implicit task
         ImplicitTaskOmpLogic::Data* initialImplicitTaskData = (ImplicitTaskOmpLogic::Data*) backend->getTaskData();
 
-        assert(initialImplicitTaskData->initialImplicitTask);
+        assert(initialImplicitTaskData->isInitialImplicitTask);
 
         onImplicitTaskEnd((void*) initialImplicitTaskData);
 

@@ -52,17 +52,17 @@ namespace opdi {
 
       struct Data {
         public:
-          bool initialImplicitTask;
+          bool isInitialImplicitTask;
           int level;
-          int index;
+          int indexInTeam;
           void* oldTape;
-          void* tape;
+          void* newTape;
           ParallelData* parallelData;
           std::deque<void*> positions;
           std::deque<AdjointAccessMode> adjointAccessModes;
       };
 
-      virtual void* onImplicitTaskBegin(bool initialImplicitTask, int actualParallelism, int index,
+      virtual void* onImplicitTaskBegin(bool isInitialImplicitTask, int actualSizeOfTeam, int indexInTeam,
                                         void* parallelDataPtr);
       virtual void onImplicitTaskEnd(void* dataPtr);
 

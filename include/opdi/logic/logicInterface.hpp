@@ -62,7 +62,7 @@ namespace opdi {
       virtual void* onParallelBegin(void* encounteringTaskData, int maxThreads) = 0;
       virtual void onParallelEnd(void* data) = 0;
 
-      virtual void* onImplicitTaskBegin(bool initialImplicitTask, int actualParallelism, int index,
+      virtual void* onImplicitTaskBegin(bool isInitialImplicitTask, int actualSizeOfTeam, int indexInTeam,
                                         void* parallelData) = 0;
       virtual void onImplicitTaskEnd(void* data) = 0;
 
