@@ -45,11 +45,11 @@ namespace opdi {
 
       virtual void reverseFlush() {}
 
-      virtual void reverseImplicitTaskBegin(ImplicitTaskOmpLogic::Data* /*data*/) {}
-      virtual void reverseImplicitTaskEnd(ImplicitTaskOmpLogic::Data* /*data*/) {}
-      virtual void reverseImplicitTaskPart(ImplicitTaskOmpLogic::Data* /*data*/, std::size_t /*part*/) {}
-      virtual void onImplicitTaskBegin(ImplicitTaskOmpLogic::Data* /*data*/) {}
-      virtual void onImplicitTaskEnd(ImplicitTaskOmpLogic::Data* /*data*/) {}
+      virtual void reverseImplicitTaskBegin(ImplicitTaskData* /*data*/) {}
+      virtual void reverseImplicitTaskEnd(ImplicitTaskData* /*data*/) {}
+      virtual void reverseImplicitTaskPart(ImplicitTaskData* /*data*/, std::size_t /*part*/) {}
+      virtual void onImplicitTaskBegin(ImplicitTaskData* /*data*/) {}
+      virtual void onImplicitTaskEnd(ImplicitTaskData* /*data*/) {}
 
       virtual void reverseMutexWait(MutexOmpLogic::Data* /*data*/) {}
       virtual void reverseMutexDecrement(MutexOmpLogic::Data* /*data*/) {}
@@ -57,10 +57,10 @@ namespace opdi {
       virtual void onMutexAcquired(MutexOmpLogic::Data* /*data*/) {}
       virtual void onMutexReleased(MutexOmpLogic::Data* /*data*/) {}
 
-      virtual void reverseParallelBegin(ParallelOmpLogic::Data* /*data*/) {}
-      virtual void reverseParallelEnd(ParallelOmpLogic::Data* /*data*/) {}
-      virtual void onParallelBegin(ParallelOmpLogic::Data* /*data*/) {}
-      virtual void onParallelEnd(ParallelOmpLogic::Data* /*data*/) {}
+      virtual void reverseParallelBegin(ParallelData* /*data*/) {}
+      virtual void reverseParallelEnd(ParallelData* /*data*/) {}
+      virtual void onParallelBegin(ParallelData* /*data*/) {}
+      virtual void onParallelEnd(ParallelData* /*data*/) {}
 
       virtual void reverseSyncRegion(SyncRegionOmpLogic::Data* /*data*/) {}
       virtual void onSyncRegion(LogicInterface::SyncRegionKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}

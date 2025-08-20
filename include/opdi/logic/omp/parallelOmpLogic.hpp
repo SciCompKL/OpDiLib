@@ -33,38 +33,40 @@
 
 namespace opdi {
 
+  struct ImplicitTaskData;
+
+  struct ParallelData {
+    public:
+      int maximumSizeOfTeam;
+      int actualSizeOfTeam;
+      bool isActiveParallelRegion;
+      ImplicitTaskData* encounteringTaskData;
+      void* encounteringTaskTape;
+      LogicInterface::AdjointAccessMode encounteringTaskAdjointAccessMode;
+      std::vector<ImplicitTaskData*> childTaskData;
+  };
+
   struct ParallelOmpLogic : public virtual LogicInterface,
                             public virtual TapePool {
     public:
 
       using LogicInterface::AdjointAccessMode;
 
-      struct Data {
-        public:
-          int maximumSizeOfTeam;
-          int actualSizeOfTeam;
-          bool isActiveParallelRegion;
-          void* encounteringTaskData;  // ImplicitTaskOmpLogic::Data of encountering task
-          void* encounteringTaskTape;
-          AdjointAccessMode encounteringTaskAdjointAccessMode;
-          std::vector<void*> childTaskData;  // ImplicitTaskOmpLogic::Data of child tasks
-      };
-
     private:
 
       static int skipParallelHandling;
       #pragma omp threadprivate(skipParallelHandling)
 
-      static void reverseFunc(void* dataPtr);
-      static void deleteFunc(void* dataPtr);
+      static void reverseFunc(void* parallelData);
+      static void deleteFunc(void* parallelData);
 
-      AdjointAccessMode internalGetAdjointAccessMode(void* taskDataPtr) const;
-      void internalSetAdjointAccessMode(void* taskDataPtr, AdjointAccessMode mode);
+      AdjointAccessMode internalGetAdjointAccessMode(ImplicitTaskData* implicitTaskData) const;
+      void internalSetAdjointAccessMode(ImplicitTaskData* implicitTaskData, AdjointAccessMode mode);
 
     public:
 
-      virtual void* onParallelBegin(void* encounteringTaskDataPtr, int maximumSizeOfTeam);
-      virtual void onParallelEnd(void* dataPtr);
+      virtual void* onParallelBegin(void* encounteringTaskData, int maximumSizeOfTeam);
+      virtual void onParallelEnd(void* parallelData);
 
       virtual void setAdjointAccessMode(AdjointAccessMode mode);
       virtual AdjointAccessMode getAdjointAccessMode() const;

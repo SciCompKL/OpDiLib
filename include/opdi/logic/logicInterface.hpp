@@ -60,11 +60,11 @@ namespace opdi {
       virtual ~LogicInterface() {}
 
       virtual void* onParallelBegin(void* encounteringTaskData, int maxThreads) = 0;
-      virtual void onParallelEnd(void* data) = 0;
+      virtual void onParallelEnd(void* parallelData) = 0;
 
       virtual void* onImplicitTaskBegin(bool isInitialImplicitTask, int actualSizeOfTeam, int indexInTeam,
                                         void* parallelData) = 0;
-      virtual void onImplicitTaskEnd(void* data) = 0;
+      virtual void onImplicitTaskEnd(void* implicitTaskData) = 0;
 
       virtual void onMutexDestroyed(MutexKind kind, WaitId waitId) = 0;
       virtual void onMutexAcquired(MutexKind kind, WaitId waitId) = 0;
