@@ -27,6 +27,9 @@ clang-macro:
 
 clang-ompt:
   image: fedora:41
+  parallel:
+    matrix:
+      - FLAGS: ["-DOPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE=1", "-DOPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE=2"]
   script:
     - dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -34,6 +37,7 @@ clang-ompt:
     - export OPDI_DIR=$(pwd)/include
     - cd tests
     - export CXX=clang++
+    - export CXXFLAGS="$FLAGS"
     - export BACKEND=OMPT
     - make all
 
