@@ -48,7 +48,7 @@ void opdi::MutexOmpLogic::checkKind(MutexKind kind) {
 
 void opdi::MutexOmpLogic::waitReverseFunc(void* dataPtr) {
 
-  Data* data = (Data*) dataPtr;
+  Data* data = static_cast<Data*>(dataPtr);
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
@@ -74,13 +74,13 @@ void opdi::MutexOmpLogic::waitReverseFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::waitDeleteFunc(void* dataPtr) {
-  Data* data = (Data*) dataPtr;
+  Data* data = static_cast<Data*>(dataPtr);
   delete data;
 }
 
 void opdi::MutexOmpLogic::decrementReverseFunc(void* dataPtr) {
 
-  Data* data = (Data*) dataPtr;
+  Data* data = static_cast<Data*>(dataPtr);
 
   #ifdef __SANITIZE_THREAD__
     ANNOTATE_RWLOCK_RELEASED(&MutexOmpLogic::tsanDummies[data->kind][data->waitId], true);
@@ -98,7 +98,7 @@ void opdi::MutexOmpLogic::decrementReverseFunc(void* dataPtr) {
 }
 
 void opdi::MutexOmpLogic::decrementDeleteFunc(void* dataPtr) {
-  Data* data = (Data*) dataPtr;
+  Data* data = static_cast<Data*>(dataPtr);
   delete data;
 }
 
@@ -162,7 +162,7 @@ void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, WaitId waitId) {
 
       // push decrement handle
       Handle* handle = new Handle;
-      handle->data = (void*) data;
+      handle->data = static_cast<void*>(data);
       handle->reverseFunc = MutexOmpLogic::decrementReverseFunc;
       handle->deleteFunc = MutexOmpLogic::decrementDeleteFunc;
 
@@ -205,7 +205,7 @@ void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, WaitId waitId) {
 
       // push wait handle
       Handle* handle = new Handle;
-      handle->data = (void*) data;
+      handle->data = static_cast<void*>(data);
       handle->reverseFunc = MutexOmpLogic::waitReverseFunc;
       handle->deleteFunc = MutexOmpLogic::waitDeleteFunc;
 
@@ -266,16 +266,16 @@ void* opdi::MutexOmpLogic::exportState() {
   for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
     (*state)[mutexKind] = this->recordings[mutexKind].counters;
   }
-  return (void*) state;
+  return static_cast<void*>(state);
 }
 
 void opdi::MutexOmpLogic::freeState(void* statePtr) {
-  State* state = (State*) statePtr;
+  State* state = static_cast<State*>(statePtr);
   delete state;
 }
 
 void opdi::MutexOmpLogic::recoverState(void* statePtr) {
-  State* state = (State*) statePtr;
+  State* state = static_cast<State*>(statePtr);
   for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
     this->recordings[mutexKind].counters = (*state)[mutexKind];
   }

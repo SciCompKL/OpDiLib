@@ -33,7 +33,7 @@
 void opdi::SyncRegionOmpLogic::reverseFunc(void* dataPtr) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
-    Data* data = (Data*) dataPtr;
+    Data* data = static_cast<Data*>(dataPtr);
     for (auto& instrument : ompLogicInstruments) {
       instrument->reverseSyncRegion(data);
     }
@@ -46,7 +46,7 @@ void opdi::SyncRegionOmpLogic::reverseFunc(void* dataPtr) {
 
 void opdi::SyncRegionOmpLogic::deleteFunc(void* dataPtr) {
 
-  Data* data = (Data*) dataPtr;
+  Data* data = static_cast<Data*>(dataPtr);
   delete data;
 }
 
@@ -57,7 +57,7 @@ void opdi::SyncRegionOmpLogic::internalPushHandle(SyncRegionKind kind, ScopeEndp
   data->endpoint = endpoint;
 
   Handle* handle = new Handle;
-  handle->data = (void*) data;
+  handle->data = static_cast<void*>(data);
   handle->reverseFunc = SyncRegionOmpLogic::reverseFunc;
   handle->deleteFunc = SyncRegionOmpLogic::deleteFunc;
 

@@ -35,7 +35,7 @@
 void opdi::WorkOmpLogic::reverseFunc(void *dataPtr) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
-    Data* data = (Data*) dataPtr;
+    Data* data = static_cast<Data*>(dataPtr);
     for (auto& instrument : ompLogicInstruments) {
       instrument->reverseWork(data);
     }
@@ -46,7 +46,7 @@ void opdi::WorkOmpLogic::reverseFunc(void *dataPtr) {
 
 void opdi::WorkOmpLogic::deleteFunc(void* dataPtr) {
 
-  Data* data = (Data*) dataPtr;
+  Data* data = static_cast<Data*>(dataPtr);
   delete data;
 }
 
@@ -65,7 +65,7 @@ void opdi::WorkOmpLogic::onWork(WorksharingKind kind, ScopeEndpoint endpoint) {
         data->endpoint = endpoint;
 
         Handle* handle = new Handle;
-        handle->data = (void*) data;
+        handle->data = static_cast<void*>(data);
         handle->reverseFunc = WorkOmpLogic::reverseFunc;
         handle->deleteFunc = WorkOmpLogic::deleteFunc;
         tool->pushExternalFunction(tool->getThreadLocalTape(), handle);

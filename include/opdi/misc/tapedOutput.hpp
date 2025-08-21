@@ -50,12 +50,12 @@ namespace opdi {
       };
 
       static void reversePrint(void* dataPtr) {
-        ReversePrintData* data = (ReversePrintData*)dataPtr;
+        ReversePrintData* data = static_cast<ReversePrintData*>(dataPtr);
         print(data->message);
       }
 
       static void reversePrintDelete(void* dataPtr) {
-        ReversePrintData* data = (ReversePrintData*)dataPtr;
+        ReversePrintData* data = static_cast<ReversePrintData*>(dataPtr);
         delete data;
       }
 

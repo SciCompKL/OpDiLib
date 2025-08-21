@@ -50,7 +50,7 @@ extern "C" ompt_start_tool_result_t* ompt_start_tool(unsigned int ompVersion, ch
   startTool->initialize = opdi::OmptBackend::onInitialize;
   startTool->finalize = opdi::OmptBackend::onFinalize;
   opdi::backend = new opdi::OmptBackend;
-  startTool->tool_data.ptr = (void*) opdi::backend;
+  startTool->tool_data.ptr = static_cast<void*>(opdi::backend);
 
   return startTool;
 }
