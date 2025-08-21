@@ -72,11 +72,11 @@ namespace opdi {
 
       virtual void finalize() {
         // finalize initial implicit task
-        ImplicitTaskOmpLogic::Data* initialImplicitTaskData = (ImplicitTaskOmpLogic::Data*) backend->getTaskData();
+        ImplicitTaskData* initialImplicitTaskData = static_cast<ImplicitTaskData*>(backend->getTaskData());
 
-        assert(initialImplicitTaskData->initialImplicitTask);
+        assert(initialImplicitTaskData->isInitialImplicitTask);
 
-        onImplicitTaskEnd((void*) initialImplicitTaskData);
+        onImplicitTaskEnd(static_cast<void*>(initialImplicitTaskData));
 
         MutexOmpLogic::internalFinalize();
         ImplicitTaskOmpLogic::internalFinalize();
