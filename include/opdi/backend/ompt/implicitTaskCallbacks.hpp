@@ -29,6 +29,7 @@
 #include <omp.h>
 #include <omp-tools.h>
 
+#include "../../config.hpp"
 #include "../../helpers/exceptions.hpp"
 #include "../../helpers/macros.hpp"
 #include "../../logic/logicInterface.hpp"
@@ -60,7 +61,12 @@ namespace opdi {
           taskData->ptr = logic->onImplicitTaskBegin(false, actualParallelism, index, parallelData->ptr);
         }
         else {
-          logic->onImplicitTaskEnd(taskData->ptr);
+          #if OPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE == OPDI_OMPT_IMPLICIT_TASK_END
+            logic->onImplicitTaskEnd(taskData->ptr);
+          #else
+            if (index == 0)  // master thread always produces ImplicitTaskEnd here
+              logic->onImplicitTaskEnd(taskData->ptr);
+          #endif
         }
       }
 

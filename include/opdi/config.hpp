@@ -39,9 +39,24 @@
 #define OPDI_SCOPE_ENDPOINT_END 2
 #define OPDI_SCOPE_ENDPOINT_BOTH 3
 
+#define OPDI_OMPT_IMPLICIT_TASK_END 1
+#define OPDI_OMPT_SYNC_REGION_END 2
+
 /* ------------------ configuration ------------------ */
 
-/* logic options */
+/* ----- backend configuration ----- */
+
+#ifndef OPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE
+  #define OPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE OPDI_OMPT_IMPLICIT_TASK_END
+#endif
+
+static_assert(0 < OPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE);
+static_assert(OPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE <= 2);
+
+
+/* ----- logic configuration ----- */
+
+/* general logic options */
 
 #ifndef OPDI_OMP_LOGIC_INSTRUMENT
   #define OPDI_OMP_LOGIC_INSTRUMENT 0
@@ -95,7 +110,7 @@ static_assert(OPDI_SYNC_REGION_BARRIER_IMPLEMENTATION_BEHAVIOUR <= 3);
 static_assert(0 < OPDI_SYNC_REGION_BARRIER_REVERSE_BEHAVIOUR);
 static_assert(OPDI_SYNC_REGION_BARRIER_REVERSE_BEHAVIOUR <= 3);
 
-/* error handling options */
+/* ----- error handling ----- */
 
 #ifndef OPDI_ENABLE_WARNINGS
   #define OPDI_ENABLE_WARNINGS 1
