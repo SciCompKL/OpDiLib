@@ -47,22 +47,33 @@
     opdi::logic->onParallelEnd(opdiInternalParallelData); \
   }
 
+#if OPDI_BACKEND_GENERATE_WORK_EVENTS
+  #define OPDI_WORK(type, endpoint) opdi::logic->onWork(kind, endpoint)
+#else
+  #define OPDI_WORK(type, endpoint) /* empty */
+#endif
+
 #define OPDI_FOR(...) \
   opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
+  OPDI_WORK(opdi::LogicInterface::WorksharingKind::Loop, opdi::LogicInterface::ScopeEndpoint::Begin); \
   OPDI_PRAGMA(omp for __VA_ARGS__ private(opdi::internalLoopProbe))
 
 #define OPDI_END_FOR \
+  OPDI_WORK(opdi::LogicInterface::WorksharingKind::Loop, opdi::LogicInterface::ScopeEndpoint::End); \
   opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier();
 
 #define OPDI_SECTIONS(...) \
   opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
+  OPDI_WORK(opdi::LogicInterface::WorksharingKind::Sections, opdi::LogicInterface::ScopeEndpoint::Begin); \
   OPDI_PRAGMA(omp sections private(opdi::internalSectionsProbe) __VA_ARGS__)
 
 #define OPDI_END_SECTIONS \
+  OPDI_WORK(opdi::LogicInterface::WorksharingKind::Sections, opdi::LogicInterface::ScopeEndpoint::End); \
   opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier();
 
 #define OPDI_SINGLE(...) \
   { \
+    OPDI_WORK(opdi::LogicInterface::WorksharingKind::Single, opdi::LogicInterface::ScopeEndpoint::Begin); \
     bool constexpr opdiInternalBarrierIndicator = true; \
     void* opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
     opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1); \
@@ -79,6 +90,7 @@
 
 #define OPDI_SINGLE_NOWAIT(...) \
   { \
+    OPDI_WORK(opdi::LogicInterface::WorksharingKind::Single, opdi::LogicInterface::ScopeEndpoint::Begin); \
     bool constexpr opdiInternalBarrierIndicator = false; \
     void* opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
     void* opdiInternalTapePosition2 = opdi::tool->allocPosition(); /* for consistency with the end macro */ \
@@ -101,6 +113,7 @@
     } \
     opdi::tool->freePosition(opdiInternalTapePosition1); \
     opdi::tool->freePosition(opdiInternalTapePosition2); \
+    OPDI_WORK(opdi::LogicInterface::WorksharingKind::Single, opdi::LogicInterface::ScopeEndpoint::End); \
     opdi::ImplicitBarrierTools::implicitBarrierStack.top() = opdiInternalBarrierIndicator; \
     opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier(); \
   }

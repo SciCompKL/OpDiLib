@@ -101,7 +101,9 @@ namespace opdi {
         // initialize callback structures
         ParallelCallbacks::init();
         ImplicitTaskCallbacks::init();
-        WorkCallbacks::init();
+        #if OPDI_BACKEND_GENERATE_WORK_EVENTS
+          WorkCallbacks::init();
+        #endif
         SyncRegionCallbacks::init();
         MutexCallbacks::init();
         ReductionCallbacks::init();
@@ -123,7 +125,9 @@ namespace opdi {
         ReductionCallbacks::finalize();
         MutexCallbacks::finalize();
         SyncRegionCallbacks::finalize();
-        WorkCallbacks::finalize();
+        #if OPDI_BACKEND_GENERATE_WORK_EVENTS
+          WorkCallbacks::finalize();
+        #endif
         ImplicitTaskCallbacks::finalize();
         ParallelCallbacks::finalize();
       }
