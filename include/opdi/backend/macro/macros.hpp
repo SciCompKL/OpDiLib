@@ -27,6 +27,7 @@
 
 #include <omp.h>
 
+#include "../../config.hpp"
 #include "../../helpers/macros.hpp"
 
 #include "implicitBarrierTools.hpp"
@@ -144,14 +145,21 @@
 
 #define OPDI_END_SECTION
 
-#define OPDI_MASTER(...) \
-  OPDI_PRAGMA(omp master __VA_ARGS__) \
-  { \
-    opdi::logic->onMaster(opdi::LogicInterface::ScopeEndpoint::Begin);
+#if OPDI_BACKEND_GENERATE_MASTER_EVENTS
+  #define OPDI_MASTER(...) \
+    OPDI_PRAGMA(omp master __VA_ARGS__) \
+    { \
+      opdi::logic->onMaster(opdi::LogicInterface::ScopeEndpoint::Begin);
 
-#define OPDI_END_MASTER \
-    opdi::logic->onMaster(opdi::LogicInterface::ScopeEndpoint::End); \
-  }
+  #define OPDI_END_MASTER \
+      opdi::logic->onMaster(opdi::LogicInterface::ScopeEndpoint::End); \
+    }
+#else
+  #define OPDI_MASTER(...) \
+    OPDI_PRAGMA(omp master __VA_ARGS__) \
+
+  #define OPDI_END_MASTER /* empty */
+#endif
 
 // standalone macros
 
