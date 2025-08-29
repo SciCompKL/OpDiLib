@@ -79,14 +79,14 @@ namespace opdi {
 
       struct Data {
         public:
-          MutexKind kind;
+          MutexKind mutexKind;
           Counter counter;
           WaitId waitId;
       };
 
     private:
 
-      void checkKind(MutexKind kind);
+      void checkKind(MutexKind mutexKind);
 
       static void waitReverseFunc(void* dataPtr);
       static void waitDeleteFunc(void* dataPtr);
@@ -101,12 +101,12 @@ namespace opdi {
 
     public:
 
-      virtual void onMutexDestroyed(MutexKind kind, WaitId waitId);
-      virtual void onMutexAcquired(MutexKind kind, WaitId waitId);
-      virtual void onMutexReleased(MutexKind kind, WaitId waitId);
+      virtual void onMutexDestroyed(MutexKind mutexKind, WaitId waitId);
+      virtual void onMutexAcquired(MutexKind mutexKind, WaitId waitId);
+      virtual void onMutexReleased(MutexKind mutexKind, WaitId waitId);
 
       // not thread-safe! only use outside parallel regions
-      virtual void registerInactiveMutex(MutexKind kind, WaitId waitId);
+      virtual void registerInactiveMutex(MutexKind mutexKind, WaitId waitId);
 
       void prepareEvaluate();
       void postEvaluate();

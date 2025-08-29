@@ -92,14 +92,14 @@ namespace opdi {
       virtual void reverseMutexWait(MutexOmpLogic::Data* data) {
         TapedOutput::print("R MWAI l", omp_get_level(),
                            "t", omp_get_thread_num(),
-                           "kind", data->kind,
+                           "kind", data->mutexKind,
                            "id", data->waitId,
                            "until", data->counter);
       }
 
       virtual void reverseMutexDecrement(MutexOmpLogic::Data* data) {
         TapedOutput::print("R MDEC t", omp_get_thread_num(),
-                           "kind", data->kind,
+                           "kind", data->mutexKind,
                            "id", data->waitId,
                            "to", data->counter);
       }
@@ -112,14 +112,14 @@ namespace opdi {
 
       virtual void onMutexAcquired(MutexOmpLogic::Data* data) {
         TapedOutput::print("F MACQ t", omp_get_thread_num(),
-                           "kind", data->kind,
+                           "kind", data->mutexKind,
                            "id", data->waitId,
                            "at", data->counter);
       }
 
       virtual void onMutexReleased(MutexOmpLogic::Data* data) {
         TapedOutput::print("F MREL t", omp_get_thread_num(),
-                           "kind", data->kind,
+                           "kind", data->mutexKind,
                            "id", data->waitId,
                            "at", data->counter);
       }
