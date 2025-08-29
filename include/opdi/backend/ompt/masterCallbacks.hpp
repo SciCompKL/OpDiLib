@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "../../config.hpp"
 #include "../../helpers/exceptions.hpp"
 #include "../../helpers/macros.hpp"
 #include "../../logic/logicInterface.hpp"
