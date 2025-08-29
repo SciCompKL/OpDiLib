@@ -193,9 +193,7 @@ void opdi::MutexOmpLogic::onMutexReleased(MutexKind mutexKind, WaitId waitId) {
       data->mutexKind = mutexKind;
       data->waitId = waitId;
 
-      omp_set_lock(&recordings[mutexKind].lock);
       data->counter = localCounters[mutexKind][waitId];
-      omp_unset_lock(&recordings[mutexKind].lock);
 
       #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {
