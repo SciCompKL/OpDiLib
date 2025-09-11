@@ -80,7 +80,8 @@ namespace opdi {
             logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierExplicit, endpoint);
             break;
           case ompt_sync_region_barrier_implementation:
-            logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation, endpoint);
+            logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation, LogicInterface::ScopeEndpoint::Begin);
+            logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation, LogicInterface::ScopeEndpoint::End);
             break;
         #if _OPENMP >= 202011
           case ompt_sync_region_barrier_implicit_parallel:
