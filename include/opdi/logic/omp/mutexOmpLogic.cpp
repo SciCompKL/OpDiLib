@@ -40,8 +40,8 @@ opdi::MutexOmpLogic::AllCounters opdi::MutexOmpLogic::evaluationCounters;
   opdi::MutexOmpLogic::AllCounters opdi::MutexOmpLogic::tsanDummies;
 #endif
 
-void opdi::MutexOmpLogic::checkKind(MutexKind kind) {
-  if (kind >= nMutexKind) {
+void opdi::MutexOmpLogic::checkKind(MutexKind mutexKind) {
+  if (mutexKind >= nMutexKind) {
     OPDI_ERROR("Invalid mutex kind.");
   }
 }
@@ -61,7 +61,7 @@ void opdi::MutexOmpLogic::waitReverseFunc(void* dataPtr) {
     MutexOmpLogic::Counter currentValue;
 
     #pragma omp atomic read
-    currentValue = MutexOmpLogic::evaluationCounters[data->kind][data->waitId];
+    currentValue = MutexOmpLogic::evaluationCounters[data->mutexKind][data->waitId];
 
     if (currentValue == data->counter) {
       break;
@@ -69,7 +69,7 @@ void opdi::MutexOmpLogic::waitReverseFunc(void* dataPtr) {
   }
 
   #ifdef __SANITIZE_THREAD__
-    ANNOTATE_RWLOCK_ACQUIRED(&MutexOmpLogic::tsanDummies[data->kind][data->waitId], true);
+    ANNOTATE_RWLOCK_ACQUIRED(&MutexOmpLogic::tsanDummies[data->mutexKind][data->waitId], true);
   #endif
 }
 
@@ -83,12 +83,12 @@ void opdi::MutexOmpLogic::decrementReverseFunc(void* dataPtr) {
   Data* data = static_cast<Data*>(dataPtr);
 
   #ifdef __SANITIZE_THREAD__
-    ANNOTATE_RWLOCK_RELEASED(&MutexOmpLogic::tsanDummies[data->kind][data->waitId], true);
+    ANNOTATE_RWLOCK_RELEASED(&MutexOmpLogic::tsanDummies[data->mutexKind][data->waitId], true);
   #endif
 
   // decrement counter
   #pragma omp atomic update
-  MutexOmpLogic::evaluationCounters[data->kind][data->waitId] -= 1;
+  MutexOmpLogic::evaluationCounters[data->mutexKind][data->waitId] -= 1;
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
@@ -115,24 +115,24 @@ void opdi::MutexOmpLogic::internalFinalize() {
   }
 }
 
-void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind kind, WaitId waitId) {
+void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind mutexKind, WaitId waitId) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
-      instrument->onMutexDestroyed(kind, waitId);
+      instrument->onMutexDestroyed(mutexKind, waitId);
     }
   #endif
 
-  checkKind(kind);
-  this->recordings[kind].inactive.erase(waitId);
+  checkKind(mutexKind);
+  this->recordings[mutexKind].inactive.erase(waitId);
 }
 
-void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, WaitId waitId) {
+void opdi::MutexOmpLogic::onMutexAcquired(MutexKind mutexKind, WaitId waitId) {
 
-  checkKind(kind);
+  checkKind(mutexKind);
 
   // always skip internal locks
-  if (MutexKind::Lock == kind) {
+  if (MutexKind::Lock == mutexKind) {
     for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
       if (waitId == this->recordings[mutexKind].waitId) {
         return;
@@ -143,16 +143,16 @@ void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, WaitId waitId) {
   if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     // skip inactive mutexes
-    if (recordings[kind].inactive.count(waitId) == 0) {
+    if (recordings[mutexKind].inactive.count(waitId) == 0) {
 
       Data* data = new Data;
-      data->kind = kind;
+      data->mutexKind = mutexKind;
       data->waitId = waitId;
 
-      omp_set_lock(&recordings[kind].lock);
-      data->counter = recordings[kind].counters[waitId]++;
-      localCounters[kind][waitId] = recordings[kind].counters[waitId];  // remember incremented counter value for the release event
-      omp_unset_lock(&recordings[kind].lock);
+      omp_set_lock(&recordings[mutexKind].lock);
+      data->counter = recordings[mutexKind].counters[waitId]++;
+      localCounters[mutexKind][waitId] = recordings[mutexKind].counters[waitId];  // remember incremented counter value for the release event
+      omp_unset_lock(&recordings[mutexKind].lock);
 
       #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {
@@ -171,12 +171,12 @@ void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, WaitId waitId) {
   }
 }
 
-void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, WaitId waitId) {
+void opdi::MutexOmpLogic::onMutexReleased(MutexKind mutexKind, WaitId waitId) {
 
-  checkKind(kind);
+  checkKind(mutexKind);
 
   // always skip internal locks
-  if (MutexKind::Lock == kind) {
+  if (MutexKind::Lock == mutexKind) {
     for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
       if (waitId == this->recordings[mutexKind].waitId) {
         return;
@@ -187,15 +187,13 @@ void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, WaitId waitId) {
   if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     // skip inactive mutexes
-    if (recordings[kind].inactive.count(waitId) == 0) {
+    if (recordings[mutexKind].inactive.count(waitId) == 0) {
 
       Data* data = new Data;
-      data->kind = kind;
+      data->mutexKind = mutexKind;
       data->waitId = waitId;
 
-      omp_set_lock(&recordings[kind].lock);
-      data->counter = localCounters[kind][waitId];
-      omp_unset_lock(&recordings[kind].lock);
+      data->counter = localCounters[mutexKind][waitId];
 
       #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {
@@ -215,9 +213,9 @@ void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, WaitId waitId) {
 }
 
 // not thread safe! only use outside parallel regions
-void opdi::MutexOmpLogic::registerInactiveMutex(MutexKind kind, WaitId waitId) {
-  checkKind(kind);
-  this->recordings[kind].inactive.insert(waitId);
+void opdi::MutexOmpLogic::registerInactiveMutex(MutexKind mutexKind, WaitId waitId) {
+  checkKind(mutexKind);
+  this->recordings[mutexKind].inactive.insert(waitId);
 }
 
 void opdi::MutexOmpLogic::prepareEvaluate() {
