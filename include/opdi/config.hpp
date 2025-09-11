@@ -27,8 +27,6 @@
 
 /* ------------------ constants ------------------ */
 
-/* backends */
-
 #define OPDI_MACRO_BACKEND 1
 #define OPDI_OMPT_BACKEND 2
 
@@ -41,6 +39,9 @@
 
 #define OPDI_OMPT_IMPLICIT_TASK_END 1
 #define OPDI_OMPT_SYNC_REGION_END 2
+
+#define OPDI_PAIR_OF_AD_EVENTS_PER_ENDPOINT 1
+#define OPDI_SINGLE_AD_EVENT_PER_ENDPOINT 2
 
 /* ------------------ configuration ------------------ */
 
@@ -61,6 +62,12 @@
 static_assert(0 < OPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE);
 static_assert(OPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE <= 2);
 
+#ifndef OPDI_OMPT_BACKEND_BARRIER_IMPLEMENTATION_BEHAVIOUR
+  #define OPDI_OMPT_BACKEND_BARRIER_IMPLEMENTATION_BEHAVIOUR OPDI_PAIR_OF_AD_EVENTS_PER_ENDPOINT
+#endif
+
+static_assert(0 < OPDI_OMPT_BACKEND_BARRIER_IMPLEMENTATION_BEHAVIOUR);
+static_assert(OPDI_OMPT_BACKEND_BARRIER_IMPLEMENTATION_BEHAVIOUR <= 2);
 
 /* ----- logic configuration ----- */
 
