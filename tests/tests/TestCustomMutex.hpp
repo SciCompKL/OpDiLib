@@ -70,7 +70,7 @@ struct TestCustomMutex : public TestBase<4, 1, 3, TestCustomMutex<_Case>> {
             --status;
           }
           #ifdef _OPENMP
-          opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Custom, reinterpret_cast<opdi::LogicInterface::WaitId>(&status));
+            opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Custom, reinterpret_cast<opdi::LogicInterface::WaitId>(&status));
           #endif
         }
 
@@ -80,7 +80,7 @@ struct TestCustomMutex : public TestBase<4, 1, 3, TestCustomMutex<_Case>> {
           #endif
           --status;
           #ifdef _OPENMP
-          opdi::logic->onMutexReleased(opdi::LogicInterface::MutexKind::Custom, reinterpret_cast<opdi::LogicInterface::WaitId>(&status));
+            opdi::logic->onMutexReleased(opdi::LogicInterface::MutexKind::Custom, reinterpret_cast<opdi::LogicInterface::WaitId>(&status));
           #endif
         }
     };
@@ -111,7 +111,7 @@ struct TestCustomMutex : public TestBase<4, 1, 3, TestCustomMutex<_Case>> {
           Base::job2(i, in, jobResults[i]);
 
           mutex2.lock();
-          out2 += jobResults[i];
+          out2 *= jobResults[i];
           mutex2.unlock();
         }
       }
