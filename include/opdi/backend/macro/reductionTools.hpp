@@ -57,6 +57,8 @@ namespace opdi {
         }
         ReductionTools::reductionBarrierStack.pop();
         if (ProbeScopeStatus::insideImplicitTaskProbeScope()) {
+          logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
+                              LogicInterface::ScopeEndpoint::Begin);
           #pragma omp barrier
           logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
                               LogicInterface::ScopeEndpoint::End);
@@ -72,6 +74,8 @@ namespace opdi {
             #else
               logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
                                   LogicInterface::ScopeEndpoint::Begin);
+              logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
+                                  LogicInterface::ScopeEndpoint::End);
             #endif
           }
           ReductionTools::reductionBarrierStack.top() = true;
