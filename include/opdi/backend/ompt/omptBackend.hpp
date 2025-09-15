@@ -151,7 +151,7 @@ namespace opdi {
         return (std::size_t) waitId;
       }
 
-      std::size_t getNestedLockIdentifier(omp_nest_lock_t* lock) {
+      std::size_t getNestLockIdentifier(omp_nest_lock_t* lock) {
 
         ompt_wait_id_t waitId;
         WaitIdExtractor::begin(&waitId);

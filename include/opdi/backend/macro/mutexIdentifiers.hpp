@@ -71,7 +71,7 @@ namespace opdi {
         return reinterpret_cast<std::size_t>(lock);
       }
 
-      std::size_t getNestedLockIdentifier(omp_nest_lock_t* lock) {
+      std::size_t getNestLockIdentifier(omp_nest_lock_t* lock) {
         return reinterpret_cast<std::size_t>(lock);
       }
   };
