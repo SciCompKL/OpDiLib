@@ -34,7 +34,7 @@ namespace opdi {
     public:
 
       enum MutexKind : std::size_t {
-        Critical = 0, Lock, NestedLock, Ordered, Reduction, Custom
+        Critical = 0, Lock, NestLock, Ordered, Reduction, Custom
       };
 
       static constexpr std::size_t nMutexKind = 6;

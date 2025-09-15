@@ -28,10 +28,10 @@
 #include "testBase.hpp"
 
 template<typename _Case>
-struct TestNestedLock : public TestBase<4, 1, 3, TestNestedLock<_Case>> {
+struct TestNestLock : public TestBase<4, 1, 3, TestNestLock<_Case>> {
   public:
     using Case = _Case;
-    using Base = TestBase<4, 1, 3, TestNestedLock<Case>>;
+    using Base = TestBase<4, 1, 3, TestNestLock<Case>>;
 
     template<typename T>
     static void job(int i, std::array<T, Base::nIn> const& in, T& result1, T& result2,
@@ -105,7 +105,7 @@ struct TestNestedLock : public TestBase<4, 1, 3, TestNestedLock<_Case>> {
         int end = std::min(N, ((N - 1) / nThreads + 1) * (omp_get_thread_num() + 1));
 
         for (int i = start; i < end; ++i) {
-          TestNestedLock::job(i, in, out1, out2, &lock1, &lock2);
+          TestNestLock::job(i, in, out1, out2, &lock1, &lock2);
         }
       }
       OPDI_END_PARALLEL

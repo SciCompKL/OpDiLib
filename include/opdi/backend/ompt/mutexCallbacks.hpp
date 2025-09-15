@@ -58,7 +58,7 @@ namespace opdi {
             break;
           case ompt_mutex_nest_lock:
           case ompt_mutex_test_nest_lock:
-            logic->onMutexDestroyed(LogicInterface::MutexKind::NestedLock, waitId);
+            logic->onMutexDestroyed(LogicInterface::MutexKind::NestLock, waitId);
             break;
           case ompt_mutex_critical:
             logic->onMutexDestroyed(LogicInterface::MutexKind::Critical, waitId);
@@ -86,7 +86,7 @@ namespace opdi {
             break;
           case ompt_mutex_nest_lock:
           case ompt_mutex_test_nest_lock:
-            logic->onMutexAcquired(LogicInterface::MutexKind::NestedLock, waitId);
+            logic->onMutexAcquired(LogicInterface::MutexKind::NestLock, waitId);
             break;
           case ompt_mutex_critical:
             logic->onMutexAcquired(LogicInterface::MutexKind::Critical, waitId);
@@ -114,7 +114,7 @@ namespace opdi {
             break;
           case ompt_mutex_nest_lock:
           case ompt_mutex_test_nest_lock:
-            logic->onMutexReleased(LogicInterface::MutexKind::NestedLock, waitId);
+            logic->onMutexReleased(LogicInterface::MutexKind::NestLock, waitId);
             break;
           case ompt_mutex_critical:
             logic->onMutexReleased(LogicInterface::MutexKind::Critical, waitId);
