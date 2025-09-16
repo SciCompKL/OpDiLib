@@ -51,9 +51,13 @@ namespace opdi {
     public:
 
       virtual void addReverseFlush() {
-        Handle* handle = new Handle;
-        handle->reverseFunc = FlushOmpLogic::reverseFunc;
-        tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
+
+        if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+
+          Handle* handle = new Handle;
+          handle->reverseFunc = FlushOmpLogic::reverseFunc;
+          tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
+        }
       }
   };
 }
