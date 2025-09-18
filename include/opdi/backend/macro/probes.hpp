@@ -109,13 +109,17 @@ namespace opdi {
       WorkProbe(int) : needsAction(false) {}
 
       WorkProbe() : needsAction(true) {
-        logic->onWork(kind, LogicInterface::ScopeEndpoint::Begin);
+        #if OPDI_BACKEND_GENERATE_WORK_EVENTS
+          logic->onWork(kind, LogicInterface::ScopeEndpoint::Begin);
+        #endif
       }
 
       ~WorkProbe() {
-        if (needsAction) {
-          logic->onWork(kind, LogicInterface::ScopeEndpoint::End);
-        }
+        #if OPDI_BACKEND_GENERATE_WORK_EVENTS
+          if (needsAction) {
+            logic->onWork(kind, LogicInterface::ScopeEndpoint::End);
+          }
+        #endif
       }
   };
 
