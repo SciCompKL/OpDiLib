@@ -54,11 +54,11 @@ void opdi::MasterOmpLogic::deleteFunc(void* dataPtr) {
 void opdi::MasterOmpLogic::onMaster(ScopeEndpoint endpoint) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
-    for (auto& instrument : ompLogicInstruments) {
-      instrument->onMaster(endpoint);
-    }
-
     if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+
+        for (auto& instrument : ompLogicInstruments) {
+          instrument->onMaster(endpoint);
+        }
 
         Data* data = new Data;
         data->endpoint = endpoint;

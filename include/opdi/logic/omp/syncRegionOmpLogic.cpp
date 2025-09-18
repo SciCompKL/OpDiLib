@@ -82,13 +82,14 @@ bool opdi::SyncRegionOmpLogic::requiresReverseBarrier(SyncRegionKind kind, Scope
 
 void opdi::SyncRegionOmpLogic::onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint) {
 
-  #if OPDI_OMP_LOGIC_INSTRUMENT
-    for (auto& instrument : ompLogicInstruments) {
-      instrument->onSyncRegion(kind, endpoint);
-    }
-  #endif
-
   if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+
+    #if OPDI_OMP_LOGIC_INSTRUMENT
+        for (auto& instrument : ompLogicInstruments) {
+          instrument->onSyncRegion(kind, endpoint);
+        }
+    #endif
+
     if (requiresReverseBarrier(kind, endpoint)) {
       internalPushHandle(kind, endpoint);
     }
