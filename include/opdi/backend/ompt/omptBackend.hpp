@@ -107,7 +107,7 @@ namespace opdi {
         SyncRegionCallbacks::init();
         MutexCallbacks::init();
         ReductionCallbacks::init();
-        #if OPDI_BACKEND_GENERATE_MASTER_EVENTS
+        #if OPDI_BACKEND_GENERATE_MASKED_EVENTS
           MasterCallbacks::init();
         #endif
 
@@ -119,7 +119,7 @@ namespace opdi {
         OPDI_UNUSED(toolData);
 
         // finalize callback structures
-        #if OPDI_BACKEND_GENERATE_MASTER_EVENTS
+        #if OPDI_BACKEND_GENERATE_MASKED_EVENTS
           MasterCallbacks::finalize();
         #endif
         ReductionCallbacks::finalize();

@@ -18,7 +18,7 @@ clang-macro:
   image: fedora:41
   parallel:
     matrix:
-      - FLAGS: ["", "-DOPDI_BACKEND_GENERATE_MASTER_EVENTS=1 -DOPDI_BACKEND_GENERATE_WORK_EVENTS=1"]
+      - FLAGS: ["", "-DOPDI_BACKEND_GENERATE_MASKED_EVENTS=1 -DOPDI_BACKEND_GENERATE_WORK_EVENTS=1"]
   script:
     - dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -32,7 +32,7 @@ clang-ompt:
   image: fedora:41
   parallel:
     matrix:
-      - FLAGS: ["-DOPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE=1", "-DOPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE=2", "-DOPDI_BACKEND_GENERATE_MASTER_EVENTS=1 -DOPDI_BACKEND_GENERATE_WORK_EVENTS=1"]
+      - FLAGS: ["-DOPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE=1", "-DOPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE=2", "-DOPDI_BACKEND_GENERATE_MASKED_EVENTS=1 -DOPDI_BACKEND_GENERATE_WORK_EVENTS=1"]
   script:
     - dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
