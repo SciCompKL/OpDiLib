@@ -38,7 +38,7 @@
 std::list<opdi::OmpLogicInstrumentInterface*> opdi::ompLogicInstruments;
 
 #include "implicitTaskOmpLogic.cpp"
-#include "masterOmpLogic.cpp"
+#include "maskedOmpLogic.cpp"
 #include "mutexOmpLogic.cpp"
 #include "parallelOmpLogic.cpp"
 #include "syncRegionOmpLogic.cpp"

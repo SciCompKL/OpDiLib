@@ -29,7 +29,7 @@
 
 namespace opdi {
 
-  struct MasterOmpLogic : public virtual LogicInterface {
+  struct MaskedOmpLogic : public virtual LogicInterface {
     public:
 
       using LogicInterface::ScopeEndpoint;
@@ -45,6 +45,6 @@ namespace opdi {
 
     public:
 
-      virtual void onMaster(ScopeEndpoint endpoint);
+      virtual void onMasked(ScopeEndpoint endpoint);
   };
 }

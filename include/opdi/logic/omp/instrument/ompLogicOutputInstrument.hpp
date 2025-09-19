@@ -194,12 +194,12 @@ namespace opdi {
         TapedOutput::print("F WORK t", omp_get_thread_num(), "kind", kind, "endp", endpoint);
       }
 
-      virtual void reverseMaster(MasterOmpLogic::Data* data) {
-        TapedOutput::print("R MAST t", omp_get_thread_num(), "endp", data->endpoint);
+      virtual void reverseMasked(MaskedOmpLogic::Data* data) {
+        TapedOutput::print("R MASK t", omp_get_thread_num(), "endp", data->endpoint);
       }
 
-      virtual void onMaster(LogicInterface::ScopeEndpoint endpoint) {
-        TapedOutput::print("F MAST t", omp_get_thread_num(), "endp", endpoint);
+      virtual void onMasked(LogicInterface::ScopeEndpoint endpoint) {
+        TapedOutput::print("F MASK t", omp_get_thread_num(), "endp", endpoint);
       }
 
       virtual void onSetAdjointAccessMode(LogicInterface::AdjointAccessMode adjointAccess) {

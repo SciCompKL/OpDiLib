@@ -149,10 +149,10 @@
   #define OPDI_MASTER(...) \
     OPDI_PRAGMA(omp master __VA_ARGS__) \
     { \
-      opdi::logic->onMaster(opdi::LogicInterface::ScopeEndpoint::Begin);
+      opdi::logic->onMasked(opdi::LogicInterface::ScopeEndpoint::Begin);
 
   #define OPDI_END_MASTER \
-      opdi::logic->onMaster(opdi::LogicInterface::ScopeEndpoint::End); \
+      opdi::logic->onMasked(opdi::LogicInterface::ScopeEndpoint::End); \
     }
 #else
   #define OPDI_MASTER(...) \

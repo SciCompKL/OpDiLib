@@ -54,7 +54,7 @@ namespace opdi {
           endpoint = LogicInterface::ScopeEndpoint::End;
         }
 
-        logic->onMaster(endpoint);
+        logic->onMasked(endpoint);
       }
 
     protected:

@@ -73,7 +73,7 @@ namespace opdi {
 
       virtual void onWork(WorksharingKind kind, ScopeEndpoint endpoint) = 0;
 
-      virtual void onMaster(ScopeEndpoint endpoint) = 0;
+      virtual void onMasked(ScopeEndpoint endpoint) = 0;
 
       virtual void onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint) = 0;
 
