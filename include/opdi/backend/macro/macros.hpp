@@ -154,11 +154,25 @@
   #define OPDI_END_MASTER \
       opdi::logic->onMasked(opdi::LogicInterface::ScopeEndpoint::End); \
     }
+
+  #define OPDI_MASKED(...) \
+    OPDI_PRAGMA(omp masked __VA_ARGS__) \
+    { \
+      opdi::logic->onMasked(opdi::LogicInterface::ScopeEndpoint::Begin);
+
+  #define OPDI_END_MASKED \
+      opdi::logic->onMasked(opdi::LogicInterface::ScopeEndpoint::End); \
+    }
 #else
   #define OPDI_MASTER(...) \
     OPDI_PRAGMA(omp master __VA_ARGS__) \
 
-  #define OPDI_END_MASTER /* empty */
+  #define OPDI_END_MASTER
+
+  #define OPDI_MASKED(...) \
+    OPDI_PRAGMA(omp masked __VA_ARGS__) \
+
+  #define OPDI_END_MASKED
 #endif
 
 // standalone macros

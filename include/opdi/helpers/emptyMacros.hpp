@@ -54,6 +54,9 @@
 #define OPDI_MASTER(...)
 #define OPDI_END_MASTER
 
+#define OPDI_MASKED(...)
+#define OPDI_END_MASKED
+
 #define OPDI_BARRIER(...)
 
 #define OPDI_DECLARE_REDUCTION(...)
