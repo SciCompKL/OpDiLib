@@ -44,7 +44,7 @@
 
 #include "implicitTaskCallbacks.hpp"
 #include "macros.hpp"
-#include "masterCallbacks.hpp"
+#include "maskedCallbacks.hpp"
 #include "mutexCallbacks.hpp"
 #include "parallelCallbacks.hpp"
 #include "reductionCallbacks.hpp"
@@ -55,7 +55,7 @@
 namespace opdi {
 
   struct OmptBackend : public ImplicitTaskCallbacks,
-                       public MasterCallbacks,
+                       public MaskedCallbacks,
                        public MutexCallbacks,
                        public ParallelCallbacks,
                        public ReductionCallbacks,
@@ -108,7 +108,7 @@ namespace opdi {
         MutexCallbacks::init();
         ReductionCallbacks::init();
         #if OPDI_BACKEND_GENERATE_MASKED_EVENTS
-          MasterCallbacks::init();
+          MaskedCallbacks::init();
         #endif
 
         return 1; // success
@@ -120,7 +120,7 @@ namespace opdi {
 
         // finalize callback structures
         #if OPDI_BACKEND_GENERATE_MASKED_EVENTS
-          MasterCallbacks::finalize();
+          MaskedCallbacks::finalize();
         #endif
         ReductionCallbacks::finalize();
         MutexCallbacks::finalize();
