@@ -28,10 +28,10 @@
 #include "testBase.hpp"
 
 template<typename _Case>
-struct TestMaster : public TestBase<4, 1, 3, TestMaster<_Case>> {
+struct TestMasked : public TestBase<4, 1, 3, TestMasked<_Case>> {
   public:
     using Case = _Case;
-    using Base = TestBase<4, 1, 3, TestMaster<Case>>;
+    using Base = TestBase<4, 1, 3, TestMasked<Case>>;
 
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
@@ -51,13 +51,21 @@ struct TestMaster : public TestBase<4, 1, 3, TestMaster<_Case>> {
 
         OPDI_BARRIER()
 
-        OPDI_MASTER()
+        #if _OPENMP >= 202011
+          OPDI_MASKED()
+        #else
+          OPDI_MASTER()
+        #endif
         {
           for (int i = 0; i < N; ++i) {
             out[0] += jobResults[i];
           }
         }
-        OPDI_END_MASTER
+        #if _OPENMP >= 202011
+          OPDI_END_MASKED
+        #else
+          OPDI_END_MASTER
+        #endif
       }
       OPDI_END_PARALLEL
 

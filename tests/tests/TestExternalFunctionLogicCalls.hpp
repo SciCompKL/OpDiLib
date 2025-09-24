@@ -116,7 +116,11 @@ struct TestExternalFunctionLogicCalls : public TestBase<4, 1, 3, TestExternalFun
 
         OPDI_BARRIER()
 
-        OPDI_MASTER()
+        #if _OPENMP >= 202011
+          OPDI_MASKED()
+        #else
+          OPDI_MASTER()
+        #endif
         {
           eh = new ExternalFunctionHelper<T>(true);
           for (int i = 0; i < N; ++i) {
@@ -127,7 +131,11 @@ struct TestExternalFunctionLogicCalls : public TestBase<4, 1, 3, TestExternalFun
             eh->addOutput(intermediate[i]);
           }
         }
-        OPDI_END_MASTER
+        #if _OPENMP >= 202011
+          OPDI_END_MASKED
+        #else
+          OPDI_END_MASTER
+        #endif
 
         OPDI_BARRIER()
 
@@ -146,11 +154,19 @@ struct TestExternalFunctionLogicCalls : public TestBase<4, 1, 3, TestExternalFun
           jobResults[i] = cos(exp(intermediate[i]));
         }
 
-        OPDI_MASTER()
+        #if _OPENMP >= 202011
+          OPDI_MASKED()
+        #else
+          OPDI_MASTER()
+        #endif
         {
           delete eh;
         }
-        OPDI_END_MASTER
+        #if _OPENMP >= 202011
+          OPDI_END_MASKED
+        #else
+          OPDI_END_MASTER
+        #endif
       }
       OPDI_END_PARALLEL
 
