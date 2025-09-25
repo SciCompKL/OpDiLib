@@ -78,6 +78,11 @@
 
 #define OPDI_END_MASTER
 
+#define OPDI_MASKED(...) \
+  OPDI_PRAGMA(omp masked __VA_ARGS__)
+
+#define OPDI_END_MASKED
+
 #define OPDI_BARRIER(...) \
   OPDI_PRAGMA(omp barrier __VA_ARGS__)
 

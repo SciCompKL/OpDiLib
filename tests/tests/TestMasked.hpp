@@ -1,4 +1,4 @@
-/*
+﻿/*
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
@@ -25,26 +25,50 @@
 
 #pragma once
 
-#include "../logicInterface.hpp"
+#include "testBase.hpp"
 
-namespace opdi {
+template<typename _Case>
+struct TestMasked : public TestBase<4, 1, 3, TestMasked<_Case>> {
+  public:
+    using Case = _Case;
+    using Base = TestBase<4, 1, 3, TestMasked<Case>>;
 
-  struct MasterOmpLogic : public virtual LogicInterface {
-    public:
+    template<typename T>
+    static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      using LogicInterface::ScopeEndpoint;
+      int const N = 1000;
+      T* jobResults = new T[N];
 
-      struct Data {
-        ScopeEndpoint endpoint;
-      };
+      OPDI_PARALLEL()
+      {
+        int nThreads = omp_get_num_threads();
+        int start = ((N - 1) / nThreads + 1) * omp_get_thread_num();
+        int end = std::min(N, ((N - 1) / nThreads + 1) * (omp_get_thread_num() + 1));
 
-    private:
+        for (int i = start; i < end; ++i) {
+          Base::job1(i, in, jobResults[i]);
+        }
 
-      static void reverseFunc(void* dataPtr);
-      static void deleteFunc(void* dataPtr);
+        OPDI_BARRIER()
 
-    public:
+        #if _OPENMP >= 202011
+          OPDI_MASKED()
+        #else
+          OPDI_MASTER()
+        #endif
+        {
+          for (int i = 0; i < N; ++i) {
+            out[0] += jobResults[i];
+          }
+        }
+        #if _OPENMP >= 202011
+          OPDI_END_MASKED
+        #else
+          OPDI_END_MASTER
+        #endif
+      }
+      OPDI_END_PARALLEL
 
-      virtual void onMaster(ScopeEndpoint endpoint);
-  };
-}
+      delete [] jobResults;
+    }
+};

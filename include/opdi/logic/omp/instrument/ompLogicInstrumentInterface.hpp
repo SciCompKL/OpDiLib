@@ -30,7 +30,7 @@
 
 #include "../../logicInterface.hpp"
 #include "../implicitTaskOmpLogic.hpp"
-#include "../masterOmpLogic.hpp"
+#include "../maskedOmpLogic.hpp"
 #include "../mutexOmpLogic.hpp"
 #include "../parallelOmpLogic.hpp"
 #include "../syncRegionOmpLogic.hpp"
@@ -68,8 +68,8 @@ namespace opdi {
       virtual void reverseWork(WorkOmpLogic::Data* /*data*/) {}
       virtual void onWork(LogicInterface::WorksharingKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}
 
-      virtual void reverseMaster(MasterOmpLogic::Data* /*data*/) {}
-      virtual void onMaster(LogicInterface::ScopeEndpoint /*endpoint*/) {}
+      virtual void reverseMasked(MaskedOmpLogic::Data* /*data*/) {}
+      virtual void onMasked(LogicInterface::ScopeEndpoint /*endpoint*/) {}
 
       virtual void onSetAdjointAccessMode(LogicInterface::AdjointAccessMode /*adjointAccess*/) {}
   };

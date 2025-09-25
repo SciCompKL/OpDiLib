@@ -31,33 +31,33 @@
 
 #include "instrument/ompLogicInstrumentInterface.hpp"
 
-#include "masterOmpLogic.hpp"
+#include "maskedOmpLogic.hpp"
 
-void opdi::MasterOmpLogic::reverseFunc(void *dataPtr) {
+void opdi::MaskedOmpLogic::reverseFunc(void *dataPtr) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     Data* data = static_cast<Data*>(dataPtr);
     for (auto& instrument : ompLogicInstruments) {
-      instrument->reverseMaster(data);
+      instrument->reverseMasked(data);
     }
   #else
     OPDI_UNUSED(dataPtr);
   #endif
 }
 
-void opdi::MasterOmpLogic::deleteFunc(void* dataPtr) {
+void opdi::MaskedOmpLogic::deleteFunc(void* dataPtr) {
 
   Data* data = static_cast<Data*>(dataPtr);
   delete data;
 }
 
-void opdi::MasterOmpLogic::onMaster(ScopeEndpoint endpoint) {
+void opdi::MaskedOmpLogic::onMasked(ScopeEndpoint endpoint) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
         for (auto& instrument : ompLogicInstruments) {
-          instrument->onMaster(endpoint);
+          instrument->onMasked(endpoint);
         }
 
         Data* data = new Data;
@@ -65,8 +65,8 @@ void opdi::MasterOmpLogic::onMaster(ScopeEndpoint endpoint) {
 
         Handle* handle = new Handle;
         handle->data = static_cast<void*>(data);
-        handle->reverseFunc = MasterOmpLogic::reverseFunc;
-        handle->deleteFunc = MasterOmpLogic::deleteFunc;
+        handle->reverseFunc = MaskedOmpLogic::reverseFunc;
+        handle->deleteFunc = MaskedOmpLogic::deleteFunc;
         tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
     }
   #else

@@ -34,7 +34,7 @@
 
 #include "flushOmpLogic.hpp"
 #include "implicitTaskOmpLogic.hpp"
-#include "masterOmpLogic.hpp"
+#include "maskedOmpLogic.hpp"
 #include "mutexOmpLogic.hpp"
 #include "parallelOmpLogic.hpp"
 #include "syncRegionOmpLogic.hpp"
@@ -44,7 +44,7 @@ namespace opdi {
 
   struct OmpLogic : public FlushOmpLogic,
                     public ImplicitTaskOmpLogic,
-                    public MasterOmpLogic,
+                    public MaskedOmpLogic,
                     public MutexOmpLogic,
                     public ParallelOmpLogic,
                     public SyncRegionOmpLogic,

@@ -34,11 +34,11 @@
 
 namespace opdi {
 
-  struct MasterCallbacks : public virtual CallbacksBase {
+  struct MaskedCallbacks : public virtual CallbacksBase {
 
     private:
 
-      static void onMaster(ompt_scope_endpoint_t _endpoint,
+      static void onMasked(ompt_scope_endpoint_t _endpoint,
                            ompt_data_t* parallelData,
                            ompt_data_t* taskData,
                            void const* codeptr) {
@@ -54,18 +54,27 @@ namespace opdi {
           endpoint = LogicInterface::ScopeEndpoint::End;
         }
 
-        logic->onMaster(endpoint);
+        logic->onMasked(endpoint);
       }
 
     protected:
 
       static void init() {
-        OPDI_CHECK_ERROR(CallbacksBase::registerCallback(ompt_callback_master,
-                                                        (ompt_callback_t) MasterCallbacks::onMaster));
+        #if _OPENMP >= 202011
+          OPDI_CHECK_ERROR(CallbacksBase::registerCallback(ompt_callback_masked,
+                                                          (ompt_callback_t) MaskedCallbacks::onMasked));
+        #else
+          OPDI_CHECK_ERROR(CallbacksBase::registerCallback(ompt_callback_master,
+                                                          (ompt_callback_t) MaskedCallbacks::onMasked));
+        #endif
       }
 
       static void finalize() {
-        OPDI_CHECK_ERROR(CallbacksBase::clearCallback(ompt_callback_master));
+        #if _OPENMP >= 202011
+          OPDI_CHECK_ERROR(CallbacksBase::clearCallback(ompt_callback_masked));
+        #else
+          OPDI_CHECK_ERROR(CallbacksBase::clearCallback(ompt_callback_master));
+        #endif
       }
 
   };
