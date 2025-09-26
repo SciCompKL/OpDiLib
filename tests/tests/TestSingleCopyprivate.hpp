@@ -53,7 +53,7 @@ struct TestSingleCopyprivate : public TestBase<4, 1, 3, TestSingleCopyprivate<_C
 
         OPDI_BARRIER()
 
-        OPDI_SINGLE(copyprivate(helper))
+        OPDI_SINGLE_COPYPRIVATE(copyprivate(helper))
         {
           for (int i = 0; i < N; ++i) {
             helper = sin(jobResults[i]);

@@ -48,6 +48,12 @@
 #define OPDI_SINGLE_NOWAIT(...) \
   OPDI_PRAGMA(omp single nowait __VA_ARGS__)
 
+#define OPDI_SINGLE_COPYPRIVATE(...) \
+  OPDI_PRAGMA(omp single __VA_ARGS__)
+
+#define OPDI_SINGLE_COPYPRIVATE_NOWAIT(...) \
+  OPDI_PRAGMA(omp single nowait __VA_ARGS__)
+
 #define OPDI_END_SINGLE
 
 #define OPDI_NOWAIT nowait
