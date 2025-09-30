@@ -42,6 +42,7 @@ namespace opdi {
       bool isActiveParallelRegion;
       ImplicitTaskData* encounteringTaskData;
       void* encounteringTaskTape;
+      void* encounteringTaskTapePosition;
       LogicInterface::AdjointAccessMode encounteringTaskAdjointAccessMode;
       std::vector<ImplicitTaskData*> childTaskData;
   };

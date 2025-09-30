@@ -136,6 +136,8 @@ void opdi::ParallelOmpLogic::deleteFunc(void* parallelDataPtr) {
 
   --ParallelOmpLogic::skipParallelHandling;
 
+  tool->freePosition(parallelData->encounteringTaskTapePosition);
+
   // delete data of the parallel region
   delete parallelData;
 }
@@ -180,6 +182,8 @@ void* opdi::ParallelOmpLogic::onParallelBegin(void* encounteringTaskDataPtr, int
     parallelData->isActiveParallelRegion = tool->isActive(tool->getThreadLocalTape());
     parallelData->encounteringTaskData = encounteringTaskData;
     parallelData->encounteringTaskTape = tool->getThreadLocalTape();
+    parallelData->encounteringTaskTapePosition = tool->allocPosition();
+    tool->getTapePosition(parallelData->encounteringTaskTape, parallelData->encounteringTaskTapePosition);
     parallelData->encounteringTaskAdjointAccessMode = internalGetAdjointAccessMode(encounteringTaskData);
     parallelData->childTaskData.resize(maximumSizeOfTeam);
 
