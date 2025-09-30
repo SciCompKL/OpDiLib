@@ -28,10 +28,10 @@
 #include "testBase.hpp"
 
 template<typename _Case>
-struct TestSingleCopyprivate : public TestBase<4, 1, 3, TestSingleCopyprivate<_Case>> {
+struct TestSingleCopyprivateNowait : public TestBase<4, 1, 3, TestSingleCopyprivateNowait<_Case>> {
   public:
     using Case = _Case;
-    using Base = TestBase<4, 1, 3, TestSingleCopyprivate<Case>>;
+    using Base = TestBase<4, 1, 3, TestSingleCopyprivateNowait<Case>>;
 
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
@@ -39,13 +39,11 @@ struct TestSingleCopyprivate : public TestBase<4, 1, 3, TestSingleCopyprivate<_C
       int const N = 1000;
       T* jobResults = new T[N];
 
-      T helper;
-
-      OPDI_PARALLEL(private(helper))
+      OPDI_PARALLEL()
       {
         int nThreads = omp_get_num_threads();
-        int start = ((N - 1) / nThreads + 1) * omp_get_thread_num();
-        int end = std::min(N, ((N - 1) / nThreads + 1) * (omp_get_thread_num() + 1));
+        int start = ((N / 2 - 1) / nThreads + 1) * omp_get_thread_num();
+        int end = ((N / 2 - 1) / nThreads + 1) * (omp_get_thread_num() + 1);
 
         for (int i = start; i < end; ++i) {
           Base::job1(i, in, jobResults[i]);
@@ -53,32 +51,43 @@ struct TestSingleCopyprivate : public TestBase<4, 1, 3, TestSingleCopyprivate<_C
 
         OPDI_BARRIER()
 
-        OPDI_SINGLE_COPYPRIVATE(copyprivate(helper))
+        T helper;
+
+        #if _OPENMP >= 202411
+          OPDI_SINGLE_COPYPRIVATE_NOWAIT(copyprivate(helper))
+        #else
+          OPDI_SINGLE_COPYPRIVATE(copyprivate(helper))
+        #endif
         {
-          for (int i = 0; i < N; ++i) {
-            helper = sin(jobResults[i]);
+          for (int i = 0; i < N / 2; ++i) {
+            helper = jobResults[i];
             out[0] += cos(helper);
           }
         }
         OPDI_END_SINGLE
 
+        start = N / 2 + ((N / 2 - 1) / nThreads + 1) * omp_get_thread_num();
+        end = std::min(N, N / 2 + ((N / 2 - 1) / nThreads + 1) * (omp_get_thread_num() + 1));
+
         for (int i = start; i < end; ++i) {
-          jobResults[i] *= helper;
+          Base::job1(i, in, jobResults[i]);
         }
 
         OPDI_BARRIER()
 
-        OPDI_SINGLE()
+        for (int i = start; i < end; ++i) {
+          jobResults[i] = helper * jobResults[i];
+        }
+
+        OPDI_BARRIER()
+
+        OPDI_SINGLE_NOWAIT()
         {
-          for (int i = 0; i < N; ++i) {
+          for (int i = N / 2; i < N; ++i) {
             out[0] += jobResults[i];
           }
         }
         OPDI_END_SINGLE
-
-        if (omp_get_thread_num() == 0) {
-          out[0] *= 2.0;
-        }
       }
       OPDI_END_PARALLEL
 

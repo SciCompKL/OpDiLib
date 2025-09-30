@@ -36,6 +36,8 @@
 
 #define OPDI_SINGLE(...)
 #define OPDI_SINGLE_NOWAIT(...)
+#define OPDI_SINGLE_COPYPRIVATE(...)
+#define OPDI_SINGLE_COPYPRIVATE_NOWAIT(...)
 #define OPDI_END_SINGLE
 
 #define OPDI_NOWAIT
