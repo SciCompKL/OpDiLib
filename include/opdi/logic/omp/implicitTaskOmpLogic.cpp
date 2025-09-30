@@ -106,11 +106,10 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool isInitialImplicitTask
       }
 
       if (tool->comparePosition(oldTapePosition, referencePosition) > 0) {
-        // appending to new tape depends on activity
-        if (parallelData->isActiveParallelRegion) {
-          tool->append(newTape, implicitTaskData->oldTape, referencePosition, oldTapePosition);
-        }
-        // erasing on old tape does not (non-primary threads have active default tapes to not miss such copies)
+        // users should ensure that activity of default tapes and encountering task's tape match
+        assert(parallelData->isActiveParallelRegion);
+
+        tool->append(newTape, implicitTaskData->oldTape, referencePosition, oldTapePosition);
         tool->erase(implicitTaskData->oldTape, referencePosition, oldTapePosition);
       }
 
