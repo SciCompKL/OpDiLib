@@ -61,14 +61,17 @@ struct TestParallelFirstprivate2 : public TestBase<4, 1, 3, TestParallelFirstpri
       bool wasActive = T::getTape().isActive();
 
       /* set this thread's tape as well as the default tapes passive */
-      opdi::logic->beginSkippedParallelRegion();
+      #ifndef BUILD_REFERENCE
+        opdi::logic->beginSkippedParallelRegion();
+      #endif
       OPDI_PARALLEL()
       {
         T::getTape().setPassive();
       }
       OPDI_END_PARALLEL
-      opdi::logic->endSkippedParallelRegion();
-
+      #ifndef BUILD_REFERENCE
+        opdi::logic->endSkippedParallelRegion();
+      #endif
       OPDI_PARALLEL(firstprivate(helper))
       {
         int nThreads = omp_get_num_threads();
@@ -84,13 +87,17 @@ struct TestParallelFirstprivate2 : public TestBase<4, 1, 3, TestParallelFirstpri
 
       /* reactive this thread's tape and default tapes if applicable */
       if (wasActive) {
-        opdi::logic->beginSkippedParallelRegion();
+        #ifndef BUILD_REFERENCE
+          opdi::logic->beginSkippedParallelRegion();
+        #endif
         OPDI_PARALLEL()
         {
           T::getTape().setActive();
         }
         OPDI_END_PARALLEL
-        opdi::logic->endSkippedParallelRegion();
+        #ifndef BUILD_REFERENCE
+          opdi::logic->endSkippedParallelRegion();
+        #endif
       }
 
       OPDI_PARALLEL(firstprivate(helper))
