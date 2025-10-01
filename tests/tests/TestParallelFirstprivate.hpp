@@ -40,14 +40,19 @@ struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstpriv
       T* jobResults = new T[N];
 
       #ifndef BUILD_REFERENCE
-        /* This workaround ensures that firstprivate copy operations that are missed by the correct tapes
-         * are at least recorded on the default tapes so that they can be moved later. */
-        bool active = T::getTape().isActive();
-        #pragma omp parallel
-        {
-          if (active) {
-            T::getTape().setActive();
+        /* Set activity of default tapes. They might record copy operations due to firstprivate. OpDiLib's AD approach
+         * for parallel regions moves these recordings to the correct tapes. */
+        if (T::getTape().isActive()) {
+          opdi::logic->beginSkippedParallelRegion();
+          OPDI_PARALLEL()
+          {
+            /* due to skipping, OpDiLib has not exchanged the tapes */
+            if (omp_get_thread_num() != 0) {
+              T::getTape().setActive();
+            }
           }
+          OPDI_END_PARALLEL
+          opdi::logic->endSkippedParallelRegion();
         }
       #endif
 

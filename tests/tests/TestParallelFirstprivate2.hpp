@@ -40,20 +40,35 @@ struct TestParallelFirstprivate2 : public TestBase<4, 1, 3, TestParallelFirstpri
       T* jobResults = new T[N];
 
       #ifndef BUILD_REFERENCE
-        /* This workaround ensures that firstprivate copy operations that are missed by the correct tapes
-         * are at least recorded on the default tapes so that they can be moved later. */
-        bool active = T::getTape().isActive();
-        #pragma omp parallel
-        {
-          if (active) {
-            T::getTape().setActive();
+        /* Set activity of default tapes. They might record copy operations due to firstprivate. OpDiLib's AD approach
+         * for parallel regions moves these recordings to the correct tapes. */
+        if (T::getTape().isActive()) {
+          opdi::logic->beginSkippedParallelRegion();
+          OPDI_PARALLEL()
+          {
+            /* due to skipping, OpDiLib has not exchanged the tapes */
+            if (omp_get_thread_num() != 0) {
+              T::getTape().setActive();
+            }
           }
+          OPDI_END_PARALLEL
+          opdi::logic->endSkippedParallelRegion();
         }
       #endif
 
       T helper = in[0] * in[1] * in[2] * in[3];
 
-      T::getTape().setPassive();
+      bool wasActive = T::getTape().isActive();
+
+      /* set this thread's tape as well as the default tapes passive */
+      opdi::logic->beginSkippedParallelRegion();
+      OPDI_PARALLEL()
+      {
+        T::getTape().setPassive();
+      }
+      OPDI_END_PARALLEL
+      opdi::logic->endSkippedParallelRegion();
+
       OPDI_PARALLEL(firstprivate(helper))
       {
         int nThreads = omp_get_num_threads();
@@ -66,7 +81,17 @@ struct TestParallelFirstprivate2 : public TestBase<4, 1, 3, TestParallelFirstpri
         }
       }
       OPDI_END_PARALLEL
-      T::getTape().setActive();
+
+      /* reactive this thread's tape and default tapes if applicable */
+      if (wasActive) {
+        opdi::logic->beginSkippedParallelRegion();
+        OPDI_PARALLEL()
+        {
+          T::getTape().setActive();
+        }
+        OPDI_END_PARALLEL
+        opdi::logic->endSkippedParallelRegion();
+      }
 
       OPDI_PARALLEL(firstprivate(helper))
       {
