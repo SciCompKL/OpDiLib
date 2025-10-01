@@ -54,8 +54,11 @@ namespace opdi {
 
     private:
 
-      static int skipParallelHandling;
-      #pragma omp threadprivate(skipParallelHandling)
+      static int skipParallelRegion;
+      #pragma omp threadprivate(skipParallelRegion)
+
+      static void internalBeginSkippedParallelRegion();
+      static void internalEndSkippedParallelRegion();
 
       static void reverseFunc(void* parallelData);
       static void deleteFunc(void* parallelData);
@@ -70,5 +73,8 @@ namespace opdi {
 
       virtual void setAdjointAccessMode(AdjointAccessMode mode);
       virtual AdjointAccessMode getAdjointAccessMode() const;
+
+      virtual void beginSkippedParallelRegion();
+      virtual void endSkippedParallelRegion();
   };
 }

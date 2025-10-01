@@ -94,6 +94,9 @@ namespace opdi {
 
       virtual void addReverseBarrier() = 0;
       virtual void addReverseFlush() = 0;
+
+      virtual void beginSkippedParallelRegion() = 0;
+      virtual void endSkippedParallelRegion() = 0;
   };
 
   extern LogicInterface* logic;

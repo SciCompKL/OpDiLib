@@ -35,7 +35,7 @@
 #include "implicitTaskOmpLogic.hpp"
 #include "parallelOmpLogic.hpp"
 
-int opdi::ParallelOmpLogic::skipParallelHandling = 0;
+int opdi::ParallelOmpLogic::skipParallelRegion = 0;
 
 void opdi::ParallelOmpLogic::reverseFunc(void* parallelDataPtr) {
 
@@ -47,7 +47,7 @@ void opdi::ParallelOmpLogic::reverseFunc(void* parallelDataPtr) {
     }
   #endif
 
-  ++ParallelOmpLogic::skipParallelHandling;
+  ParallelOmpLogic::internalBeginSkippedParallelRegion();
 
   #pragma omp parallel num_threads(parallelData->actualSizeOfTeam)
   {
@@ -94,7 +94,7 @@ void opdi::ParallelOmpLogic::reverseFunc(void* parallelDataPtr) {
     #endif
   }
 
-  --ParallelOmpLogic::skipParallelHandling;
+  ParallelOmpLogic::internalEndSkippedParallelRegion();
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
@@ -107,7 +107,7 @@ void opdi::ParallelOmpLogic::deleteFunc(void* parallelDataPtr) {
 
   ParallelData* parallelData = static_cast<ParallelData*>(parallelDataPtr);
 
-  ++ParallelOmpLogic::skipParallelHandling;
+  ParallelOmpLogic::internalBeginSkippedParallelRegion();
 
   // this triggers possibly pending implicit task end events
   #pragma omp parallel num_threads(parallelData->actualSizeOfTeam)
@@ -134,7 +134,7 @@ void opdi::ParallelOmpLogic::deleteFunc(void* parallelDataPtr) {
     delete implicitTaskData;
   }
 
-  --ParallelOmpLogic::skipParallelHandling;
+  ParallelOmpLogic::internalEndSkippedParallelRegion();
 
   tool->freePosition(parallelData->encounteringTaskTapePosition);
 
@@ -169,7 +169,7 @@ void opdi::ParallelOmpLogic::internalSetAdjointAccessMode(ImplicitTaskData* impl
 
 void* opdi::ParallelOmpLogic::onParallelBegin(void* encounteringTaskDataPtr, int maximumSizeOfTeam) {
 
-  if (tool->getThreadLocalTape() != nullptr && ParallelOmpLogic::skipParallelHandling == 0) {
+  if (tool->getThreadLocalTape() != nullptr && ParallelOmpLogic::skipParallelRegion == 0) {
 
     ImplicitTaskData* encounteringTaskData = static_cast<ImplicitTaskData*>(encounteringTaskDataPtr);
 
@@ -274,3 +274,18 @@ opdi::LogicInterface::AdjointAccessMode opdi::ParallelOmpLogic::getAdjointAccess
   }
 }
 
+void opdi::ParallelOmpLogic::internalBeginSkippedParallelRegion() {
+  ++ParallelOmpLogic::skipParallelRegion;
+}
+
+void opdi::ParallelOmpLogic::internalEndSkippedParallelRegion() {
+  --ParallelOmpLogic::skipParallelRegion;
+}
+
+void opdi::ParallelOmpLogic::beginSkippedParallelRegion() {
+  ParallelOmpLogic::internalBeginSkippedParallelRegion();
+}
+
+void opdi::ParallelOmpLogic::endSkippedParallelRegion() {
+  ParallelOmpLogic::internalEndSkippedParallelRegion();
+}
