@@ -48,6 +48,8 @@ namespace opdi {
         if (ImplicitBarrierTools::implicitBarrierStack.top()) {
           logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplicit,
                               LogicInterface::ScopeEndpoint::Begin);
+          logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplicit,
+                              LogicInterface::ScopeEndpoint::End);
           ImplicitBarrierTools::implicitBarrierStack.pop();
         }
       }
