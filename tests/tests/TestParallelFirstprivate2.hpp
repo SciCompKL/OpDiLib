@@ -28,10 +28,10 @@
 #include "testBase.hpp"
 
 template<typename _Case>
-struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstprivate<_Case>> {
+struct TestParallelFirstprivate2 : public TestBase<4, 1, 3, TestParallelFirstprivate2<_Case>> {
   public:
     using Case = _Case;
-    using Base = TestBase<4, 1, 3, TestParallelFirstprivate<Case>>;
+    using Base = TestBase<4, 1, 3, TestParallelFirstprivate2<Case>>;
 
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
@@ -58,6 +58,20 @@ struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstpriv
 
       T helper = in[0] * in[1] * in[2] * in[3];
 
+      bool wasActive = T::getTape().isActive();
+
+      /* set this thread's tape as well as the default tapes passive */
+      #ifndef BUILD_REFERENCE
+        opdi::logic->beginSkippedParallelRegion();
+      #endif
+      OPDI_PARALLEL()
+      {
+        T::getTape().setPassive();
+      }
+      OPDI_END_PARALLEL
+      #ifndef BUILD_REFERENCE
+        opdi::logic->endSkippedParallelRegion();
+      #endif
       OPDI_PARALLEL(firstprivate(helper))
       {
         int nThreads = omp_get_num_threads();
@@ -70,6 +84,35 @@ struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstpriv
         }
       }
       OPDI_END_PARALLEL
+
+      /* reactive this thread's tape and default tapes if applicable */
+      if (wasActive) {
+        #ifndef BUILD_REFERENCE
+          opdi::logic->beginSkippedParallelRegion();
+        #endif
+        OPDI_PARALLEL()
+        {
+          T::getTape().setActive();
+        }
+        OPDI_END_PARALLEL
+        #ifndef BUILD_REFERENCE
+          opdi::logic->endSkippedParallelRegion();
+        #endif
+      }
+
+      OPDI_PARALLEL(firstprivate(helper))
+      {
+        int nThreads = omp_get_num_threads();
+        int start = ((N - 1) / nThreads + 1) * omp_get_thread_num();
+        int end = std::min(N, ((N - 1) / nThreads + 1) * (omp_get_thread_num() + 1));
+
+        for (int i = start; i < end; ++i) {
+          Base::job1(i, in, jobResults[i]);
+          jobResults[i] = sin(jobResults[i] * helper);
+        }
+      }
+      OPDI_END_PARALLEL
+
 
       for (int i = 0; i < N; ++i) {
         out[0] += jobResults[i];

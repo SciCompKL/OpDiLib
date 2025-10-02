@@ -90,6 +90,31 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool isInitialImplicitTask
       implicitTaskData->adjointAccessModes.push_back(parallelData->encounteringTaskAdjointAccessMode);
 
       parallelData->childTaskData[indexInTeam] = implicitTaskData;
+
+      // check for copies due to firstprivate/copyin that were recorded on the wrong tapes
+      // move them to the correct tapes if needed
+
+      void* oldTapePosition = tool->allocPosition();
+      tool->getTapePosition(implicitTaskData->oldTape, oldTapePosition);
+
+      void* referencePosition = tool->allocPosition();
+      if (indexInTeam == 0) {
+        tool->copyPosition(referencePosition, parallelData->encounteringTaskTapePosition);
+      }
+      else {
+        tool->getZeroPosition(implicitTaskData->oldTape, referencePosition);
+      }
+
+      if (tool->comparePosition(oldTapePosition, referencePosition) > 0) {
+        // users should ensure that activity of default tapes and encountering task's tape match
+        assert(parallelData->isActiveParallelRegion);
+
+        tool->append(newTape, implicitTaskData->oldTape, referencePosition, oldTapePosition);
+        tool->erase(implicitTaskData->oldTape, referencePosition, oldTapePosition);
+      }
+
+      tool->freePosition(referencePosition);
+      tool->freePosition(oldTapePosition);
     }
     else {
       implicitTaskData->oldTape = nullptr;

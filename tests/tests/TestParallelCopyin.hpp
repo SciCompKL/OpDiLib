@@ -28,13 +28,21 @@
 #include "testBase.hpp"
 
 template<typename _Case>
-struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstprivate<_Case>> {
+struct TestParallelCopyin : public TestBase<4, 1, 3, TestParallelCopyin<_Case>> {
   public:
     using Case = _Case;
-    using Base = TestBase<4, 1, 3, TestParallelFirstprivate<Case>>;
+    using Base = TestBase<4, 1, 3, TestParallelCopyin<Case>>;
 
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
+
+      /* gcc refuses to compile this, so copyin is actually not tested with gcc right now */
+      static T helper;
+      #if !defined(__GNUC__) || defined(__clang__)
+        #if _OPENMP
+          #pragma omp threadprivate(helper)
+        #endif
+      #endif
 
       int const N = 1000;
       T* jobResults = new T[N];
@@ -56,9 +64,13 @@ struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstpriv
         }
       #endif
 
-      T helper = in[0] * in[1] * in[2] * in[3];
+      helper = in[0] * in[1] * in[2] * in[3];
 
-      OPDI_PARALLEL(firstprivate(helper))
+      #if !defined(__GNUC__) || defined(__clang__)
+        OPDI_PARALLEL(copyin(helper))
+      #else
+        OPDI_PARALLEL(firstprivate(helper))
+      #endif
       {
         int nThreads = omp_get_num_threads();
         int start = ((N - 1) / nThreads + 1) * omp_get_thread_num();

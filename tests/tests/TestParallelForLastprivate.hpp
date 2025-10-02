@@ -28,10 +28,10 @@
 #include "testBase.hpp"
 
 template<typename _Case>
-struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstprivate<_Case>> {
+struct TestParallelForLastprivate : public TestBase<4, 1, 3, TestParallelForLastprivate<_Case>> {
   public:
     using Case = _Case;
-    using Base = TestBase<4, 1, 3, TestParallelFirstprivate<Case>>;
+    using Base = TestBase<4, 1, 3, TestParallelForLastprivate<Case>>;
 
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
@@ -39,40 +39,18 @@ struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstpriv
       int const N = 1000;
       T* jobResults = new T[N];
 
-      #ifndef BUILD_REFERENCE
-        /* Set activity of default tapes. They might record copy operations due to firstprivate. OpDiLib's AD approach
-         * for parallel regions moves these recordings to the correct tapes. */
-        if (T::getTape().isActive()) {
-          opdi::logic->beginSkippedParallelRegion();
-          OPDI_PARALLEL()
-          {
-            /* due to skipping, OpDiLib has not exchanged the tapes */
-            if (omp_get_thread_num() != 0) {
-              T::getTape().setActive();
-            }
-          }
-          OPDI_END_PARALLEL
-          opdi::logic->endSkippedParallelRegion();
-        }
-      #endif
+      T helper = 0.0;
 
-      T helper = in[0] * in[1] * in[2] * in[3];
-
-      OPDI_PARALLEL(firstprivate(helper))
-      {
-        int nThreads = omp_get_num_threads();
-        int start = ((N - 1) / nThreads + 1) * omp_get_thread_num();
-        int end = std::min(N, ((N - 1) / nThreads + 1) * (omp_get_thread_num() + 1));
-
-        for (int i = start; i < end; ++i) {
-          Base::job1(i, in, jobResults[i]);
-          jobResults[i] = sin(jobResults[i] * helper);
-        }
+      OPDI_PARALLEL(for lastprivate(helper))
+      for (int i = 0; i < N; ++i) {
+        helper = in[0] * sin(i);
+        Base::job1(i, in, jobResults[i]);
+        jobResults[i] *= helper;
       }
       OPDI_END_PARALLEL
 
       for (int i = 0; i < N; ++i) {
-        out[0] += jobResults[i];
+        out[0] += helper * jobResults[i];
       }
 
       delete [] jobResults;
