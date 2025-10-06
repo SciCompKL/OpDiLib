@@ -39,8 +39,8 @@ namespace opdi {
 
   struct ReductionTools {
     public:
-      static omp_lock_t globalReducerLock;
-      static std::list<omp_nest_lock_t*> individualReducerLocks;
+      static omp_lock_t globalReductionLock;
+      static std::list<omp_nest_lock_t*> individualReductionLocks;
 
       /* item indicates a construct that might have a reduction clause */
       /* its value indicates whether there is a reduction clause */
@@ -108,7 +108,7 @@ namespace opdi {
   template<typename Type, int identifier>
   struct Reducer {
     public:
-      static omp_nest_lock_t reduceLock;
+      static omp_nest_lock_t reductionLock;
       static bool isInitialized;
 
       Type& value;
@@ -121,20 +121,20 @@ namespace opdi {
 
         if (!initialized) {
 
-          opdi_set_lock(&ReductionTools::globalReducerLock);
+          opdi_set_lock(&ReductionTools::globalReductionLock);
 
           #pragma omp atomic read
           initialized = Reducer::isInitialized;
 
           if (!initialized) {
-            opdi_init_nest_lock(&Reducer::reduceLock);
-            ReductionTools::individualReducerLocks.push_back(&Reducer::reduceLock);
+            opdi_init_nest_lock(&Reducer::reductionLock);
+            ReductionTools::individualReductionLocks.push_back(&Reducer::reductionLock);
 
             #pragma omp atomic write
             Reducer::isInitialized = true;
           }
 
-          opdi_unset_lock(&ReductionTools::globalReducerLock);
+          opdi_unset_lock(&ReductionTools::globalReductionLock);
         }
       }
 
@@ -142,14 +142,14 @@ namespace opdi {
         /* push barrier prior to first reduction-related operation */
         ReductionTools::addBarrierBeforeReductionsIfNeeded();
         this->checkInitialized();
-        opdi_set_nest_lock(&reduceLock);
+        opdi_set_nest_lock(&reductionLock);
       }
 
       Reducer& operator=(Type const& rhs) {
         value = rhs;
-        opdi_unset_nest_lock(&reduceLock);
-        opdi_unset_nest_lock(&reduceLock);
-        opdi_unset_nest_lock(&reduceLock);
+        opdi_unset_nest_lock(&reductionLock);
+        opdi_unset_nest_lock(&reductionLock);
+        opdi_unset_nest_lock(&reductionLock);
         return *this;
       }
   };
