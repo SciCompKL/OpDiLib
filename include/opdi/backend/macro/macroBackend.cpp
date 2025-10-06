@@ -36,15 +36,15 @@ std::stack<bool> opdi::ImplicitBarrierTools::implicitBarrierStack;
 
 omp_lock_t opdi::ReductionTools::globalReducerLock;
 std::list<omp_nest_lock_t*> opdi::ReductionTools::individualReducerLocks;
-std::stack<bool> opdi::ReductionTools::reductionBarrierStack;
+std::stack<bool> opdi::ReductionTools::hasReductions;
+std::stack<bool> opdi::ReductionTools::needsBarrierBeforeReductions;
+std::stack<bool> opdi::ReductionTools::needsBarrierAfterReductions;
 
 template<typename Type, int identifier>
 omp_nest_lock_t opdi::Reducer<Type, identifier>::reduceLock;
 
 template<typename Type, int identifier>
 bool opdi::Reducer<Type, identifier>::isInitialized = false;
-
-std::stack<opdi::ProbeScopeStatus::Status> opdi::ProbeScopeStatus::statusStack;
 
 // global macro backend variables
 

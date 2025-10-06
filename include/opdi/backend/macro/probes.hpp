@@ -31,7 +31,6 @@
 
 #include "dataTools.hpp"
 #include "implicitBarrierTools.hpp"
-#include "probeTools.hpp"
 #include "reductionTools.hpp"
 
 namespace opdi {
@@ -54,12 +53,13 @@ namespace opdi {
                                                     this->parallelData);
         DataTools::pushTaskData(this->taskData);
 
-        ProbeScopeStatus::beginImplicitTaskProbeScope();
+        ReductionTools::beginRegionThatSupportsReductions(false);
       }
 
       ~TaskProbe() {
         if (needsAction) {
-          ProbeScopeStatus::endImplicitTaskProbeScope();
+          /* order of TaskProbe and ReductionProbe destructors not relevant */
+          ReductionTools::endRegionThatSupportsReductions();
           logic->onImplicitTaskEnd(this->taskData);
           DataTools::popTaskData();
           DataTools::popParallelData();
@@ -103,22 +103,13 @@ namespace opdi {
   struct ReductionProbe {
     public:
 
-      bool needsAction;
+      ReductionProbe(int) {}
 
-      ReductionProbe(int) : needsAction(false) {}
-
-      ReductionProbe() : needsAction(true) {
-        ProbeScopeStatus::beginReductionProbeScope();
-        ReductionTools::beginRegionWithReduction();
+      ReductionProbe() {
+        ReductionTools::regionHasReductions();
       }
 
-      ~ReductionProbe() {
-        if (needsAction) {
-          ReductionTools::addBarrierIfNeeded();
-          ReductionTools::endRegionWithReduction();
-          ProbeScopeStatus::endReductionProbeScope();
-        }
-      }
+      ~ReductionProbe() {}
   };
 
   extern ReductionProbe internalReductionProbe;

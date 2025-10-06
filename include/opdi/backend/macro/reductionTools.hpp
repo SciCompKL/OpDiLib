@@ -35,8 +35,6 @@
 
 #include "../runtime.hpp"
 
-#include "probeTools.hpp"
-
 namespace opdi {
 
   struct ReductionTools {
@@ -44,41 +42,65 @@ namespace opdi {
       static omp_lock_t globalReducerLock;
       static std::list<omp_nest_lock_t*> individualReducerLocks;
 
-      static std::stack<bool> reductionBarrierStack;
-      #pragma omp threadprivate(reductionBarrierStack)
+      /* item indicates a construct that might have a reduction clause */
+      /* its value indicates whether there is a reduction clause */
+      static std::stack<bool> hasReductions;
+      #pragma omp threadprivate(hasReductions)
 
-      static void beginRegionWithReduction() {
-        ReductionTools::reductionBarrierStack.push(false);
+      /* item indicates a construct that might have a reduction clause */
+      /* its value indicates whether the barrier before reductions (still) needs to be added */
+      static std::stack<bool> needsBarrierBeforeReductions;
+      #pragma omp threadprivate(needsBarrierBeforeReductions)
+
+      /* item indicates a construct that might have a reduction clause */
+      /* its value indicates whether a barrier after reductions is required */
+      static std::stack<bool> needsBarrierAfterReductions;
+      #pragma omp threadprivate(needsBarrierAfterReductions)
+
+      static void beginRegionThatSupportsReductions(bool needsBarrierAfterReductions) {
+        ReductionTools::hasReductions.push(false);
+        ReductionTools::needsBarrierBeforeReductions.push(false);
+        ReductionTools::needsBarrierAfterReductions.push(needsBarrierAfterReductions);
       }
 
-      static void endRegionWithReduction() {
-        if (ReductionTools::reductionBarrierStack.top() == false) {
-          OPDI_ERROR("reduction barrier missing at end of region");
-        }
-        ReductionTools::reductionBarrierStack.pop();
-        if (ProbeScopeStatus::insideImplicitTaskProbeScope()) {
+      static void endRegionThatSupportsReductions() {
+        /* regards threads that did not participate in the reduction */
+        ReductionTools::addBarrierBeforeReductionsIfNeeded();
+
+        if (ReductionTools::hasReductions.top() && ReductionTools::needsBarrierAfterReductions.top()) {
+
+          /* add barrier after reductions */
           logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
                               LogicInterface::ScopeEndpoint::Begin);
+          /* actual barrier to separate subsequent worksharing constructs with a reduction, in particular if the first
+           * one uses nowait; otherwise risk of invalid order of locks and this reverse-only barrier */
           #pragma omp barrier
           logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
                               LogicInterface::ScopeEndpoint::End);
+
+          if (ReductionTools::needsBarrierBeforeReductions.top() == true) {
+            OPDI_ERROR("barrier missing before reductions");
+          }
         }
+
+        ReductionTools::hasReductions.pop();
+        ReductionTools::needsBarrierBeforeReductions.pop();
+        ReductionTools::needsBarrierAfterReductions.pop();
       }
 
-      static void addBarrierIfNeeded() {
-        if (ReductionTools::reductionBarrierStack.top() == false) {
-          if (ProbeScopeStatus::insideImplicitTaskProbeScope()) {
-            #if defined(__GNUC__) && !defined(__clang__)
-              opdi_set_lock(&globalReducerLock);
-              opdi_unset_lock(&globalReducerLock);
-            #else
-              logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
-                                  LogicInterface::ScopeEndpoint::Begin);
-              logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
-                                  LogicInterface::ScopeEndpoint::End);
-            #endif
-          }
-          ReductionTools::reductionBarrierStack.top() = true;
+      static void regionHasReductions() {
+        ReductionTools::hasReductions.top() = true;
+        ReductionTools::needsBarrierBeforeReductions.top() = true;
+        /* needsBarrierAfterReductions is indicated as a parameter to beginRegionThatSupportsReductions */
+      }
+
+      static void addBarrierBeforeReductionsIfNeeded() {
+        if (ReductionTools::needsBarrierBeforeReductions.top()) {
+          logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
+                              LogicInterface::ScopeEndpoint::Begin);
+          logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation,
+                              LogicInterface::ScopeEndpoint::End);
+          ReductionTools::needsBarrierBeforeReductions.top() = false;
         }
       }
   };
@@ -117,7 +139,8 @@ namespace opdi {
       }
 
       Reducer(Type& value) : value(value) {
-        ReductionTools::addBarrierIfNeeded();
+        /* push barrier prior to first reduction-related operation */
+        ReductionTools::addBarrierBeforeReductionsIfNeeded();
         this->checkInitialized();
         opdi_set_nest_lock(&reduceLock);
       }

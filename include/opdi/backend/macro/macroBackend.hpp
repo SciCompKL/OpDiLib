@@ -45,7 +45,6 @@
 #include "macros.hpp"
 #include "mutexIdentifiers.hpp"
 #include "probes.hpp"
-#include "probeTools.hpp"
 #include "reductionTools.hpp"
 
 namespace opdi {

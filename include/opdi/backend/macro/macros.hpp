@@ -49,16 +49,20 @@
 
 #define OPDI_FOR(...) \
   opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
+  opdi::ReductionTools::beginRegionThatSupportsReductions(true); \
   OPDI_PRAGMA(omp for __VA_ARGS__ private(opdi::internalLoopProbe))
 
 #define OPDI_END_FOR \
+  opdi::ReductionTools::endRegionThatSupportsReductions(); \
   opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier();
 
 #define OPDI_SECTIONS(...) \
   opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
+  opdi::ReductionTools::beginRegionThatSupportsReductions(true); \
   OPDI_PRAGMA(omp sections private(opdi::internalSectionsProbe) __VA_ARGS__)
 
 #define OPDI_END_SECTIONS \
+  opdi::ReductionTools::endRegionThatSupportsReductions(); \
   opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier();
 
 #define OPDI_SINGLE(...) \
