@@ -92,7 +92,13 @@
 #define OPDI_BARRIER(...) \
   OPDI_PRAGMA(omp barrier __VA_ARGS__)
 
-#define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
-  OPDI_PRAGMA(omp declare reduction(OP_NAME : TYPE : omp_out = omp_out OP omp_in) initializer(omp_priv = INIT))
+#if _OPENMP >= 202411
+  #define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
+    OPDI_PRAGMA(omp declare_reduction(OP_NAME : TYPE) combiner(omp_out = omp_out OP omp_in) \
+                initializer(omp_priv = INIT))
+#else
+  #define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
+    OPDI_PRAGMA(omp declare reduction(OP_NAME : TYPE : omp_out = omp_out OP omp_in) initializer(omp_priv = INIT))
+#endif
 
 #define OPDI_REDUCTION

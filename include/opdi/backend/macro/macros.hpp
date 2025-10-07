@@ -235,15 +235,28 @@
 
 // reduction macros
 
-#define OPDI_INTERNAL_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT, ID) \
-  TYPE operator OP (opdi::Reducer<TYPE, ID> const& lhs, \
-                    opdi::Reducer<TYPE, ID> const& rhs) { \
-    return lhs.value OP rhs.value; \
-  } \
-  \
-  OPDI_PRAGMA(omp declare reduction(OP_NAME : TYPE : \
-      opdi::Reducer<TYPE, ID>(omp_out) = opdi::Reducer<TYPE, ID>(omp_out) OP opdi::Reducer<TYPE, ID>(omp_in)) \
-      initializer(omp_priv = INIT))
+#if _OPENMP >= 202411
+  #define OPDI_INTERNAL_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT, ID) \
+    TYPE operator OP (opdi::Reducer<TYPE, ID> const& lhs, \
+                     opdi::Reducer<TYPE, ID> const& rhs) { \
+          return lhs.value OP rhs.value; \
+    } \
+    \
+    OPDI_PRAGMA(omp declare_reduction(OP_NAME : TYPE) \
+        combiner(opdi::Reducer<TYPE, ID>(omp_out) = \
+            opdi::Reducer<TYPE, ID>(omp_out) OP opdi::Reducer<TYPE, ID>(omp_in)) \
+        initializer(omp_priv = INIT))
+#else
+  #define OPDI_INTERNAL_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT, ID) \
+    TYPE operator OP (opdi::Reducer<TYPE, ID> const& lhs, \
+                      opdi::Reducer<TYPE, ID> const& rhs) { \
+      return lhs.value OP rhs.value; \
+    } \
+    \
+    OPDI_PRAGMA(omp declare reduction(OP_NAME : TYPE : \
+        opdi::Reducer<TYPE, ID>(omp_out) = opdi::Reducer<TYPE, ID>(omp_out) OP opdi::Reducer<TYPE, ID>(omp_in)) \
+        initializer(omp_priv = INIT))
+#endif
 
 #define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
   OPDI_INTERNAL_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT, __COUNTER__)
