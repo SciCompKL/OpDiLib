@@ -39,6 +39,7 @@ std::list<omp_nest_lock_t*> opdi::ReductionTools::individualReductionLocks;
 std::stack<bool> opdi::ReductionTools::hasReductions;
 std::stack<bool> opdi::ReductionTools::needsBarrierBeforeReductions;
 std::stack<bool> opdi::ReductionTools::needsBarrierAfterReductions;
+int opdi::ReductionTools::implicitTaskNestingDepth = 0;
 
 template<typename Type, int identifier>
 omp_nest_lock_t opdi::Reducer<Type, identifier>::reductionLock;

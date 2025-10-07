@@ -53,13 +53,25 @@ namespace opdi {
                                                     this->parallelData);
         DataTools::pushTaskData(this->taskData);
 
-        ReductionTools::beginRegionThatSupportsReductions(false);
+        assert(ReductionTools::implicitTaskNestingDepth <= omp_get_level());
+
+        if (ReductionTools::implicitTaskNestingDepth != omp_get_level()) {
+          /* TaskProbe constructor before ReductionProbe constructor (if any) */
+          do {
+            ++ReductionTools::implicitTaskNestingDepth;
+          } while (ReductionTools::implicitTaskNestingDepth != omp_get_level());
+
+          ReductionTools::beginRegionThatSupportsReductions(false);
+        }
       }
 
       ~TaskProbe() {
         if (needsAction) {
-          /* order of TaskProbe and ReductionProbe destructors not relevant */
+          assert(ReductionTools::implicitTaskNestingDepth == omp_get_level());
+
           ReductionTools::endRegionThatSupportsReductions();
+          --ReductionTools::implicitTaskNestingDepth;
+
           logic->onImplicitTaskEnd(this->taskData);
           DataTools::popTaskData();
           DataTools::popParallelData();
@@ -103,9 +115,20 @@ namespace opdi {
   struct ReductionProbe {
     public:
 
-      ReductionProbe(int) {}
+      ReductionProbe(int)  {}
 
       ReductionProbe() {
+        assert(ReductionTools::implicitTaskNestingDepth <= omp_get_level());
+
+        if (ReductionTools::implicitTaskNestingDepth != omp_get_level()) {
+          /* this condition can only be satisfied by probes on a parallel construct */
+          /* ReductionProbe constructor before TaskProbe constructor */
+          do {
+            ++ReductionTools::implicitTaskNestingDepth;
+          } while (ReductionTools::implicitTaskNestingDepth != omp_get_level());
+          ReductionTools::beginRegionThatSupportsReductions(false);
+        }
+
         ReductionTools::regionHasReductions();
       }
 

@@ -57,6 +57,10 @@ namespace opdi {
       static std::stack<bool> needsBarrierAfterReductions;
       #pragma omp threadprivate(needsBarrierAfterReductions)
 
+      /* resolves ordering issues between TaskProbe and ReductionProbe constructors */
+      static int implicitTaskNestingDepth;
+      #pragma omp threadprivate(implicitTaskNestingDepth)
+
       static void beginRegionThatSupportsReductions(bool needsBarrierAfterReductions) {
         ReductionTools::hasReductions.push(false);
         ReductionTools::needsBarrierBeforeReductions.push(false);
