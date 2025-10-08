@@ -49,16 +49,20 @@
 
 #define OPDI_FOR(...) \
   opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
+  opdi::ReductionTools::beginRegionThatSupportsReductions(true); \
   OPDI_PRAGMA(omp for __VA_ARGS__ private(opdi::internalLoopProbe))
 
 #define OPDI_END_FOR \
+  opdi::ReductionTools::endRegionThatSupportsReductions(); \
   opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier();
 
 #define OPDI_SECTIONS(...) \
   opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
+  opdi::ReductionTools::beginRegionThatSupportsReductions(true); \
   OPDI_PRAGMA(omp sections private(opdi::internalSectionsProbe) __VA_ARGS__)
 
 #define OPDI_END_SECTIONS \
+  opdi::ReductionTools::endRegionThatSupportsReductions(); \
   opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier();
 
 #define OPDI_SINGLE(...) \
@@ -161,15 +165,13 @@
 #define OPDI_CRITICAL_NAME(name) \
   OPDI_PRAGMA(omp critical (name)) \
   { \
-    std::size_t const opdiInternalCriticalIdentifier = \
-        dynamic_cast<opdi::MacroBackend*>(opdi::backend)->getCriticalIdentifier(std::string(#name)); \
+    std::size_t const opdiInternalCriticalIdentifier = opdi::backend->getCriticalIdentifier(std::string(#name)); \
     opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Critical, opdiInternalCriticalIdentifier);
 
 #define OPDI_CRITICAL_NAME_ARGS(name, ...) \
   OPDI_PRAGMA(omp critical (name) __VA_ARGS__) \
   { \
-    std::size_t const opdiInternalCriticalIdentifier = \
-        dynamic_cast<opdi::MacroBackend*>(opdi::backend)->getCriticalIdentifier(std::string(#name)); \
+    std::size_t const opdiInternalCriticalIdentifier = opdi::backend->getCriticalIdentifier(std::string(#name)); \
     opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Critical, opdiInternalCriticalIdentifier);
 
 #define OPDI_END_CRITICAL \
@@ -231,18 +233,27 @@
 
 // reduction macros
 
-#define OPDI_INTERNAL_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT, ID) \
-  TYPE operator OP (opdi::Reducer<TYPE, ID> const& lhs, \
-                    opdi::Reducer<TYPE, ID> const& rhs) { \
-    return lhs.value OP rhs.value; \
-  } \
-  \
-  OPDI_PRAGMA(omp declare reduction(OP_NAME : TYPE : \
-      opdi::Reducer<TYPE, ID>(omp_out) = opdi::Reducer<TYPE, ID>(omp_out) OP opdi::Reducer<TYPE, ID>(omp_in)) \
-      initializer(omp_priv = INIT))
-
-#define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
-  OPDI_INTERNAL_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT, __COUNTER__)
+#if _OPENMP >= 202411
+  #define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
+    TYPE operator OP (opdi::Reducer<TYPE> const& lhs, \
+                      opdi::Reducer<TYPE> const& rhs) { \
+          return lhs.value OP rhs.value; \
+    } \
+    \
+    OPDI_PRAGMA(omp declare_reduction(OP_NAME : TYPE) \
+        combiner(opdi::Reducer(omp_out) = opdi::Reducer(omp_out) OP opdi::Reducer(omp_in)) \
+        initializer(omp_priv = INIT))
+#else
+  #define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
+    TYPE operator OP (opdi::Reducer<TYPE> const& lhs, \
+                      opdi::Reducer<TYPE> const& rhs) { \
+      return lhs.value OP rhs.value; \
+    } \
+    \
+    OPDI_PRAGMA(omp declare reduction(OP_NAME : TYPE : \
+        opdi::Reducer(omp_out) = opdi::Reducer(omp_out) OP opdi::Reducer(omp_in)) \
+        initializer(omp_priv = INIT))
+#endif
 
 #define OPDI_REDUCTION private(opdi::internalReductionProbe)
 

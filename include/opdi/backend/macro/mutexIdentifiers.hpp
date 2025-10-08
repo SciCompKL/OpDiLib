@@ -36,9 +36,7 @@ namespace opdi {
     private:
 
       omp_lock_t criticalLock;
-
       std::map<std::string, std::size_t> criticalIdentifiers;
-
       std::size_t nextCriticalIdentifier;
 
     public:
@@ -65,6 +63,10 @@ namespace opdi {
         omp_unset_lock(&this->criticalLock);
 
         return result;
+      }
+
+      std::size_t getReductionIdentifier() {
+        return reinterpret_cast<std::size_t>(opdi::backend->getParallelData());
       }
 
       std::size_t getLockIdentifier(omp_lock_t* lock) {

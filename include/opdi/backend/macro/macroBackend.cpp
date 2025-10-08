@@ -34,17 +34,15 @@ std::stack<void*> opdi::DataTools::taskData;
 
 std::stack<bool> opdi::ImplicitBarrierTools::implicitBarrierStack;
 
-omp_lock_t opdi::ReductionTools::globalReducerLock;
-std::list<omp_nest_lock_t*> opdi::ReductionTools::individualReducerLocks;
-std::stack<bool> opdi::ReductionTools::reductionBarrierStack;
+omp_lock_t opdi::ReductionTools::globalReductionLock;
+std::list<omp_nest_lock_t*> opdi::ReductionTools::individualReductionLocks;
+std::stack<bool> opdi::ReductionTools::hasReductions;
+std::stack<bool> opdi::ReductionTools::needsBarrierBeforeReductions;
+std::stack<bool> opdi::ReductionTools::needsBarrierAfterReductions;
+int opdi::ReductionTools::implicitTaskNestingDepth = 0;
 
-template<typename Type, int identifier>
-omp_nest_lock_t opdi::Reducer<Type, identifier>::reduceLock;
-
-template<typename Type, int identifier>
-bool opdi::Reducer<Type, identifier>::isInitialized = false;
-
-std::stack<opdi::ProbeScopeStatus::Status> opdi::ProbeScopeStatus::statusStack;
+template<typename Type>
+size_t opdi::Reducer<Type>::nConstructorCalls = 0;
 
 // global macro backend variables
 
