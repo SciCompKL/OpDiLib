@@ -162,6 +162,16 @@ namespace opdi {
         return (std::size_t) waitId;
       }
 
+      std::size_t getCriticalIdentifier(std::string const& name) {
+        OPDI_UNUSED(name);
+        OPDI_ERROR("OMPT backend does not support explicit queries of mutex identifiers of critical regions.");
+        return 0;
+      }
+
+      std::size_t getReductionIdentifier() {
+        return reinterpret_cast<std::size_t>(getParallelData());
+      }
+
       void* getParallelData() {
         ompt_data_t* parallelData;
         int teamSize;

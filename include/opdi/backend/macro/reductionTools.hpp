@@ -35,6 +35,8 @@
 
 #include "../runtime.hpp"
 
+#include "mutexIdentifiers.hpp"
+
 namespace opdi {
 
   struct ReductionTools {
@@ -109,51 +111,35 @@ namespace opdi {
       }
   };
 
-  template<typename Type, int identifier>
+  template<typename Type>
   struct Reducer {
     public:
-      static omp_nest_lock_t reductionLock;
-      static bool isInitialized;
+      static size_t nConstructorCalls;
+      #pragma omp threadprivate(nConstructorCalls)
 
       Type& value;
-
-      void checkInitialized() {
-
-        bool initialized;
-        #pragma omp atomic read
-        initialized = Reducer::isInitialized;
-
-        if (!initialized) {
-
-          opdi_set_lock(&ReductionTools::globalReductionLock);
-
-          #pragma omp atomic read
-          initialized = Reducer::isInitialized;
-
-          if (!initialized) {
-            opdi_init_nest_lock(&Reducer::reductionLock);
-            ReductionTools::individualReductionLocks.push_back(&Reducer::reductionLock);
-
-            #pragma omp atomic write
-            Reducer::isInitialized = true;
-          }
-
-          opdi_unset_lock(&ReductionTools::globalReductionLock);
-        }
-      }
 
       Reducer(Type& value) : value(value) {
         /* push barrier prior to first reduction-related operation */
         ReductionTools::addBarrierBeforeReductionsIfNeeded();
-        this->checkInitialized();
-        opdi_set_nest_lock(&reductionLock);
+
+        /* first constructor call in the course of a statement acquires the mutex */
+        if (nConstructorCalls == 0) {
+          opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Reduction,
+                                       opdi::backend->getReductionIdentifier());
+        }
+        ++nConstructorCalls;
       }
 
       Reducer& operator=(Type const& rhs) {
         value = rhs;
-        opdi_unset_nest_lock(&reductionLock);
-        opdi_unset_nest_lock(&reductionLock);
-        opdi_unset_nest_lock(&reductionLock);
+
+        opdi::logic->onMutexReleased(opdi::LogicInterface::MutexKind::Reduction,
+                                     opdi::backend->getReductionIdentifier());
+
+        assert(nConstructorCalls == 3);
+        nConstructorCalls = 0;
+
         return *this;
       }
   };

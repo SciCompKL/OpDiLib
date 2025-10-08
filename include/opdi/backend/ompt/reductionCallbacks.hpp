@@ -33,6 +33,8 @@
 #include "../../helpers/macros.hpp"
 #include "../../logic/logicInterface.hpp"
 
+#include "../backendInterface.hpp"
+
 #include "callbacksBase.hpp"
 
 namespace opdi {
@@ -55,10 +57,10 @@ namespace opdi {
         OPDI_UNUSED(codeptr);
 
         if (ompt_scope_begin == _endpoint) {
-          logic->onMutexAcquired(LogicInterface::MutexKind::Reduction, 0);
+          logic->onMutexAcquired(LogicInterface::MutexKind::Reduction, opdi::backend->getReductionIdentifier());
         }
         else {
-          logic->onMutexReleased(LogicInterface::MutexKind::Reduction, 0);
+          logic->onMutexReleased(LogicInterface::MutexKind::Reduction, opdi::backend->getReductionIdentifier());
         }
       }
 

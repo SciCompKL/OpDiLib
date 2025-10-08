@@ -40,6 +40,8 @@ namespace opdi {
 
       virtual std::size_t getLockIdentifier(omp_lock_t* lock) = 0;
       virtual std::size_t getNestLockIdentifier(omp_nest_lock_t* lock) = 0;
+      virtual std::size_t getCriticalIdentifier(std::string const& name) = 0;
+      virtual std::size_t getReductionIdentifier() = 0;
 
       virtual void* getParallelData() = 0;
       virtual void* getTaskData() = 0;

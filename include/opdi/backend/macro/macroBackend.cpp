@@ -41,11 +41,8 @@ std::stack<bool> opdi::ReductionTools::needsBarrierBeforeReductions;
 std::stack<bool> opdi::ReductionTools::needsBarrierAfterReductions;
 int opdi::ReductionTools::implicitTaskNestingDepth = 0;
 
-template<typename Type, int identifier>
-omp_nest_lock_t opdi::Reducer<Type, identifier>::reductionLock;
-
-template<typename Type, int identifier>
-bool opdi::Reducer<Type, identifier>::isInitialized = false;
+template<typename Type>
+size_t opdi::Reducer<Type>::nConstructorCalls = 0;
 
 // global macro backend variables
 
