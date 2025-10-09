@@ -164,12 +164,17 @@ namespace opdi {
 
       std::size_t getCriticalIdentifier(std::string const& name) {
         OPDI_UNUSED(name);
-        OPDI_ERROR("OMPT backend does not support explicit queries of mutex identifiers of critical regions.");
+        OPDI_ERROR("OMPT backend does not support explicit queries of mutex identifiers of critical constructs.");
         return 0;
       }
 
       std::size_t getReductionIdentifier() {
         return reinterpret_cast<std::size_t>(getParallelData());
+      }
+
+      std::size_t getOrderedIdentifier() {
+        OPDI_ERROR("OMPT backend does not support explicit queries of mutex identifiers of ordered constructs.");
+        return 0;
       }
 
       void* getParallelData() {
