@@ -181,10 +181,10 @@
 #define OPDI_ORDERED(...) \
   OPDI_PRAGMA(omp ordered __VA_ARGS__) \
   { \
-    opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Ordered, 0);
+    opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Ordered, opdi::backend->getOrderedIdentifier());
 
 #define OPDI_END_ORDERED \
-    opdi::logic->onMutexReleased(opdi::LogicInterface::MutexKind::Ordered, 0); \
+    opdi::logic->onMutexReleased(opdi::LogicInterface::MutexKind::Ordered, opdi::backend->getOrderedIdentifier()); \
   }
 
 #define OPDI_SECTION(...) \

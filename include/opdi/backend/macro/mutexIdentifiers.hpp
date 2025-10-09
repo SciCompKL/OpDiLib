@@ -49,6 +49,14 @@ namespace opdi {
         omp_destroy_lock(&this->criticalLock);
       }
 
+      std::size_t getLockIdentifier(omp_lock_t* lock) {
+        return reinterpret_cast<std::size_t>(lock);
+      }
+
+      std::size_t getNestLockIdentifier(omp_nest_lock_t* lock) {
+        return reinterpret_cast<std::size_t>(lock);
+      }
+
       std::size_t getCriticalIdentifier(std::string const& name) {
         // unnamed critical region has index 0
         if (name.empty()) {
@@ -69,12 +77,8 @@ namespace opdi {
         return reinterpret_cast<std::size_t>(opdi::backend->getParallelData());
       }
 
-      std::size_t getLockIdentifier(omp_lock_t* lock) {
-        return reinterpret_cast<std::size_t>(lock);
-      }
-
-      std::size_t getNestLockIdentifier(omp_nest_lock_t* lock) {
-        return reinterpret_cast<std::size_t>(lock);
+      std::size_t getOrderedIdentifier() {
+        return reinterpret_cast<std::size_t>(opdi::backend->getParallelData());
       }
   };
 
