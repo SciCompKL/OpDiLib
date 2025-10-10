@@ -59,7 +59,7 @@ namespace opdi {
       static std::stack<bool> needsBarrierAfterReductions;
       #pragma omp threadprivate(needsBarrierAfterReductions)
 
-      /* resolves ordering issues between TaskProbe and ReductionProbe constructors */
+      /* resolves ordering issues between ImplicitTaskProbe and ReductionProbe constructors */
       static int implicitTaskNestingDepth;
       #pragma omp threadprivate(implicitTaskNestingDepth)
 

@@ -59,16 +59,16 @@ namespace opdi {
         return &this->lock;
       }
 
-      void* getTape(void* master, int index) {
+      void* getTape(void* encounteringTaskTape, int index) {
         omp_set_lock(&this->lock);
 
-        if (this->tapes[master].find(index) == this->tapes[master].end()) {
+        if (this->tapes[encounteringTaskTape].find(index) == this->tapes[encounteringTaskTape].end()) {
           void* newTape = tool->createTape();
-          this->tapes[master][index] = newTape;
+          this->tapes[encounteringTaskTape][index] = newTape;
           this->createdTapes.insert(newTape);
         }
 
-        void* result = this->tapes[master][index];
+        void* result = this->tapes[encounteringTaskTape][index];
         omp_unset_lock(&this->lock);
         return result;
       }

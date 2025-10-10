@@ -35,18 +35,18 @@
 
 namespace opdi {
 
-  struct TaskProbe {
+  struct ImplicitTaskProbe {
     public:
 
       void* parallelData;
       void* taskData;
       bool needsAction;
 
-      TaskProbe() : parallelData(nullptr), taskData(nullptr), needsAction(false) {}
+      ImplicitTaskProbe() : parallelData(nullptr), taskData(nullptr), needsAction(false) {}
 
-      TaskProbe(void* parallelData) : parallelData(parallelData), taskData(nullptr), needsAction(false) {}
+      ImplicitTaskProbe(void* parallelData) : parallelData(parallelData), taskData(nullptr), needsAction(false) {}
 
-      TaskProbe(TaskProbe const& other) : parallelData(other.parallelData), needsAction(true) {
+      ImplicitTaskProbe(ImplicitTaskProbe const& other) : parallelData(other.parallelData), needsAction(true) {
 
         DataTools::pushParallelData(this->parallelData);
         this->taskData = logic->onImplicitTaskBegin(false, omp_get_num_threads(), omp_get_thread_num(),
@@ -56,7 +56,7 @@ namespace opdi {
         assert(ReductionTools::implicitTaskNestingDepth <= omp_get_level());
 
         if (ReductionTools::implicitTaskNestingDepth != omp_get_level()) {
-          /* TaskProbe constructor before ReductionProbe constructor (if any) */
+          /* ImplicitTaskProbe constructor before ReductionProbe constructor (if any) */
           do {
             ++ReductionTools::implicitTaskNestingDepth;
           } while (ReductionTools::implicitTaskNestingDepth != omp_get_level());
@@ -65,7 +65,7 @@ namespace opdi {
         }
       }
 
-      ~TaskProbe() {
+      ~ImplicitTaskProbe() {
         if (needsAction) {
           assert(ReductionTools::implicitTaskNestingDepth == omp_get_level());
 
@@ -122,7 +122,7 @@ namespace opdi {
 
         if (ReductionTools::implicitTaskNestingDepth != omp_get_level()) {
           /* this condition can only be satisfied by probes on a parallel construct */
-          /* ReductionProbe constructor before TaskProbe constructor */
+          /* ReductionProbe constructor before ImplicitTaskProbe constructor */
           do {
             ++ReductionTools::implicitTaskNestingDepth;
           } while (ReductionTools::implicitTaskNestingDepth != omp_get_level());
