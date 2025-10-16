@@ -123,7 +123,7 @@ void opdi::ParallelOmpLogic::deleteFunc(void* parallelDataPtr) {
     void* oldTape = tool->getThreadLocalTape();
     tool->setThreadLocalTape(implicitTaskData->newTape);
 
-    tool->reset(implicitTaskData->newTape, implicitTaskData->positions[0], false);
+    tool->reset(implicitTaskData->newTape, implicitTaskData->positions[0], OPDI_OMP_LOGIC_CLEAR_ADJOINTS);
 
     tool->setThreadLocalTape(oldTape);
 
