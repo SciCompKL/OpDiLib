@@ -72,7 +72,7 @@ namespace opdi {
 
       virtual void finalize() {
         // finalize initial implicit task
-        ImplicitTaskData* initialImplicitTaskData = static_cast<ImplicitTaskData*>(backend->getTaskData());
+        ImplicitTaskData* initialImplicitTaskData = static_cast<ImplicitTaskData*>(backend->getImplicitTaskData());
 
         assert(initialImplicitTaskData->isInitialImplicitTask);
 

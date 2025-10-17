@@ -108,7 +108,7 @@ struct TestTaskReset : public TestBase<4, 1, 3, TestTaskReset<_Case>> {
         T::getTape().resetTo(position);
 
         #if _OPENMP
-          opdi::logic->resetTask(&position, mode);
+          opdi::logic->resetImplicitTask(&position, mode);
         #endif
 
         assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);

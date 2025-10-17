@@ -45,7 +45,7 @@ namespace opdi {
       virtual std::size_t getOrderedIdentifier() = 0;
 
       virtual void* getParallelData() = 0;
-      virtual void* getTaskData() = 0;
+      virtual void* getImplicitTaskData() = 0;
 
       virtual void setInitialImplicitTaskData(void* data) = 0;
   };

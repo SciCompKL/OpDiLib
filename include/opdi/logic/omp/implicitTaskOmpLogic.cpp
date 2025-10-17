@@ -177,9 +177,9 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* implicitTaskDataPtr) {
   }
 }
 
-void opdi::ImplicitTaskOmpLogic::resetTask(void* position, opdi::LogicInterface::AdjointAccessMode mode) {
+void opdi::ImplicitTaskOmpLogic::resetImplicitTask(void* position, opdi::LogicInterface::AdjointAccessMode mode) {
 
-  void* implicitTaskDataPtr = backend->getTaskData();
+  void* implicitTaskDataPtr = backend->getImplicitTaskData();
 
   if (implicitTaskDataPtr != nullptr) {
     ImplicitTaskData* implicitTaskData = static_cast<ImplicitTaskData*>(implicitTaskDataPtr);

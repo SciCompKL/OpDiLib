@@ -83,7 +83,7 @@ struct TestExternalFunctionLogicCalls : public TestBase<4, 1, 3, TestExternalFun
         opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), newPosition);
         assert(opdi::tool->comparePosition(position, newPosition) == 0);
 
-        opdi::logic->resetTask(&position, mode);
+        opdi::logic->resetImplicitTask(&position, mode);
         newMode = opdi::logic->getAdjointAccessMode();
         assert(mode == newMode);
         opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), newPosition);

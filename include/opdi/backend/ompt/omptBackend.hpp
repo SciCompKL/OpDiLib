@@ -191,7 +191,7 @@ namespace opdi {
         return parallelData->ptr;
       }
 
-      void* getTaskData() {
+      void* getImplicitTaskData() {
         int flags;
         ompt_data_t* taskData;
         ompt_frame_t* taskFrame;

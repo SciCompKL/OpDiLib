@@ -65,7 +65,7 @@ namespace opdi {
       void finalize() {
         // pop task data associated with initial implicit task
         DataTools::popTaskData();
-        assert(DataTools::getTaskData() == nullptr);
+        assert(DataTools::getImplicitTaskData() == nullptr);
 
         opdi_set_lock(&ReductionTools::globalReductionLock);
 
@@ -82,12 +82,12 @@ namespace opdi {
         return DataTools::getParallelData();
       }
 
-      void* getTaskData() {
-        return DataTools::getTaskData();
+      void* getImplicitTaskData() {
+        return DataTools::getImplicitTaskData();
       }
 
       void setInitialImplicitTaskData(void* data) {
-        assert(DataTools::getTaskData() == nullptr);
+        assert(DataTools::getImplicitTaskData() == nullptr);
         DataTools::pushTaskData(data);
       }
   };

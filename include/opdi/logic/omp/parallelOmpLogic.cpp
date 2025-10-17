@@ -252,7 +252,7 @@ void opdi::ParallelOmpLogic::onParallelEnd(void* parallelDataPtr) {
 void opdi::ParallelOmpLogic::setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode mode) {
 
   #if OPDI_VARIABLE_ADJOINT_ACCESS_MODE
-    void* implicitTaskDataPtr = backend->getTaskData();
+    void* implicitTaskDataPtr = backend->getImplicitTaskData();
     if (implicitTaskDataPtr != nullptr) {  // nullptr if called during tape evaluation
       #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {
@@ -266,7 +266,7 @@ void opdi::ParallelOmpLogic::setAdjointAccessMode(opdi::LogicInterface::AdjointA
 }
 
 opdi::LogicInterface::AdjointAccessMode opdi::ParallelOmpLogic::getAdjointAccessMode() const {
-  void* implicitTaskDataPtr = backend->getTaskData();
+  void* implicitTaskDataPtr = backend->getImplicitTaskData();
   if (implicitTaskDataPtr != nullptr) {  // nullptr if called during tape evaluation
     return internalGetAdjointAccessMode(static_cast<ImplicitTaskData*>(implicitTaskDataPtr));
   } else {

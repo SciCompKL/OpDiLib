@@ -90,7 +90,7 @@ namespace opdi {
       virtual void setAdjointAccessMode(AdjointAccessMode mode) = 0;
       virtual AdjointAccessMode getAdjointAccessMode() const = 0;
 
-      virtual void resetTask(void* position, AdjointAccessMode mode) = 0;
+      virtual void resetImplicitTask(void* position, AdjointAccessMode mode) = 0;
 
       virtual void addReverseBarrier() = 0;
       virtual void addReverseFlush() = 0;
