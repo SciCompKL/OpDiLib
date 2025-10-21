@@ -60,6 +60,9 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool isInitialImplicitTask
     // assume that the tape does not change. OpDiLib uses the initial implicit task's data primarily to track its
     // adjoint access mode.
     if (!isInitialImplicitTask) {
+
+      assert(tool != nullptr);
+
       if (indexInTeam == 0) {
         if (parallelData->maximumSizeOfTeam < actualSizeOfTeam) {
           OPDI_ERROR("Actual number of threads exceeds maximum number of threads.");
@@ -68,6 +71,7 @@ void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool isInitialImplicitTask
       }
 
       implicitTaskData->oldTape = tool->getThreadLocalTape();
+      assert(implicitTaskData->oldTape != nullptr);
       implicitTaskData->parallelData = parallelData;
 
       void* newTape = this->tapePool.getTape(parallelData->encounteringTaskTape, indexInTeam);
@@ -149,6 +153,8 @@ void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* implicitTaskDataPtr) {
     #endif
 
     if (!implicitTaskData->isInitialImplicitTask) {
+      assert(tool != nullptr);
+
       tool->setThreadLocalTape(implicitTaskData->oldTape);
 
       implicitTaskData->positions.push_back(tool->allocPosition());
@@ -185,6 +191,8 @@ void opdi::ImplicitTaskOmpLogic::resetImplicitTask(void* position, opdi::LogicIn
     ImplicitTaskData* implicitTaskData = static_cast<ImplicitTaskData*>(implicitTaskDataPtr);
 
     if (!implicitTaskData->isInitialImplicitTask) {
+      assert(tool != nullptr);
+
       assert(tool->comparePosition(implicitTaskData->positions.front(), position) <= 0);
 
       while (tool->comparePosition(implicitTaskData->positions.back(), position) > 0) {

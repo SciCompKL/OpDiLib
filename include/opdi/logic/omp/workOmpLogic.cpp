@@ -53,8 +53,7 @@ void opdi::WorkOmpLogic::deleteFunc(void* dataPtr) {
 void opdi::WorkOmpLogic::onWork(WorksharingKind kind, ScopeEndpoint endpoint) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
-
-    if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+    if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
         for (auto& instrument : ompLogicInstruments) {
           instrument->onWork(kind, endpoint);

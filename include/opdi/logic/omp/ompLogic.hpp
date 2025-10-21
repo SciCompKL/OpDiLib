@@ -57,6 +57,8 @@ namespace opdi {
 
       virtual void init() {
 
+        assert(backend != nullptr);
+
         MutexOmpLogic::internalInit();
         ImplicitTaskOmpLogic::internalInit();
 
@@ -71,6 +73,9 @@ namespace opdi {
       }
 
       virtual void finalize() {
+
+        assert(backend != nullptr);
+
         // finalize initial implicit task
         ImplicitTaskData* initialImplicitTaskData = static_cast<ImplicitTaskData*>(backend->getImplicitTaskData());
 

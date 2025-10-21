@@ -39,6 +39,8 @@ int opdi::ParallelOmpLogic::skipParallelRegion = 0;
 
 void opdi::ParallelOmpLogic::reverseFunc(void* parallelDataPtr) {
 
+  assert(tool != nullptr);
+
   ParallelData* parallelData = static_cast<ParallelData*>(parallelDataPtr);
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
@@ -105,6 +107,8 @@ void opdi::ParallelOmpLogic::reverseFunc(void* parallelDataPtr) {
 
 void opdi::ParallelOmpLogic::deleteFunc(void* parallelDataPtr) {
 
+  assert(tool != nullptr);
+
   ParallelData* parallelData = static_cast<ParallelData*>(parallelDataPtr);
 
   ParallelOmpLogic::internalBeginSkippedParallelRegion();
@@ -153,23 +157,25 @@ void opdi::ParallelOmpLogic::internalSetAdjointAccessMode(ImplicitTaskData* impl
     implicitTaskData->adjointAccessModes.back() = mode;
   }
   else {
-    void* position = tool->allocPosition();
-    tool->getTapePosition(implicitTaskData->newTape, position);
+    if (tool != nullptr) {
+      void* position = tool->allocPosition();
+      tool->getTapePosition(implicitTaskData->newTape, position);
 
-    if (tool->comparePosition(implicitTaskData->positions.back(), position) == 0) {
-      implicitTaskData->adjointAccessModes.back() = mode;
-      tool->freePosition(position);
-    }
-    else {
-      implicitTaskData->adjointAccessModes.push_back(mode);
-      implicitTaskData->positions.push_back(position);
+      if (tool->comparePosition(implicitTaskData->positions.back(), position) == 0) {
+        implicitTaskData->adjointAccessModes.back() = mode;
+        tool->freePosition(position);
+      }
+      else {
+        implicitTaskData->adjointAccessModes.push_back(mode);
+        implicitTaskData->positions.push_back(position);
+      }
     }
   }
 }
 
 void* opdi::ParallelOmpLogic::onParallelBegin(void* encounteringTaskDataPtr, int maximumSizeOfTeam) {
 
-  if (tool->getThreadLocalTape() != nullptr && ParallelOmpLogic::skipParallelRegion == 0) {
+  if (tool != nullptr && tool->getThreadLocalTape() != nullptr && ParallelOmpLogic::skipParallelRegion == 0) {
 
     ImplicitTaskData* encounteringTaskData = static_cast<ImplicitTaskData*>(encounteringTaskDataPtr);
 
@@ -208,6 +214,8 @@ void* opdi::ParallelOmpLogic::onParallelBegin(void* encounteringTaskDataPtr, int
 void opdi::ParallelOmpLogic::onParallelEnd(void* parallelDataPtr) {
 
   if (parallelDataPtr != nullptr) {
+
+    assert(tool != nullptr);
 
     ParallelData* parallelData = static_cast<ParallelData*>(parallelDataPtr);
 
@@ -251,6 +259,8 @@ void opdi::ParallelOmpLogic::onParallelEnd(void* parallelDataPtr) {
 
 void opdi::ParallelOmpLogic::setAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode mode) {
 
+  assert(backend != nullptr);
+
   #if OPDI_VARIABLE_ADJOINT_ACCESS_MODE
     void* implicitTaskDataPtr = backend->getImplicitTaskData();
     if (implicitTaskDataPtr != nullptr) {  // nullptr if called during tape evaluation
@@ -266,6 +276,9 @@ void opdi::ParallelOmpLogic::setAdjointAccessMode(opdi::LogicInterface::AdjointA
 }
 
 opdi::LogicInterface::AdjointAccessMode opdi::ParallelOmpLogic::getAdjointAccessMode() const {
+
+  assert(backend != nullptr);
+
   void* implicitTaskDataPtr = backend->getImplicitTaskData();
   if (implicitTaskDataPtr != nullptr) {  // nullptr if called during tape evaluation
     return internalGetAdjointAccessMode(static_cast<ImplicitTaskData*>(implicitTaskDataPtr));

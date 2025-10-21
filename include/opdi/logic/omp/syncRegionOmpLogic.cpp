@@ -82,7 +82,7 @@ bool opdi::SyncRegionOmpLogic::requiresReverseBarrier(SyncRegionKind kind, Scope
 
 void opdi::SyncRegionOmpLogic::onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint) {
 
-  if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+  if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {

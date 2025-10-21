@@ -212,12 +212,13 @@ void opdi::MutexOmpLogic::onMutexReleased(MutexKind mutexKind, WaitId waitId) {
   }
 }
 
-// not thread safe! only use outside parallel regions
+// not thread-safe! only use outside of parallel regions
 void opdi::MutexOmpLogic::registerInactiveMutex(MutexKind mutexKind, WaitId waitId) {
   checkKind(mutexKind);
   this->recordings[mutexKind].inactive.insert(waitId);
 }
 
+// not thread-safe! only use outside of parallel regions
 void opdi::MutexOmpLogic::prepareEvaluate() {
   for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
     MutexOmpLogic::evaluationCounters[mutexKind] = this->recordings[mutexKind].counters;
@@ -239,6 +240,7 @@ void opdi::MutexOmpLogic::prepareEvaluate() {
 #endif
 }
 
+// not thread-safe! only use outside of parallel regions
 void opdi::MutexOmpLogic::postEvaluate() {
 #ifdef __SANITIZE_THREAD__
   /* destroy lock annotations */
@@ -253,12 +255,14 @@ void opdi::MutexOmpLogic::postEvaluate() {
 #endif
 }
 
+// not thread-safe! only use outside of parallel regions
 void opdi::MutexOmpLogic::reset() {
   for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
     this->recordings[mutexKind].counters.clear();
   }
 }
 
+// not thread-safe! only use outside of parallel regions
 void* opdi::MutexOmpLogic::exportState() {
   State* state = new State;
   for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
@@ -272,6 +276,7 @@ void opdi::MutexOmpLogic::freeState(void* statePtr) {
   delete state;
 }
 
+// not thread safe! only use outside parallel regions
 void opdi::MutexOmpLogic::recoverState(void* statePtr) {
   State* state = static_cast<State*>(statePtr);
   for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
