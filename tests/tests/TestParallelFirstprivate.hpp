@@ -42,13 +42,13 @@ struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstpriv
       #ifndef BUILD_REFERENCE
         /* Set activity of default tapes. They might record copy operations due to firstprivate. OpDiLib's AD approach
          * for parallel regions moves these recordings to the correct tapes. */
-        if (T::getTape().isActive()) {
+        if (opdi::tool->isActive(opdi::tool->getThreadLocalTape())) {
           opdi::logic->beginSkippedParallelRegion();
           OPDI_PARALLEL()
           {
             /* due to skipping, OpDiLib has not exchanged the tapes */
             if (omp_get_thread_num() != 0) {
-              T::getTape().setActive();
+              opdi::tool->setActive(opdi::tool->getThreadLocalTape(), true);
             }
           }
           OPDI_END_PARALLEL
