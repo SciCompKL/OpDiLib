@@ -41,6 +41,7 @@ struct TestAdjointAccessControlNested2 : public TestBase<4, 1, 3, TestAdjointAcc
       T* b = new T[N];
       T* c = new T[N];
 
+      // note: these assertions are disabled for FirstOrderForward
       assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
       OPDI_PARALLEL()

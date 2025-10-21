@@ -99,7 +99,7 @@ int omp_test_nest_lock(int*) {
 
 #endif
 
-#if _OPENMP
+#if _OPENMP && !defined(FORWARD_DRIVER)
   #define assertAdjointAccessMode(mode) assert(opdi::logic->getAdjointAccessMode() == mode)
 #else
   #define assertAdjointAccessMode(mode) /* */

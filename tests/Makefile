@@ -79,15 +79,19 @@ DRIVER_FILES = $(wildcard $(DRIVER_DIR)/Driver**.hpp)
 DRIVERS ?= $(patsubst $(DRIVER_DIR)/Driver%.hpp,%,$(DRIVER_FILES))
 
 # exclude specific tests on a per-driver basis
-DRIVERS_USING_ALL_TESTS = FirstOrderReverse FirstOrderReverseNestedParallel FirstOrderReverseNoOpenMP FirstOrderReversePassive FirstOrderReverseSingleThread SecondOrderReverseForward
+DRIVERS_USING_ALL_TESTS = $(filter-out FirstOrderReverseNoParallel FirstOrderForward, $(DRIVERS))
 $(DRIVERS_USING_ALL_TESTS) $(patsubst %,run%,$(DRIVERS_USING_ALL_TESTS)): DRIVER_TESTS = $(TESTS)
 
 # without surrounding parallel constructs, privatized variables are not recognized as shared and sections are considered orphaned; hence, they need to be filtered out
 FirstOrderReverseNoParallel runFirstOrderReverseNoParallel: DRIVER_TESTS = $(filter-out ParallelSections ForReduction ForReductionNowait ForReductionMultiple ForFirstprivate ForLastprivate OrderedReduction SectionsReduction SectionsReductionMultiple SectionsFirstprivate SectionsLastprivate ReductionNested SingleFirstprivate, $(TESTS))
 
+FirstOrderForward runFirstOrderForward: DRIVER_TESTS = $(filter-out ExternalFunctionGlobal ExternalFunctionLocal ExternalFunctionLogicCalls ParallelFirstprivate2 StateExport TaskReset, $(TESTS))
+
 # driver-specific compilation flags
 REVERSE_DRIVERS = FirstOrderReverse FirstOrderReverseNestedParallel FirstOrderReverseNoOpenMP FirstOrderReverseNoParallel FirstOrderReversePassive FirstOrderReverseSingleThread SecondOrderReverseForward
 $(REVERSE_DRIVERS): DRIVER_FLAGS = -DREVERSE_DRIVER
+
+FirstOrderForward: DRIVER_FLAGS = -DFORWARD_DRIVER
 
 # export directories for usage in shell scripts
 export DRIVER_DIR
