@@ -41,7 +41,7 @@ struct TestAdjointAccessControlLocal : public TestBase<4, 1, 3, TestAdjointAcces
       T* b = new T[N];
       T* c = new T[N];
 
-      // note: these assertions are disabled for FirstOrderForward
+      // note: these assertions are disabled for Primal and FirstOrderForward
       assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
       OPDI_PARALLEL()
