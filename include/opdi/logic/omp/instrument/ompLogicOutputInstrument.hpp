@@ -41,6 +41,7 @@ namespace opdi {
       }
 
       virtual void reverseImplicitTaskBegin(ImplicitTaskData* data) {
+        assert(tool != nullptr);
         TapedOutput::print("R IMTB l", data->level,
                            "t", data->indexInTeam,
                            "tape", data->newTape,
@@ -48,6 +49,7 @@ namespace opdi {
       }
 
       virtual void reverseImplicitTaskEnd(ImplicitTaskData* data) {
+        assert(tool != nullptr);
         TapedOutput::print("R IMTE l", data->level,
                            "t", data->indexInTeam,
                            "tape", data->newTape,
@@ -55,6 +57,7 @@ namespace opdi {
       }
 
       virtual void reverseImplicitTaskPart(ImplicitTaskData* data, std::size_t part) {
+        assert(tool != nullptr);
         TapedOutput::print("R IMTP l", data->level,
                            "t", data->indexInTeam,
                            "tape", data->newTape,
@@ -68,6 +71,7 @@ namespace opdi {
           TapedOutput::print("F IMTB IIT");
         }
         else {
+          assert(tool != nullptr);
           TapedOutput::print("F IMTB l", data->level,
                              "t", data->indexInTeam,
                              "tape", data->newTape,
@@ -81,6 +85,7 @@ namespace opdi {
           TapedOutput::print("F IMTE IIT");
         }
         else {
+          assert(tool != nullptr);
           TapedOutput::print("F IMTE l", data->level,
                              "t", data->indexInTeam,
                              "tape", data->newTape,
