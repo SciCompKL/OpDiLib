@@ -63,24 +63,24 @@ struct DriverFirstOrderForward : public DriverBase<DriverFirstOrderForward<_Case
 
     static void run() {
 
-#ifndef BUILD_REFERENCE
-  #ifdef OPDI_USE_MACRO_BACKEND
-      opdi::backend = new opdi::MacroBackend();
-      opdi::backend->init();
-  #else
-      if (omp_get_num_threads() /* trigger OMPT initialization */ && opdi::backend == nullptr) {
-        std::cout << "Could not initialize OMPT backend. Please check OMPT support." << std::endl;
-        exit(1);
-      }
-  #endif
-  #ifdef OUTPUT_INSTRUMENT
-      opdi::ompLogicInstruments.push_back(new opdi::OmpLogicOutputInstrument);
-  #endif
-      opdi::logic = new opdi::OmpLogic;
-      opdi::logic->init();
-      opdi::tool = new opdi::EmptyTool;
-      opdi::tool->init();
-#endif
+      #ifndef BUILD_REFERENCE
+        #ifdef OPDI_USE_MACRO_BACKEND
+          opdi::backend = new opdi::MacroBackend();
+          opdi::backend->init();
+        #else
+          if (omp_get_num_threads() /* trigger OMPT initialization */ && opdi::backend == nullptr) {
+            std::cout << "Could not initialize OMPT backend. Please check OMPT support." << std::endl;
+            exit(1);
+          }
+        #endif
+        #ifdef OUTPUT_INSTRUMENT
+          opdi::ompLogicInstruments.push_back(new opdi::OmpLogicOutputInstrument);
+        #endif
+        opdi::logic = new opdi::OmpLogic;
+        opdi::logic->init();
+        opdi::tool = new opdi::EmptyTool;  // EmptyTool effectively deactivates OpDiLib
+        opdi::tool->init();
+      #endif
 
       std::array<std::array<TestReal, Case::nIn>, Case::nPoints> inputs = Case::template genPoints<TestReal>();
 
@@ -102,9 +102,9 @@ struct DriverFirstOrderForward : public DriverBase<DriverFirstOrderForward<_Case
 
           inputs[p][i].setGradient(0.0);
 
-#ifndef BUILD_REFERENCE
-          opdi::logic->reset();
-#endif
+          #ifndef BUILD_REFERENCE
+            opdi::logic->reset();
+          #endif
         }
 
         std::cout << "Point " << p << " :" << std::endl;
@@ -118,20 +118,20 @@ struct DriverFirstOrderForward : public DriverBase<DriverFirstOrderForward<_Case
         }
       }
 
-#ifndef BUILD_REFERENCE
-      opdi::tool->finalize();
-      opdi::logic->finalize();
-  #ifdef OUTPUT_INSTRUMENT
-      delete opdi::ompLogicInstruments.front();
-      opdi::ompLogicInstruments.clear();
-  #endif
-      opdi::backend->finalize();
-  #ifdef OPDI_USE_MACRO_BACKEND
-      delete opdi::backend;
-  #endif
-      delete opdi::tool;
-      delete opdi::logic;
-#endif
+      #ifndef BUILD_REFERENCE
+        opdi::tool->finalize();
+        opdi::logic->finalize();
+        #ifdef OUTPUT_INSTRUMENT
+          delete opdi::ompLogicInstruments.front();
+          opdi::ompLogicInstruments.clear();
+        #endif
+        opdi::backend->finalize();
+        #ifdef OPDI_USE_MACRO_BACKEND
+          delete opdi::backend;
+        #endif
+        delete opdi::tool;
+        delete opdi::logic;
+      #endif
     }
 };
 

@@ -97,43 +97,57 @@
   { \
     bool constexpr opdiInternalBarrierIndicator = true; \
     bool constexpr opdiInternalBroadcastIndicator = true; \
-    void* opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
-    opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1); \
+    void* opdiInternalTapePosition1 = nullptr; \
+    if (opdi::tool != nullptr) { \
+      opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
+      opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1); \
+    } \
     /* broadcast-related barrier */ \
     opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
                               opdi::LogicInterface::ScopeEndpoint::Begin); \
     opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
                               opdi::LogicInterface::ScopeEndpoint::End); \
-    void* opdiInternalTapePosition2 = opdi::tool->allocPosition(); \
-    opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition2); \
+    void* opdiInternalTapePosition2 = nullptr; \
+    if (opdi::tool != nullptr) { \
+      opdiInternalTapePosition2 = opdi::tool->allocPosition(); \
+      opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition2); \
+    } \
     opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
     { \
       opdi::SingleProbe localSingleProbe;  /* worksharing events */ \
       OPDI_PRAGMA(omp single __VA_ARGS__) \
       { \
         /* delay broadcast-related barrier for executor */ \
-        opdi::tool->erase(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1, opdiInternalTapePosition2);
+        if (opdi::tool != nullptr) \
+          opdi::tool->erase(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1, opdiInternalTapePosition2);
 
 #define OPDI_SINGLE_COPYPRIVATE_NOWAIT(...) \
   { \
     bool constexpr opdiInternalBarrierIndicator = false; \
     bool constexpr opdiInternalBroadcastIndicator = true; \
-    void* opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
-    opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1); \
+    void* opdiInternalTapePosition1 = nullptr; \
+    if (opdi::tool != nullptr) { \
+      opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
+      opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1); \
+    } \
     /* broadcast-related barrier */ \
     opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
                               opdi::LogicInterface::ScopeEndpoint::Begin); \
     opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
                               opdi::LogicInterface::ScopeEndpoint::End); \
-    void* opdiInternalTapePosition2 = opdi::tool->allocPosition(); \
-    opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition2); \
+    void* opdiInternalTapePosition2 = nullptr; \
+    if (opdi::tool != nullptr) { \
+      opdiInternalTapePosition2 = opdi::tool->allocPosition(); \
+      opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition2); \
+    } \
     opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
     { \
       opdi::SingleProbe localSingleProbe; \
       OPDI_PRAGMA(omp single nowait __VA_ARGS__) \
       { \
         /* delay broadcast-related barrier for executor */ \
-        opdi::tool->erase(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1, opdiInternalTapePosition2);
+        if (opdi::tool != nullptr) \
+          opdi::tool->erase(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1, opdiInternalTapePosition2);
 
 #define OPDI_END_SINGLE \
         /* broadcast-related barrier */ \
@@ -145,7 +159,7 @@
         } \
       } \
     } \
-    if (opdiInternalBroadcastIndicator) { \
+    if (opdi::tool != nullptr && opdiInternalBroadcastIndicator) { \
       opdi::tool->freePosition(opdiInternalTapePosition1); \
       opdi::tool->freePosition(opdiInternalTapePosition2); \
     } \
