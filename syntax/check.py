@@ -237,7 +237,7 @@ def main():
 
     for path in args.path:
         if os.path.isfile(path):
-            result = check_and_report_result(args.file, args.syntax, args.stop_on_error, args.quiet, args.verbose)
+            result = check_and_report_result(path, args.syntax, args.stop_on_error, args.quiet, args.verbose)
             all_fine = all_fine and result
         elif os.path.isdir(path):
             if args.recursive:
