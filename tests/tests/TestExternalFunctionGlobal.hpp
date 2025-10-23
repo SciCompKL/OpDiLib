@@ -69,7 +69,7 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
       T* jobResults = new T[N];
       T* intermediate = new T[N];
 
-      ExternalFunctionHelper<T>* eh;
+      ExternalFunctionHelper<T>* eh = nullptr;
 
       OPDI_PARALLEL()
       {
