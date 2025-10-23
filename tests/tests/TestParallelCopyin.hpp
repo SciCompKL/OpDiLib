@@ -69,7 +69,9 @@ struct TestParallelCopyin : public TestBase<4, 1, 3, TestParallelCopyin<_Case>> 
       #if !defined(__GNUC__) || defined(__clang__)
         OPDI_PARALLEL(copyin(helper))
       #else
+        // opdi-syntax-off
         OPDI_PARALLEL(firstprivate(helper))
+        // opdi-syntax-on
       #endif
       {
         int nThreads = omp_get_num_threads();

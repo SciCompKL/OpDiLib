@@ -61,10 +61,10 @@ struct TestMasked : public TestBase<4, 1, 3, TestMasked<_Case>> {
             out[0] += jobResults[i];
           }
         }
-        #if _OPENMP >= 202011
-          OPDI_END_MASKED
-        #else
+        #if _OPENMP < 202011
           OPDI_END_MASTER
+        #else
+          OPDI_END_MASKED
         #endif
       }
       OPDI_END_PARALLEL

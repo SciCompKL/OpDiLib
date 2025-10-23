@@ -56,7 +56,9 @@ struct TestSingleCopyprivateNowait : public TestBase<4, 1, 3, TestSingleCopypriv
         #if _OPENMP >= 202411
           OPDI_SINGLE_COPYPRIVATE_NOWAIT(copyprivate(helper))
         #else
+          // opdi-syntax-off
           OPDI_SINGLE_COPYPRIVATE(copyprivate(helper))
+          // opdi-syntax-on
         #endif
         {
           for (int i = 0; i < N / 2; ++i) {
