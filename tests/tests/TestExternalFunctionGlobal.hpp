@@ -98,10 +98,10 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
             eh->addOutput(intermediate[i]);
           }
         }
-        #if _OPENMP >= 202011
-          OPDI_END_MASKED
-        #else
+        #if _OPENMP < 202011
           OPDI_END_MASTER
+        #else
+          OPDI_END_MASKED
         #endif
 
         OPDI_BARRIER()
@@ -129,10 +129,10 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
         {
           delete eh;
         }
-        #if _OPENMP >= 202011
-          OPDI_END_MASKED
-        #else
+        #if _OPENMP < 202011
           OPDI_END_MASTER
+        #else
+          OPDI_END_MASKED
         #endif
       }
       OPDI_END_PARALLEL

@@ -56,3 +56,11 @@ output:
     - export OUTPUT_INSTRUMENT=yes
     - export STDERR_OUTPUT_IS_ERROR=no
     - make all
+
+syntax:
+  image: ubuntu:24.04
+  script:
+    - apt update
+    - DEBIAN_FRONTEND=noninteractive apt install -y tzdata
+    - apt install -y python3
+    - python3 syntax/check.py -r syntax/opdi.syntax.json tests macroexample.cpp omptexample.cpp
