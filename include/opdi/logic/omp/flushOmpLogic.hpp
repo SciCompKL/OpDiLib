@@ -51,7 +51,6 @@ namespace opdi {
     public:
 
       virtual void addReverseFlush() {
-
         if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
           Handle* handle = new Handle;

@@ -54,20 +54,20 @@ void opdi::MaskedOmpLogic::deleteFunc(void* dataPtr) {
 void opdi::MaskedOmpLogic::onMasked(ScopeEndpoint endpoint) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
-    if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+    if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
-        for (auto& instrument : ompLogicInstruments) {
-          instrument->onMasked(endpoint);
-        }
+      for (auto& instrument : ompLogicInstruments) {
+        instrument->onMasked(endpoint);
+      }
 
-        Data* data = new Data;
-        data->endpoint = endpoint;
+      Data* data = new Data;
+      data->endpoint = endpoint;
 
-        Handle* handle = new Handle;
-        handle->data = static_cast<void*>(data);
-        handle->reverseFunc = MaskedOmpLogic::reverseFunc;
-        handle->deleteFunc = MaskedOmpLogic::deleteFunc;
-        tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
+      Handle* handle = new Handle;
+      handle->data = static_cast<void*>(data);
+      handle->reverseFunc = MaskedOmpLogic::reverseFunc;
+      handle->deleteFunc = MaskedOmpLogic::deleteFunc;
+      tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
     }
   #else
     OPDI_UNUSED(endpoint);
