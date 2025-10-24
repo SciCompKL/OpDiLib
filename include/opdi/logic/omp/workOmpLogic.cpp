@@ -55,13 +55,13 @@ void opdi::WorkOmpLogic::onWork(WorksharingKind kind, ScopeEndpoint endpoint) {
   #if OPDI_OMP_LOGIC_INSTRUMENT
     if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
-        for (auto& instrument : ompLogicInstruments) {
-          instrument->onWork(kind, endpoint);
-        }
-
         Data* data = new Data;
         data->kind = kind;
         data->endpoint = endpoint;
+
+        for (auto& instrument : ompLogicInstruments) {
+          instrument->onWork(data);
+        }
 
         Handle* handle = new Handle;
         handle->data = static_cast<void*>(data);

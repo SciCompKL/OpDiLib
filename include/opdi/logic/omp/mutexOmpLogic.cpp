@@ -118,8 +118,9 @@ void opdi::MutexOmpLogic::internalFinalize() {
 void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind mutexKind, WaitId waitId) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
+    Data data = {mutexKind, waitId, 0};
     for (auto& instrument : ompLogicInstruments) {
-      instrument->onMutexDestroyed(mutexKind, waitId);
+      instrument->onMutexDestroyed(&data);
     }
   #endif
 

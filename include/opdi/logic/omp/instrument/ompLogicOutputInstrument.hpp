@@ -122,22 +122,22 @@ namespace opdi {
                            "at", data->counter);
       }
 
-      virtual void onMutexDestroyed(LogicInterface::MutexKind kind, std::size_t waitId) {
+      virtual void onMutexDestroyed(MutexOmpLogic::Data* data) {
         TapedOutput::print("F MDES t", omp_get_thread_num(),
-                           "kind", kind,
-                           "id", waitId);
+                           "kind", data->mutexKind,
+                           "id", data->waitId);
       }
 
-      virtual void onSyncRegion(LogicInterface::SyncRegionKind kind, LogicInterface::ScopeEndpoint endpoint) {
-        TapedOutput::print("F SYNC t", omp_get_thread_num(), "kind", kind, "endp", endpoint);
+      virtual void onSyncRegion(SyncRegionOmpLogic::Data* data) {
+        TapedOutput::print("F SYNC t", omp_get_thread_num(), "kind", data->kind, "endp", data->endpoint);
       }
 
-      virtual void onMasked(LogicInterface::ScopeEndpoint endpoint) {
-        TapedOutput::print("F MASK t", omp_get_thread_num(), "endp", endpoint);
+      virtual void onMasked(MaskedOmpLogic::Data* data) {
+        TapedOutput::print("F MASK t", omp_get_thread_num(), "endp", data->endpoint);
       }
 
-      virtual void onWork(LogicInterface::WorksharingKind kind, LogicInterface::ScopeEndpoint endpoint) {
-        TapedOutput::print("F WORK t", omp_get_thread_num(), "kind", kind, "endp", endpoint);
+      virtual void onWork(WorkOmpLogic::Data* data) {
+        TapedOutput::print("F WORK t", omp_get_thread_num(), "kind", data->kind, "endp", data->endpoint);
       }
 
       /* instrumentation of reverse actions */

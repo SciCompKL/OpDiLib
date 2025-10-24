@@ -52,13 +52,13 @@ namespace opdi {
 
       virtual void onMutexAcquired(MutexOmpLogic::Data* /*data*/) {}
       virtual void onMutexReleased(MutexOmpLogic::Data* /*data*/) {}
-      virtual void onMutexDestroyed(LogicInterface::MutexKind /*kind*/, std::size_t /*waitId*/) {}
+      virtual void onMutexDestroyed(MutexOmpLogic::Data* /*data*/) {}
 
-      virtual void onSyncRegion(LogicInterface::SyncRegionKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}
+      virtual void onSyncRegion(SyncRegionOmpLogic::Data* /*data*/) {}
 
-      virtual void onMasked(LogicInterface::ScopeEndpoint /*endpoint*/) {}
+      virtual void onMasked(MaskedOmpLogic::Data* /*data*/) {}
 
-      virtual void onWork(LogicInterface::WorksharingKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}
+      virtual void onWork(WorkOmpLogic::Data* /*data*/) {}
 
       /* instrumentation of reverse actions */
 
