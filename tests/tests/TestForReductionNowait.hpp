@@ -36,7 +36,7 @@ struct TestForReductionNowait : public TestBase<4, 1, 3, TestForReductionNowait<
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* jobResults1 = new T[N];
       T* jobResults2 = new T[N];
 

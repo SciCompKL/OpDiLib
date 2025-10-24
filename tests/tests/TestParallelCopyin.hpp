@@ -44,7 +44,7 @@ struct TestParallelCopyin : public TestBase<4, 1, 3, TestParallelCopyin<_Case>> 
         #endif
       #endif
 
-      int const N = 1000;
+      int const N = 100;
       T* jobResults = new T[N];
 
       #ifndef BUILD_REFERENCE

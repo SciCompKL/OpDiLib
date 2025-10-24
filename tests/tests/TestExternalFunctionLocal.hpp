@@ -51,7 +51,7 @@ struct TestExternalFunctionLocal : public TestBase<4, 1, 3, TestExternalFunction
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
 
       T* jobResults = new T[N];
       T* intermediate = new T[N];

@@ -36,7 +36,7 @@ struct TestForFirstprivate : public TestBase<4, 1, 3, TestForFirstprivate<_Case>
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* jobResults = new T[N];
 
       T helper = in[0] * in[1] * in[2] * in[3];

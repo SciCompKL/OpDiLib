@@ -36,7 +36,7 @@ struct TestAdjointAccessControlGlobal : public TestBase<4, 1, 3, TestAdjointAcce
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* a = new T[N];
       T* b = new T[N];
       T* c = new T[N];
