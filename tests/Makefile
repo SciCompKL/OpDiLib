@@ -36,7 +36,7 @@ MODE ?= RUN
 BACKEND ?= MACRO
 
 # debug possibly set in environment
-DEBUG ?= yes
+DEBUG ?= no
 OUTPUT_INSTRUMENT ?= no
 
 # possibly set in the environment, enables build from source after preprocessing
@@ -47,15 +47,16 @@ STDERR_OUTPUT_IS_ERROR ?= yes
 
 CXX ?= clang++
 
-FLAGS = $(CXXFLAGS) -std=c++17
+FLAGS = $(CXXFLAGS) -std=c++17 -Wall -Wextra -Wpedantic -Werror
 
 ifeq ($(DEBUG),no)
-	FLAGS += -O3
+	FLAGS += -O1
 else
-  FLAGS += -O0 -ggdb -Wall -Wextra -Wpedantic -Werror
-  ifeq ($(OUTPUT_INSTRUMENT),yes)
-    FLAGS += -DOPDI_OMP_LOGIC_INSTRUMENT=1 -DOUTPUT_INSTRUMENT
-  endif
+	FLAGS += -O0 -ggdb
+endif
+
+ifeq ($(OUTPUT_INSTRUMENT),yes)
+	FLAGS += -DOPDI_OMP_LOGIC_INSTRUMENT=1 -DOUTPUT_INSTRUMENT
 endif
 
 ifeq ($(MODE),REF)
@@ -152,13 +153,13 @@ generate: clean prepareGenerate $(DRIVERS)
 # build all object files
 .PHONY: compile
 compile:
-	$(MAKE) -f tempmakefile build_all -j12
-	
+	$(MAKE) -f tempmakefile build_all -j $$(expr $$(nproc --all) \* 2)
+
 # link
 .PHONY: link
 link:
-	$(MAKE) -f tempmakefile link_all -j12
-	
+	$(MAKE) -f tempmakefile link_all -j $$(expr $$(nproc --all) \* 2)
+
 $(patsubst %,run%,$(DRIVERS)): DRIVER = $(subst run,,$@)
 $(patsubst %,run%,$(DRIVERS)):
 	@rm -f testresults; \

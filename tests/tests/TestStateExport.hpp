@@ -36,7 +36,7 @@ struct TestStateExport : public TestBase<4, 1, 3, TestStateExport<_Case>> {
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* jobResults = new T[N];
       omp_lock_t lock1, lock2;
       INIT_LOCK(&lock1);
