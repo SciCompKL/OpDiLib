@@ -12,6 +12,7 @@ gcc-macro:
     - export OPDI_DIR=$(pwd)/include
     - cd tests
     - export CXX=g++
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all
 
 clang-macro:
@@ -26,6 +27,7 @@ clang-macro:
     - export OPDI_DIR=$(pwd)/include
     - cd tests
     - export CXX=clang++
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all
 
 clang-ompt:
@@ -42,6 +44,7 @@ clang-ompt:
     - export CXX=clang++
     - export CXXFLAGS="$FLAGS"
     - export BACKEND=OMPT
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all
 
 output:
@@ -55,6 +58,7 @@ output:
     - export CXX=g++
     - export OUTPUT_INSTRUMENT=yes
     - export STDERR_OUTPUT_IS_ERROR=no
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all
 
 syntax:
