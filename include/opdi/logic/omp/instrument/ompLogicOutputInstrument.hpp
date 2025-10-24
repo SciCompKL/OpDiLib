@@ -36,110 +36,7 @@ namespace opdi {
 
       virtual ~OmpLogicOutputInstrument() {}
 
-      virtual void reverseFlush() {
-        TapedOutput::print("R FLSH l", omp_get_level(), "t", omp_get_thread_num());
-      }
-
-      virtual void reverseImplicitTaskBegin(ImplicitTaskData* data) {
-        assert(tool != nullptr);
-        TapedOutput::print("R IMTB l", data->level,
-                           "t", data->indexInTeam,
-                           "tape", data->newTape,
-                           "pos", tool->positionToString(data->positions.back()));
-      }
-
-      virtual void reverseImplicitTaskEnd(ImplicitTaskData* data) {
-        assert(tool != nullptr);
-        TapedOutput::print("R IMTE l", data->level,
-                           "t", data->indexInTeam,
-                           "tape", data->newTape,
-                           "pos", tool->positionToString(data->positions.front()));
-      }
-
-      virtual void reverseImplicitTaskPart(ImplicitTaskData* data, std::size_t part) {
-        assert(tool != nullptr);
-        TapedOutput::print("R IMTP l", data->level,
-                           "t", data->indexInTeam,
-                           "tape", data->newTape,
-                           "start", tool->positionToString(data->positions[part]),
-                           "end", tool->positionToString(data->positions[part - 1]),
-                           "mode", data->adjointAccessModes[part - 1]);
-      }
-
-      virtual void onImplicitTaskBegin(ImplicitTaskData* data) {
-        if (data->isInitialImplicitTask) {
-          TapedOutput::print("F IMTB IIT");
-        }
-        else {
-          assert(tool != nullptr);
-          TapedOutput::print("F IMTB l", data->level,
-                             "t", data->indexInTeam,
-                             "tape", data->newTape,
-                             "pos", tool->positionToString(data->positions.back()),
-                             "mode", data->adjointAccessModes[0]);
-        }
-      }
-
-      virtual void onImplicitTaskEnd(ImplicitTaskData* data) {
-        if (data->isInitialImplicitTask) {
-          TapedOutput::print("F IMTE IIT");
-        }
-        else {
-          assert(tool != nullptr);
-          TapedOutput::print("F IMTE l", data->level,
-                             "t", data->indexInTeam,
-                             "tape", data->newTape,
-                             "pos", tool->positionToString(data->positions.back()),
-                             "mode", data->adjointAccessModes.back());
-        }
-      }
-
-      virtual void reverseMutexWait(MutexOmpLogic::Data* data) {
-        TapedOutput::print("R MWAI l", omp_get_level(),
-                           "t", omp_get_thread_num(),
-                           "kind", data->mutexKind,
-                           "id", data->waitId,
-                           "until", data->counter);
-      }
-
-      virtual void reverseMutexDecrement(MutexOmpLogic::Data* data) {
-        TapedOutput::print("R MDEC t", omp_get_thread_num(),
-                           "kind", data->mutexKind,
-                           "id", data->waitId,
-                           "to", data->counter);
-      }
-
-      virtual void onMutexDestroyed(LogicInterface::MutexKind kind, std::size_t waitId) {
-        TapedOutput::print("F MDES t", omp_get_thread_num(),
-                           "kind", kind,
-                           "id", waitId);
-      }
-
-      virtual void onMutexAcquired(MutexOmpLogic::Data* data) {
-        TapedOutput::print("F MACQ t", omp_get_thread_num(),
-                           "kind", data->mutexKind,
-                           "id", data->waitId,
-                           "at", data->counter);
-      }
-
-      virtual void onMutexReleased(MutexOmpLogic::Data* data) {
-        TapedOutput::print("F MREL t", omp_get_thread_num(),
-                           "kind", data->mutexKind,
-                           "id", data->waitId,
-                           "at", data->counter);
-      }
-
-      virtual void reverseParallelBegin(ParallelData* data) {
-        TapedOutput::print("R PARB l", omp_get_level(),
-                           "t", omp_get_thread_num(),
-                           "parent", data->encounteringTaskTape);
-      }
-
-      virtual void reverseParallelEnd(ParallelData* data) {
-        TapedOutput::print("R PARE l", omp_get_level(),
-                           "t", omp_get_thread_num(),
-                           "parent", data->encounteringTaskTape);
-      }
+      /* instrumentation of forward actions */
 
       virtual void onParallelBegin(ParallelData* data) {
         if (data == nullptr) {
@@ -183,29 +80,138 @@ namespace opdi {
         }
       }
 
-      virtual void reverseSyncRegion(SyncRegionOmpLogic::Data* data) {
-        TapedOutput::print("R SYNC l", omp_get_level(), "t", omp_get_thread_num(), "kind", data->kind, "endp", data->endpoint);
+      virtual void onImplicitTaskBegin(ImplicitTaskData* data) {
+        if (data->isInitialImplicitTask) {
+          TapedOutput::print("F IMTB IIT");
+        }
+        else {
+          assert(tool != nullptr);
+          TapedOutput::print("F IMTB l", data->level,
+                             "t", data->indexInTeam,
+                             "tape", data->newTape,
+                             "pos", tool->positionToString(data->positions.back()),
+                             "mode", data->adjointAccessModes[0]);
+        }
+      }
+
+      virtual void onImplicitTaskEnd(ImplicitTaskData* data) {
+        if (data->isInitialImplicitTask) {
+          TapedOutput::print("F IMTE IIT");
+        }
+        else {
+          assert(tool != nullptr);
+          TapedOutput::print("F IMTE l", data->level,
+                             "t", data->indexInTeam,
+                             "tape", data->newTape,
+                             "pos", tool->positionToString(data->positions.back()),
+                             "mode", data->adjointAccessModes.back());
+        }
+      }
+
+      virtual void onMutexAcquired(MutexOmpLogic::Data* data) {
+        TapedOutput::print("F MACQ t", omp_get_thread_num(),
+                           "kind", data->mutexKind,
+                           "id", data->waitId,
+                           "at", data->counter);
+      }
+
+      virtual void onMutexReleased(MutexOmpLogic::Data* data) {
+        TapedOutput::print("F MREL t", omp_get_thread_num(),
+                           "kind", data->mutexKind,
+                           "id", data->waitId,
+                           "at", data->counter);
+      }
+
+      virtual void onMutexDestroyed(LogicInterface::MutexKind kind, std::size_t waitId) {
+        TapedOutput::print("F MDES t", omp_get_thread_num(),
+                           "kind", kind,
+                           "id", waitId);
       }
 
       virtual void onSyncRegion(LogicInterface::SyncRegionKind kind, LogicInterface::ScopeEndpoint endpoint) {
         TapedOutput::print("F SYNC t", omp_get_thread_num(), "kind", kind, "endp", endpoint);
       }
 
-      virtual void reverseWork(WorkOmpLogic::Data* data) {
-        TapedOutput::print("R WORK t", omp_get_thread_num(), "kind", data->kind, "endp", data->endpoint);
+      virtual void onMasked(LogicInterface::ScopeEndpoint endpoint) {
+        TapedOutput::print("F MASK t", omp_get_thread_num(), "endp", endpoint);
       }
 
       virtual void onWork(LogicInterface::WorksharingKind kind, LogicInterface::ScopeEndpoint endpoint) {
         TapedOutput::print("F WORK t", omp_get_thread_num(), "kind", kind, "endp", endpoint);
       }
 
+      /* instrumentation of reverse actions */
+
+      virtual void reverseParallelBegin(ParallelData* data) {
+        TapedOutput::print("R PARB l", omp_get_level(),
+                           "t", omp_get_thread_num(),
+                           "parent", data->encounteringTaskTape);
+      }
+
+      virtual void reverseParallelEnd(ParallelData* data) {
+        TapedOutput::print("R PARE l", omp_get_level(),
+                           "t", omp_get_thread_num(),
+                           "parent", data->encounteringTaskTape);
+      }
+
+      virtual void reverseImplicitTaskBegin(ImplicitTaskData* data) {
+        assert(tool != nullptr);
+        TapedOutput::print("R IMTB l", data->level,
+                           "t", data->indexInTeam,
+                           "tape", data->newTape,
+                           "pos", tool->positionToString(data->positions.back()));
+      }
+
+      virtual void reverseImplicitTaskEnd(ImplicitTaskData* data) {
+        assert(tool != nullptr);
+        TapedOutput::print("R IMTE l", data->level,
+                           "t", data->indexInTeam,
+                           "tape", data->newTape,
+                           "pos", tool->positionToString(data->positions.front()));
+      }
+
+      virtual void reverseImplicitTaskPart(ImplicitTaskData* data, std::size_t part) {
+        assert(tool != nullptr);
+        TapedOutput::print("R IMTP l", data->level,
+                           "t", data->indexInTeam,
+                           "tape", data->newTape,
+                           "start", tool->positionToString(data->positions[part]),
+                           "end", tool->positionToString(data->positions[part - 1]),
+                           "mode", data->adjointAccessModes[part - 1]);
+      }
+
+      virtual void reverseMutexWait(MutexOmpLogic::Data* data) {
+        TapedOutput::print("R MWAI l", omp_get_level(),
+                           "t", omp_get_thread_num(),
+                           "kind", data->mutexKind,
+                           "id", data->waitId,
+                           "until", data->counter);
+      }
+
+      virtual void reverseMutexDecrement(MutexOmpLogic::Data* data) {
+        TapedOutput::print("R MDEC t", omp_get_thread_num(),
+                           "kind", data->mutexKind,
+                           "id", data->waitId,
+                           "to", data->counter);
+      }
+
+      virtual void reverseSyncRegion(SyncRegionOmpLogic::Data* data) {
+        TapedOutput::print("R SYNC l", omp_get_level(), "t", omp_get_thread_num(), "kind", data->kind, "endp", data->endpoint);
+      }
+
       virtual void reverseMasked(MaskedOmpLogic::Data* data) {
         TapedOutput::print("R MASK t", omp_get_thread_num(), "endp", data->endpoint);
       }
 
-      virtual void onMasked(LogicInterface::ScopeEndpoint endpoint) {
-        TapedOutput::print("F MASK t", omp_get_thread_num(), "endp", endpoint);
+      virtual void reverseWork(WorkOmpLogic::Data* data) {
+        TapedOutput::print("R WORK t", omp_get_thread_num(), "kind", data->kind, "endp", data->endpoint);
       }
+
+      virtual void reverseFlush() {
+        TapedOutput::print("R FLSH l", omp_get_level(), "t", omp_get_thread_num());
+      }
+
+      /* instrumentation of other functionality */
 
       virtual void onSetAdjointAccessMode(LogicInterface::AdjointAccessMode adjointAccess) {
         TapedOutput::print("F SAAM t", omp_get_thread_num(), "mode", adjointAccess);

@@ -43,33 +43,43 @@ namespace opdi {
 
       virtual ~OmpLogicInstrumentInterface() {}
 
-      virtual void reverseFlush() {}
+      /* instrumentation of forward actions */
 
-      virtual void reverseImplicitTaskBegin(ImplicitTaskData* /*data*/) {}
-      virtual void reverseImplicitTaskEnd(ImplicitTaskData* /*data*/) {}
-      virtual void reverseImplicitTaskPart(ImplicitTaskData* /*data*/, std::size_t /*part*/) {}
+      virtual void onParallelBegin(ParallelData* /*data*/) {}
+      virtual void onParallelEnd(ParallelData* /*data*/) {}
       virtual void onImplicitTaskBegin(ImplicitTaskData* /*data*/) {}
       virtual void onImplicitTaskEnd(ImplicitTaskData* /*data*/) {}
 
-      virtual void reverseMutexWait(MutexOmpLogic::Data* /*data*/) {}
-      virtual void reverseMutexDecrement(MutexOmpLogic::Data* /*data*/) {}
-      virtual void onMutexDestroyed(LogicInterface::MutexKind /*kind*/, std::size_t /*waitId*/) {}
       virtual void onMutexAcquired(MutexOmpLogic::Data* /*data*/) {}
       virtual void onMutexReleased(MutexOmpLogic::Data* /*data*/) {}
+      virtual void onMutexDestroyed(LogicInterface::MutexKind /*kind*/, std::size_t /*waitId*/) {}
+
+      virtual void onSyncRegion(LogicInterface::SyncRegionKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}
+
+      virtual void onMasked(LogicInterface::ScopeEndpoint /*endpoint*/) {}
+
+      virtual void onWork(LogicInterface::WorksharingKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}
+
+      /* instrumentation of reverse actions */
 
       virtual void reverseParallelBegin(ParallelData* /*data*/) {}
       virtual void reverseParallelEnd(ParallelData* /*data*/) {}
-      virtual void onParallelBegin(ParallelData* /*data*/) {}
-      virtual void onParallelEnd(ParallelData* /*data*/) {}
+      virtual void reverseImplicitTaskBegin(ImplicitTaskData* /*data*/) {}
+      virtual void reverseImplicitTaskEnd(ImplicitTaskData* /*data*/) {}
+      virtual void reverseImplicitTaskPart(ImplicitTaskData* /*data*/, std::size_t /*part*/) {}
+
+      virtual void reverseMutexWait(MutexOmpLogic::Data* /*data*/) {}
+      virtual void reverseMutexDecrement(MutexOmpLogic::Data* /*data*/) {}
 
       virtual void reverseSyncRegion(SyncRegionOmpLogic::Data* /*data*/) {}
-      virtual void onSyncRegion(LogicInterface::SyncRegionKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}
-
-      virtual void reverseWork(WorkOmpLogic::Data* /*data*/) {}
-      virtual void onWork(LogicInterface::WorksharingKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}
 
       virtual void reverseMasked(MaskedOmpLogic::Data* /*data*/) {}
-      virtual void onMasked(LogicInterface::ScopeEndpoint /*endpoint*/) {}
+
+      virtual void reverseWork(WorkOmpLogic::Data* /*data*/) {}
+
+      virtual void reverseFlush() {}
+
+      /* instrumentation of other functionality */
 
       virtual void onSetAdjointAccessMode(LogicInterface::AdjointAccessMode /*adjointAccess*/) {}
   };
