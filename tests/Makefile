@@ -153,12 +153,12 @@ generate: clean prepareGenerate $(DRIVERS)
 # build all object files
 .PHONY: compile
 compile:
-	$(MAKE) -f tempmakefile build_all -j24
+	$(MAKE) -f tempmakefile build_all -j $$(expr $$(nproc --all) \* 2)
 
 # link
 .PHONY: link
 link:
-	$(MAKE) -f tempmakefile link_all -j24
+	$(MAKE) -f tempmakefile link_all -j $$(expr $$(nproc --all) \* 2)
 
 $(patsubst %,run%,$(DRIVERS)): DRIVER = $(subst run,,$@)
 $(patsubst %,run%,$(DRIVERS)):
