@@ -25,6 +25,12 @@
 
 #pragma once
 
+/* ------------------ OpDiLib version ------------------ */
+
+#define OPDI_MAJOR 1
+#define OPDI_MINOR 7
+#define OPDI_PATCH 1
+
 /* ------------------ constants ------------------ */
 
 #define OPDI_MACRO_BACKEND 1
