@@ -16,7 +16,7 @@ gcc-macro:
     - make all
 
 clang-macro:
-  image: fedora:41
+  image: fedora:42
   parallel:
     matrix:
       - FLAGS: ["", "-DOPDI_BACKEND_GENERATE_MASKED_EVENTS=1 -DOPDI_BACKEND_GENERATE_WORK_EVENTS=1"]
@@ -31,7 +31,7 @@ clang-macro:
     - make all
 
 clang-ompt:
-  image: fedora:41
+  image: fedora:42
   parallel:
     matrix:
       - FLAGS: ["-DOPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE=1", "-DOPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE=2", "-DOPDI_BACKEND_GENERATE_MASKED_EVENTS=1 -DOPDI_BACKEND_GENERATE_WORK_EVENTS=1"]
