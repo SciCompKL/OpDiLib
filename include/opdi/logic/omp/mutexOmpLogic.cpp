@@ -82,8 +82,18 @@ void opdi::MutexOmpLogic::decrementReverseFunc(void* dataPtr) {
   #endif
 
   // decrement counter
-  #pragma omp atomic update
-  MutexOmpLogic::evaluationCounters[data->mutexKind][data->waitId] -= 1;
+  #ifdef NDEBUG
+    #pragma omp atomic update
+    MutexOmpLogic::evaluationCounters[data->mutexKind][data->waitId] -= 1;
+  #else
+    Counter newValue;
+    #pragma omp atomic capture
+    {
+      MutexOmpLogic::evaluationCounters[data->mutexKind][data->waitId] -= 1;
+      newValue = MutexOmpLogic::evaluationCounters[data->mutexKind][data->waitId];
+    }
+    assert(newValue == data->counter);
+  #endif
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
@@ -146,7 +156,7 @@ void opdi::MutexOmpLogic::onMutexAcquired(MutexKind mutexKind, WaitId waitId) {
       data->waitId = waitId;
 
       omp_set_lock(&recordings[mutexKind].lock);
-      data->counter = recordings[mutexKind].counters[waitId]++;
+      data->counter = recordings[mutexKind].counters[waitId]++;  // store value prior to increment
       localCounters[mutexKind][waitId] = recordings[mutexKind].counters[waitId];  // remember incremented counter value for the release event
       omp_unset_lock(&recordings[mutexKind].lock);
 
