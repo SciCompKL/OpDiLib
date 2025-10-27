@@ -56,12 +56,12 @@ void opdi::MaskedOmpLogic::onMasked(ScopeEndpoint endpoint) {
   #if OPDI_OMP_LOGIC_INSTRUMENT
     if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
-      for (auto& instrument : ompLogicInstruments) {
-        instrument->onMasked(endpoint);
-      }
-
       Data* data = new Data;
       data->endpoint = endpoint;
+
+      for (auto& instrument : ompLogicInstruments) {
+        instrument->onMasked(data);
+      }
 
       Handle* handle = new Handle;
       handle->data = static_cast<void*>(data);
