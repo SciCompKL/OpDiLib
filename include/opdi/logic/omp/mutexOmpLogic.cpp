@@ -73,11 +73,6 @@ void opdi::MutexOmpLogic::waitReverseFunc(void* dataPtr) {
   #endif
 }
 
-void opdi::MutexOmpLogic::waitDeleteFunc(void* dataPtr) {
-  Data* data = static_cast<Data*>(dataPtr);
-  delete data;
-}
-
 void opdi::MutexOmpLogic::decrementReverseFunc(void* dataPtr) {
 
   Data* data = static_cast<Data*>(dataPtr);
@@ -97,7 +92,7 @@ void opdi::MutexOmpLogic::decrementReverseFunc(void* dataPtr) {
   #endif
 }
 
-void opdi::MutexOmpLogic::decrementDeleteFunc(void* dataPtr) {
+void opdi::MutexOmpLogic::deleteFunc(void* dataPtr) {
   Data* data = static_cast<Data*>(dataPtr);
   delete data;
 }
@@ -165,7 +160,7 @@ void opdi::MutexOmpLogic::onMutexAcquired(MutexKind mutexKind, WaitId waitId) {
       Handle* handle = new Handle;
       handle->data = static_cast<void*>(data);
       handle->reverseFunc = MutexOmpLogic::decrementReverseFunc;
-      handle->deleteFunc = MutexOmpLogic::decrementDeleteFunc;
+      handle->deleteFunc = MutexOmpLogic::deleteFunc;
 
       tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
     }
@@ -206,7 +201,7 @@ void opdi::MutexOmpLogic::onMutexReleased(MutexKind mutexKind, WaitId waitId) {
       Handle* handle = new Handle;
       handle->data = static_cast<void*>(data);
       handle->reverseFunc = MutexOmpLogic::waitReverseFunc;
-      handle->deleteFunc = MutexOmpLogic::waitDeleteFunc;
+      handle->deleteFunc = MutexOmpLogic::deleteFunc;
 
       tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
     }

@@ -89,10 +89,8 @@ namespace opdi {
       void checkKind(MutexKind mutexKind);
 
       static void waitReverseFunc(void* dataPtr);
-      static void waitDeleteFunc(void* dataPtr);
-
       static void decrementReverseFunc(void* dataPtr);
-      static void decrementDeleteFunc(void* dataPtr);
+      static void deleteFunc(void* dataPtr);
 
     protected:
 
