@@ -196,6 +196,7 @@ void opdi::ImplicitTaskOmpLogic::resetImplicitTask(void* position, opdi::LogicIn
       assert(tool->comparePosition(implicitTaskData->positions.front(), position) <= 0);
 
       while (tool->comparePosition(implicitTaskData->positions.back(), position) > 0) {
+        tool->freePosition(implicitTaskData->positions.back());
         implicitTaskData->positions.pop_back();
         implicitTaskData->adjointAccessModes.pop_back();
       }
