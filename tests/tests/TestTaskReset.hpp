@@ -105,7 +105,7 @@ struct TestTaskReset : public TestBase<4, 1, 3, TestTaskReset<_Case>> {
         assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
         // remove the inner parallel region by positional reset
-        T::getTape().resetTo(position);
+        T::getTape().resetTo(position, false);
 
         #if _OPENMP
           opdi::logic->resetImplicitTask(&position, mode);
