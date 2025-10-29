@@ -77,6 +77,6 @@ thread-sanitizer:
     - export OPDI_DIR=$(pwd)/include
     - cd tests
     - export CXX=g++
-    - export CXXFLAGS="-g"
+    - export CXXFLAGS="$CXXFLAGS -g"
     - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all

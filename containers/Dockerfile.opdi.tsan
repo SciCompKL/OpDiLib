@@ -23,5 +23,3 @@ ENV CFLAGS="-I/gcc_install/include/c++/15.2.0 -I/gcc_install/include/c++/15.2.0/
 ENV LDFLAGS="-L/gcc_install/lib64 -fsanitize=thread"
 ENV PATH=/gcc_install/bin:$PATH
 ENV TSAN_OPTIONS="history_size=7 halt_on_error=1"
-
-ENTRYPOINT ["/bin/bash"]
