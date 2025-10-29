@@ -71,13 +71,16 @@ else
   FLAGS += -DOPDI_USE_OMPT_BACKEND
 endif
 
+EXCLUDE_TESTS ?=
+EXCLUDE_DRIVERS ?=
+
 # list all test files and extract test names
 TEST_FILES = $(wildcard $(TEST_DIR)/Test**.hpp)
-TESTS ?= $(patsubst $(TEST_DIR)/Test%.hpp,%,$(TEST_FILES))
+TESTS ?= $(filter-out $(EXCLUDE_TESTS), $(patsubst $(TEST_DIR)/Test%.hpp,%,$(TEST_FILES)))
 
 # list all driver files and extract driver names
 DRIVER_FILES = $(wildcard $(DRIVER_DIR)/Driver**.hpp)
-DRIVERS ?= $(patsubst $(DRIVER_DIR)/Driver%.hpp,%,$(DRIVER_FILES))
+DRIVERS ?= $(filter-out $(EXCLUDE_DRIVERS), $(patsubst $(DRIVER_DIR)/Driver%.hpp,%,$(DRIVER_FILES)))
 
 # exclude specific tests on a per-driver basis
 DRIVERS_USING_ALL_TESTS = $(filter-out FirstOrderReverseNoParallel FirstOrderForward Primal, $(DRIVERS))
