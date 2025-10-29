@@ -68,3 +68,15 @@ syntax:
     - DEBIAN_FRONTEND=noninteractive apt install -y tzdata
     - apt install -y python3
     - python3 syntax/check.py -r syntax/opdi.syntax.json tests macroexample.cpp omptexample.cpp
+
+thread-sanitizer:
+  image: $CI_REGISTRY/$CI_PROJECT_NAMESPACE/opdilib/opdi-tsan
+  script:
+    - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
+    - export CODI_DIR=$(pwd)/CoDiPack/include
+    - export OPDI_DIR=$(pwd)/include
+    - cd tests
+    - export CXX=g++
+    - export CXXFLAGS="-g"
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
+    - make all
