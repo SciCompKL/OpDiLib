@@ -1,0 +1,27 @@
+FROM ubuntu:24.04
+
+RUN DEBIAN_FRONTEND=noninteractive apt update && apt install -y build-essential binutils git curl flex
+
+RUN \
+  cd / \
+  && git clone --depth 1 --branch releases/gcc-15.2.0 git://gcc.gnu.org/git/gcc.git gcc_sources \
+  && cd gcc_sources \
+  && ./contrib/download_prerequisites \
+  && cd / \
+  && mkdir gcc_objdir \
+  && cd gcc_objdir \
+  && /gcc_sources/configure --prefix=/gcc_install --enable-languages=c,c++ --disable-linux-futex --disable-multilib \
+  && make -j $(nproc --all) \
+  && make install \
+  && cd / \
+  && rm -rf gcc_sources \
+  && rm -rf gcc_objdir
+
+ENV LD_LIBRARY_PATH=/gcc_install/lib64:$LD_LIBRARY_PATH
+ENV CXXFLAGS="-I/gcc_install/include/c++/15.2.0 -I/gcc_install/include/c++/15.2.0/x86_64-pc-linux-gnu -fsanitize=thread"
+ENV CFLAGS="-I/gcc_install/include/c++/15.2.0 -I/gcc_install/include/c++/15.2.0/x86_64-pc-linux-gnu -fsanitize=thread"
+ENV LDFLAGS="-L/gcc_install/lib64 -fsanitize=thread"
+ENV PATH=/gcc_install/bin:$PATH
+ENV TSAN_OPTIONS="history_size=7 halt_on_error=1"
+
+ENTRYPOINT ["/bin/bash"]
