@@ -25,19 +25,9 @@
 
 #pragma once
 
+#include "opdi/helpers/tsanDefinitions.hpp"
+
 #include "testBase.hpp"
-
-#ifdef __SANITIZE_THREAD__
-  #define ANNOTATE_RWLOCK_CREATE(lock) AnnotateRWLockCreate(__FILE__, __LINE__, (void*)lock)
-  #define ANNOTATE_RWLOCK_DESTROY(lock) AnnotateRWLockDestroy(__FILE__, __LINE__, (void*)lock)
-  #define ANNOTATE_RWLOCK_ACQUIRED(lock, isWrite) AnnotateRWLockAcquired(__FILE__, __LINE__, (void*)lock, isWrite)
-  #define ANNOTATE_RWLOCK_RELEASED(lock, isWrite) AnnotateRWLockReleased(__FILE__, __LINE__, (void*)lock, isWrite)
-
-extern "C" void AnnotateRWLockCreate(const char* f, int l, void* addr);
-extern "C" void AnnotateRWLockDestroy(const char* f, int l, void* addr);
-extern "C" void AnnotateRWLockAcquired(const char* f, int l, void* addr, size_t isWrite);
-extern "C" void AnnotateRWLockReleased(const char* f, int l, void* addr, size_t isWrite);
-#endif
 
 template<typename _Case>
 struct TestCustomMutex : public TestBase<4, 1, 3, TestCustomMutex<_Case>> {
