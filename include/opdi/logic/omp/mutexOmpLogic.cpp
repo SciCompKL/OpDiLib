@@ -25,8 +25,9 @@
 
 #include <cassert>
 
-#include "../../helpers/macros.hpp"
 #include "../../helpers/exceptions.hpp"
+#include "../../helpers/macros.hpp"
+#include "../../helpers/tsanDefinitions.hpp"
 #include "../../config.hpp"
 #include "../../tool/toolInterface.hpp"
 

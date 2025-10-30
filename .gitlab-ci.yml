@@ -81,3 +81,16 @@ address-sanitizer:
     - export CXXFLAGS="-g -fsanitize=address -fno-omit-frame-pointer"
     - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all
+
+thread-sanitizer:
+  image: $CI_REGISTRY/$CI_PROJECT_NAMESPACE/opdilib/opdi-tsan
+  script:
+    - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
+    - export CODI_DIR=$(pwd)/CoDiPack/include
+    - export OPDI_DIR=$(pwd)/include
+    - cd tests
+    - export CXX=g++
+    - export CXXFLAGS="$CXXFLAGS -g"
+    - export EXCLUDE_TESTS="CriticalLock CriticalName CriticalNameHint ParallelNested PreaccumulationLocal SectionsNowait"
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
+    - make all

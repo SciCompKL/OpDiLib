@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "opdi/helpers/tsanDefinitions.hpp"
+
 #include "testBase.hpp"
 
 template<typename _Case>
@@ -37,8 +39,27 @@ struct TestCustomMutex : public TestBase<4, 1, 3, TestCustomMutex<_Case>> {
       private:
         int status;
 
+        #ifdef __SANITIZE_THREAD__
+          int dummy;
+        #endif
+
       public:
-        CustomMutex() : status(0) {}
+        CustomMutex() : status(0)
+          #ifdef __SANITIZE_THREAD__
+                      , dummy(0)
+          #endif
+        {
+
+          #ifdef __SANITIZE_THREAD__
+            ANNOTATE_RWLOCK_CREATE(&dummy);
+          #endif
+        }
+
+        ~CustomMutex() {
+          #ifdef __SANITIZE_THREAD__
+            ANNOTATE_RWLOCK_DESTROY(&dummy);
+          #endif
+        }
 
         void lock() {
           int localStatus;
@@ -69,16 +90,26 @@ struct TestCustomMutex : public TestBase<4, 1, 3, TestCustomMutex<_Case>> {
             #endif
             --status;
           }
+
+          #ifdef __SANITIZE_THREAD__
+            ANNOTATE_RWLOCK_ACQUIRED(&dummy, true);
+          #endif
+
           #ifdef _OPENMP
             opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Custom, reinterpret_cast<opdi::LogicInterface::WaitId>(&status));
           #endif
         }
 
         void unlock() {
+          #ifdef __SANITIZE_THREAD__
+            ANNOTATE_RWLOCK_RELEASED(&dummy, true);
+          #endif
+
           #ifdef _OPENMP
             #pragma omp atomic update
           #endif
           --status;
+
           #ifdef _OPENMP
             opdi::logic->onMutexReleased(opdi::LogicInterface::MutexKind::Custom, reinterpret_cast<opdi::LogicInterface::WaitId>(&status));
           #endif
