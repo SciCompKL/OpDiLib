@@ -41,24 +41,23 @@
   #ifdef OUTPUT_INSTRUMENT
     #include "opdi/logic/omp/instrument/ompLogicOutputInstrument.hpp"
   #endif
-  #include "opdi/helpers/undefineMacros.hpp"
+#else
+  #include "opdi/helpers/emptyMacros.hpp"
 #endif
-
-#include "opdi/helpers/emptyMacros.hpp"
 
 #include "driverBase.hpp"
 
 #ifdef BUILD_REFERENCE
-  using TestReal = codi::RealReverseIndex;
+  using TestReal = codi::RealReverseIndexVec<2>;
 #else
-  using TestReal = codi::RealReverseIndexOpenMPGen<double, double>;
+  using TestReal = codi::RealReverseIndexOpenMPGen<double, codi::Direction<double, 2>>;
 
   OPDI_DECLARE_REDUCTION(+, TestReal, +, 0.0);
   OPDI_DECLARE_REDUCTION(*, TestReal, *, 1.0);
 #endif
 
 template<typename _Case>
-struct DriverFirstOrderReverseNoOpenMP : public DriverBase<DriverFirstOrderReverseNoOpenMP<_Case> > {
+struct DriverFirstOrderReverseVector : public DriverBase<DriverFirstOrderReverseVector<_Case> > {
   public:
 
     using Case = _Case;
@@ -87,7 +86,7 @@ struct DriverFirstOrderReverseNoOpenMP : public DriverBase<DriverFirstOrderRever
       std::array<std::array<TestReal, Case::nIn>, Case::nPoints> inputs = Case::template genPoints<TestReal>();
 
       for (int p = 0; p < Case::nPoints; ++p) {
-        double jacobian[Case::nOut][Case::nIn];
+        double jacobian[Case::nOut][Case::nIn][2];
         double primal[Case::nOut];
 
         for (int o = 0; o < Case::nOut; ++o) {
@@ -106,7 +105,8 @@ struct DriverFirstOrderReverseNoOpenMP : public DriverBase<DriverFirstOrderRever
 
           tape.setPassive();
 
-          outputs[o].setGradient(1.0);
+          outputs[o].gradient()[0] = 1.0;
+          outputs[o].gradient()[1] = 1.25;
 
           #ifndef BUILD_REFERENCE
             opdi::logic->prepareEvaluate();
@@ -118,8 +118,10 @@ struct DriverFirstOrderReverseNoOpenMP : public DriverBase<DriverFirstOrderRever
 
           for (int i = 0; i < Case::nIn; ++i)
           {
-            jacobian[o][i] = inputs[p][i].getGradient();
-            inputs[p][i].setGradient(0.0);
+            jacobian[o][i][0] = inputs[p][i].getGradient()[0];
+            jacobian[o][i][1] = inputs[p][i].getGradient()[1];
+            inputs[p][i].gradient()[0] = 0.0;
+            inputs[p][i].gradient()[1] = 0.0;
           }
 
           primal[o] = outputs[o].getValue();
@@ -136,7 +138,7 @@ struct DriverFirstOrderReverseNoOpenMP : public DriverBase<DriverFirstOrderRever
 
         for (int o = 0; o < Case::nOut; ++o) {
           for (int i = 0; i < Case::nIn; ++i) {
-            std::cout << jacobian[o][i] << std::endl;
+            std::cout << jacobian[o][i][0] << " " << jacobian[o][i][1] << std::endl;
           }
         }
       }
