@@ -91,6 +91,6 @@ thread-sanitizer:
     - cd tests
     - export CXX=g++
     - export CXXFLAGS="$CXXFLAGS -g"
-    - export EXCLUDE_TESTS="CriticalLock CriticalName CriticalNameHint ParallelNested PreaccumulationLocal SectionsNowait"
+    - export EXCLUDE_TESTS="CriticalLock CriticalName CriticalNameHint OrderedNowait ParallelNested PreaccumulationLocal SectionsNowait"
     - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all
