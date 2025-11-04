@@ -50,7 +50,7 @@
 #ifdef BUILD_REFERENCE
   using TestReal = codi::RealReverseIndexVec<2>;
 #else
-  using TestReal = codi::RealReverseIndexVecOpenMP<2>;
+  using TestReal = codi::RealReverseIndexOpenMPGen<double, codi::Direction<double, 2>>;
 
   OPDI_DECLARE_REDUCTION(+, TestReal, +, 0.0);
   OPDI_DECLARE_REDUCTION(*, TestReal, *, 1.0);
