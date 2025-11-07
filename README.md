@@ -8,6 +8,8 @@ The [Scientific Computing Group](https://scicomp.rptu.de) at the University of K
 There is a newsletter available at [scicomp-opdi-info@lists.rptu.de](https://lists.rptu.de/wws/subscribe/scicomp-opdi-info).
 If you want to contact us, please write a mail to [opdi@scicomp.uni-kl.de](mailto:opdi@scicomp.uni-kl.de).
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17553572.svg)](https://doi.org/10.5281/zenodo.17553572)
+
 ## OpenMP Support
 
 OpDiLib supports all directives, clauses and runtime functions of the OpenMP 2.5 specification with the exception of
