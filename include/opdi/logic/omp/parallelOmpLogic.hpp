@@ -33,40 +33,48 @@
 
 namespace opdi {
 
-  struct ParallelOmpLogic : public virtual LogicInterface,
-                            public virtual TapePool {
+  struct ImplicitTaskData;
+
+  struct ParallelData {
+    public:
+      int maximumSizeOfTeam;
+      int actualSizeOfTeam;
+      bool isActiveParallelRegion;
+      ImplicitTaskData* encounteringTaskData;
+      void* encounteringTaskTape;
+      void* encounteringTaskTapePosition;
+      LogicInterface::AdjointAccessMode encounteringTaskAdjointAccessMode;
+      std::vector<ImplicitTaskData*> childTaskData;
+  };
+
+  struct ParallelOmpLogic : public virtual LogicInterface {
     public:
 
       using LogicInterface::AdjointAccessMode;
 
-      struct Data {
-        public:
-          int maxThreads;
-          int actualThreads;
-          bool activeParallelRegion;
-          void* parentTask;  // ParallelOmpLogic::Data of parent task
-          void* parentTape;
-          AdjointAccessMode parentAdjointAccessMode;
-          std::vector<void*> childTasks;  // ImplicitTaskOmpLogic::Data of child tasks
-      };
-
     private:
 
-      static int skipParallelHandling;
-      #pragma omp threadprivate(skipParallelHandling)
+      static int skipParallelRegion;
+      #pragma omp threadprivate(skipParallelRegion)
 
-      static void reverseFunc(void* dataPtr);
-      static void deleteFunc(void* dataPtr);
+      static void internalBeginSkippedParallelRegion();
+      static void internalEndSkippedParallelRegion();
 
-      AdjointAccessMode internalGetAdjointAccessMode(void* taskDataPtr) const;
-      void internalSetAdjointAccessMode(void* taskDataPtr, AdjointAccessMode mode);
+      static void reverseFunc(void* parallelData);
+      static void deleteFunc(void* parallelData);
+
+      AdjointAccessMode internalGetAdjointAccessMode(ImplicitTaskData* implicitTaskData) const;
+      void internalSetAdjointAccessMode(ImplicitTaskData* implicitTaskData, AdjointAccessMode mode);
 
     public:
 
-      virtual void* onParallelBegin(void* encounteringTask, int maxThreads);
-      virtual void onParallelEnd(void* dataPtr);
+      virtual void* onParallelBegin(void* encounteringTaskData, int maximumSizeOfTeam);
+      virtual void onParallelEnd(void* parallelData);
 
       virtual void setAdjointAccessMode(AdjointAccessMode mode);
       virtual AdjointAccessMode getAdjointAccessMode() const;
+
+      virtual void beginSkippedParallelRegion();
+      virtual void endSkippedParallelRegion();
   };
 }

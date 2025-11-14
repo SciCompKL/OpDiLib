@@ -39,10 +39,13 @@ namespace opdi {
       virtual void finalize() = 0;
 
       virtual std::size_t getLockIdentifier(omp_lock_t* lock) = 0;
-      virtual std::size_t getNestedLockIdentifier(omp_nest_lock_t* lock) = 0;
+      virtual std::size_t getNestLockIdentifier(omp_nest_lock_t* lock) = 0;
+      virtual std::size_t getCriticalIdentifier(std::string const& name) = 0;
+      virtual std::size_t getReductionIdentifier() = 0;
+      virtual std::size_t getOrderedIdentifier() = 0;
 
       virtual void* getParallelData() = 0;
-      virtual void* getTaskData() = 0;
+      virtual void* getImplicitTaskData() = 0;
 
       virtual void setInitialImplicitTaskData(void* data) = 0;
   };

@@ -43,123 +43,165 @@ void opdi::ImplicitTaskOmpLogic::internalFinalize() {
   this->tapePool.finalize();
 }
 
-void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool initialImplicitTask, int actualParallelism, int index,
+void* opdi::ImplicitTaskOmpLogic::onImplicitTaskBegin(bool isInitialImplicitTask, int actualSizeOfTeam, int indexInTeam,
                                                       void* parallelDataPtr) {
 
-  ParallelData* parallelData = (ParallelData*) parallelDataPtr;
+  ParallelData* parallelData = static_cast<ParallelData*>(parallelDataPtr);
 
   // check if the handling of the parallel region was skipped
-  if (parallelData != nullptr || initialImplicitTask) {
+  if (parallelData != nullptr || isInitialImplicitTask) {
 
-    Data* data = new Data;
-    data->initialImplicitTask = initialImplicitTask;
-    data->level = omp_get_level();
-    data->index = index;
+    ImplicitTaskData* implicitTaskData = new ImplicitTaskData;
+    implicitTaskData->isInitialImplicitTask = isInitialImplicitTask;
+    implicitTaskData->level = omp_get_level();
+    implicitTaskData->indexInTeam = indexInTeam;
 
-    // OpDiLib does not interfere with the initial implicit task AD-wise, e.g., does not track its tape / does not assume
-    // that the tape does not change. OpDiLib uses the initial implicit task's data primarily to track its adjoint access
-    // mode.
-    if (!initialImplicitTask) {
-      if (index == 0) {
-        parallelData->actualThreads = actualParallelism;
+    // OpDiLib does not interfere with the initial implicit task AD-wise, e.g., does not track its tape / does not
+    // assume that the tape does not change. OpDiLib uses the initial implicit task's data primarily to track its
+    // adjoint access mode.
+    if (!isInitialImplicitTask) {
+
+      assert(tool != nullptr);
+
+      if (indexInTeam == 0) {
+        if (parallelData->maximumSizeOfTeam < actualSizeOfTeam) {
+          OPDI_ERROR("Actual number of threads exceeds maximum number of threads.");
+        }
+        parallelData->actualSizeOfTeam = actualSizeOfTeam;
       }
 
-      data->oldTape = tool->getThreadLocalTape();
-      data->parallelData = parallelData;
+      implicitTaskData->oldTape = tool->getThreadLocalTape();
+      assert(implicitTaskData->oldTape != nullptr);
+      implicitTaskData->parallelData = parallelData;
 
-      void* newTape = this->tapePool.getTape(parallelData->parentTape, index);
+      void* newTape = this->tapePool.getTape(parallelData->encounteringTaskTape, indexInTeam);
 
-      if (parallelData->activeParallelRegion) {
+      if (parallelData->isActiveParallelRegion) {
+        // most recent tape activity change *per thread* reflects the current activity
+        if (indexInTeam == 0) {
+          tool->setActive(implicitTaskData->oldTape, false);  // suspend recording on encountering task's tape
+        }
         tool->setActive(newTape, true);
       }
 
-      data->tape = newTape;
+      implicitTaskData->newTape = newTape;
 
-      data->positions.push_back(tool->allocPosition());
-      tool->getTapePosition(newTape, data->positions.back());
+      implicitTaskData->positions.push_back(tool->allocPosition());
+      tool->getTapePosition(newTape, implicitTaskData->positions.back());
 
       tool->setThreadLocalTape(newTape);
 
-      data->adjointAccessModes.push_back(parallelData->parentAdjointAccessMode);
+      implicitTaskData->adjointAccessModes.push_back(parallelData->encounteringTaskAdjointAccessMode);
 
-      parallelData->childTasks[index] = data;
+      parallelData->childTaskData[indexInTeam] = implicitTaskData;
+
+      // check for copies due to firstprivate/copyin that were recorded on the wrong tapes
+      // move them to the correct tapes if needed
+
+      void* oldTapePosition = tool->allocPosition();
+      tool->getTapePosition(implicitTaskData->oldTape, oldTapePosition);
+
+      void* referencePosition = tool->allocPosition();
+      if (indexInTeam == 0) {
+        tool->copyPosition(referencePosition, parallelData->encounteringTaskTapePosition);
+      }
+      else {
+        tool->getZeroPosition(implicitTaskData->oldTape, referencePosition);
+      }
+
+      if (tool->comparePosition(oldTapePosition, referencePosition) > 0) {
+        // users should ensure that activity of default tapes and encountering task's tape match
+        assert(parallelData->isActiveParallelRegion);
+
+        tool->append(newTape, implicitTaskData->oldTape, referencePosition, oldTapePosition);
+        tool->erase(implicitTaskData->oldTape, referencePosition, oldTapePosition);
+      }
+
+      tool->freePosition(referencePosition);
+      tool->freePosition(oldTapePosition);
     }
     else {
-      data->oldTape = nullptr;
-      data->tape = nullptr;
-      data->parallelData = nullptr;
+      implicitTaskData->oldTape = nullptr;
+      implicitTaskData->newTape = nullptr;
+      implicitTaskData->parallelData = nullptr;
 
-      data->adjointAccessModes.push_back(ImplicitTaskOmpLogic::defaultAdjointAccessMode);
+      implicitTaskData->adjointAccessModes.push_back(ImplicitTaskOmpLogic::defaultAdjointAccessMode);
     }
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
-        instrument->onImplicitTaskBegin(data);
+        instrument->onImplicitTaskBegin(implicitTaskData);
       }
     #endif
 
-    return data;
+    return static_cast<void*>(implicitTaskData);
   }
 
   return nullptr;
 }
 
-void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* dataPtr) {
+void opdi::ImplicitTaskOmpLogic::onImplicitTaskEnd(void* implicitTaskDataPtr) {
 
-  if (dataPtr != nullptr) {
-    Data* data = (Data*) dataPtr;
+  if (implicitTaskDataPtr != nullptr) {
+
+    ImplicitTaskData* implicitTaskData = static_cast<ImplicitTaskData*>(implicitTaskDataPtr);
 
     #if OPDI_OMP_LOGIC_INSTRUMENT
       for (auto& instrument : ompLogicInstruments) {
-        instrument->onImplicitTaskEnd(data);
+        instrument->onImplicitTaskEnd(implicitTaskData);
       }
     #endif
 
-    if (!data->initialImplicitTask) {
-      tool->setThreadLocalTape(data->oldTape);
+    if (!implicitTaskData->isInitialImplicitTask) {
+      assert(tool != nullptr);
 
-      data->positions.push_back(tool->allocPosition());
-      tool->getTapePosition(data->tape, data->positions.back());
+      tool->setThreadLocalTape(implicitTaskData->oldTape);
 
-      if (!data->parallelData->activeParallelRegion) {
-        if (tool->comparePosition(data->positions.front(), data->positions.back()) != 0) {
-          OPDI_WARNING("Something became active during a passive parallel region. This is not supported and will not ",
-                       "be differentiated correctly.");
+      implicitTaskData->positions.push_back(tool->allocPosition());
+      tool->getTapePosition(implicitTaskData->newTape, implicitTaskData->positions.back());
+
+      if (!implicitTaskData->parallelData->isActiveParallelRegion) {
+        if (tool->comparePosition(implicitTaskData->positions.front(), implicitTaskData->positions.back()) != 0) {
+          OPDI_ERROR("Something became active during a passive parallel region. This is not supported and will not be",
+                     "differentiated correctly.");
         }
       }
-
-      tool->setActive(data->tape, false);
-
-      // ensure that the most recent activity change *per thread* reflects the current activity
-      if (data->oldTape == data->parallelData->parentTape && data->parallelData->activeParallelRegion) {
-        tool->setActive(data->oldTape, true);
+      else {
+        // most recent tape activity change *per thread* reflects the current activity
+        tool->setActive(implicitTaskData->newTape, false);
+        if (implicitTaskData->indexInTeam == 0) {
+          tool->setActive(implicitTaskData->oldTape, true);  // resume recording on encountering task's tape
+        }
       }
 
       // do not delete data, it is deleted as part of parallel regions
     }
     else {
       // delete task data, there is no parallel region to do so
-      delete data;
+      delete implicitTaskData;
     }
   }
 }
 
-void opdi::ImplicitTaskOmpLogic::resetTask(void* position, opdi::LogicInterface::AdjointAccessMode mode) {
+void opdi::ImplicitTaskOmpLogic::resetImplicitTask(void* position, opdi::LogicInterface::AdjointAccessMode mode) {
 
-  void* taskDataPtr = backend->getTaskData();
+  void* implicitTaskDataPtr = backend->getImplicitTaskData();
 
-  if (taskDataPtr != nullptr) {
-    opdi::ImplicitTaskOmpLogic::Data* taskData = reinterpret_cast<opdi::ImplicitTaskOmpLogic::Data*>(taskDataPtr);
+  if (implicitTaskDataPtr != nullptr) {
+    ImplicitTaskData* implicitTaskData = static_cast<ImplicitTaskData*>(implicitTaskDataPtr);
 
-    if (!taskData->initialImplicitTask) {
-      assert(tool->comparePosition(taskData->positions.front(), position) <= 0);
+    if (!implicitTaskData->isInitialImplicitTask) {
+      assert(tool != nullptr);
 
-      while (tool->comparePosition(taskData->positions.back(), position) > 0) {
-        taskData->positions.pop_back();
-        taskData->adjointAccessModes.pop_back();
+      assert(tool->comparePosition(implicitTaskData->positions.front(), position) <= 0);
+
+      while (tool->comparePosition(implicitTaskData->positions.back(), position) > 0) {
+        tool->freePosition(implicitTaskData->positions.back());
+        implicitTaskData->positions.pop_back();
+        implicitTaskData->adjointAccessModes.pop_back();
       }
     }
 
-    taskData->adjointAccessModes.back() = mode;
+    implicitTaskData->adjointAccessModes.back() = mode;
   }
 }

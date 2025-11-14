@@ -44,7 +44,7 @@
 
 #include "implicitTaskCallbacks.hpp"
 #include "macros.hpp"
-#include "masterCallbacks.hpp"
+#include "maskedCallbacks.hpp"
 #include "mutexCallbacks.hpp"
 #include "parallelCallbacks.hpp"
 #include "reductionCallbacks.hpp"
@@ -55,7 +55,7 @@
 namespace opdi {
 
   struct OmptBackend : public ImplicitTaskCallbacks,
-                       public MasterCallbacks,
+                       public MaskedCallbacks,
                        public MutexCallbacks,
                        public ParallelCallbacks,
                        public ReductionCallbacks,
@@ -101,11 +101,15 @@ namespace opdi {
         // initialize callback structures
         ParallelCallbacks::init();
         ImplicitTaskCallbacks::init();
-        WorkCallbacks::init();
+        #if OPDI_BACKEND_GENERATE_WORK_EVENTS
+          WorkCallbacks::init();
+        #endif
         SyncRegionCallbacks::init();
         MutexCallbacks::init();
         ReductionCallbacks::init();
-        MasterCallbacks::init();
+        #if OPDI_BACKEND_GENERATE_MASKED_EVENTS
+          MaskedCallbacks::init();
+        #endif
 
         return 1; // success
       }
@@ -115,11 +119,15 @@ namespace opdi {
         OPDI_UNUSED(toolData);
 
         // finalize callback structures
-        MasterCallbacks::finalize();
+        #if OPDI_BACKEND_GENERATE_MASKED_EVENTS
+          MaskedCallbacks::finalize();
+        #endif
         ReductionCallbacks::finalize();
         MutexCallbacks::finalize();
         SyncRegionCallbacks::finalize();
-        WorkCallbacks::finalize();
+        #if OPDI_BACKEND_GENERATE_WORK_EVENTS
+          WorkCallbacks::finalize();
+        #endif
         ImplicitTaskCallbacks::finalize();
         ParallelCallbacks::finalize();
       }
@@ -143,7 +151,7 @@ namespace opdi {
         return (std::size_t) waitId;
       }
 
-      std::size_t getNestedLockIdentifier(omp_nest_lock_t* lock) {
+      std::size_t getNestLockIdentifier(omp_nest_lock_t* lock) {
 
         ompt_wait_id_t waitId;
         WaitIdExtractor::begin(&waitId);
@@ -154,27 +162,48 @@ namespace opdi {
         return (std::size_t) waitId;
       }
 
+      std::size_t getCriticalIdentifier(std::string const& name) {
+        OPDI_UNUSED(name);
+        OPDI_ERROR("OMPT backend does not support explicit queries of mutex identifiers of critical constructs.");
+        return 0;
+      }
+
+      std::size_t getReductionIdentifier() {
+        return reinterpret_cast<std::size_t>(getParallelData());
+      }
+
+      std::size_t getOrderedIdentifier() {
+        OPDI_ERROR("OMPT backend does not support explicit queries of mutex identifiers of ordered constructs.");
+        return 0;
+      }
+
       void* getParallelData() {
         ompt_data_t* parallelData;
         int teamSize;
 
-        int result = getParallelInfo(0, &parallelData, &teamSize);
-
-        assert(result == 2);
+        #ifndef NDEBUG
+          int result = getParallelInfo(0, &parallelData, &teamSize);
+          assert(result == 2);
+        #else
+          getParallelInfo(0, &parallelData, &teamSize);
+        #endif
 
         return parallelData->ptr;
       }
 
-      void* getTaskData() {
+      void* getImplicitTaskData() {
         int flags;
         ompt_data_t* taskData;
         ompt_frame_t* taskFrame;
         ompt_data_t* parallelData;
         int threadNum;
 
-        int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
-
-        assert(result == 2);
+        #ifndef NDEBUG
+          int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+          assert(result == 2);
+        #else
+          getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+        #endif
 
         return taskData->ptr;
       }
@@ -186,11 +215,14 @@ namespace opdi {
         ompt_data_t* parallelData;
         int threadNum;
 
-        int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
-
-        assert(result == 2);
-        assert(flags & ompt_task_initial);
-        assert(taskData->ptr == nullptr);
+        #ifndef NDEBUG
+          int result = getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+          assert(result == 2);
+          assert(flags & ompt_task_initial);
+          assert(taskData->ptr == nullptr);
+        #else
+          getTaskInfo(0, &flags, &taskData, &taskFrame, &parallelData, &threadNum);
+        #endif
 
         taskData->ptr = data;
       }

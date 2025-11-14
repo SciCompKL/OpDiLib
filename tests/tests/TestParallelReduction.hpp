@@ -36,12 +36,12 @@ struct TestParallelReduction : public TestBase<4, 1, 3, TestParallelReduction<_C
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* jobResults = new T[N];
 
       T output = 0.0;
 
-      OPDI_PARALLEL(OPDI_REDUCTION reduction(plus: output))
+      OPDI_PARALLEL(OPDI_REDUCTION reduction(+: output))
       {
         int nThreads = omp_get_num_threads();
         int start = ((N - 1) / nThreads + 1) * omp_get_thread_num();

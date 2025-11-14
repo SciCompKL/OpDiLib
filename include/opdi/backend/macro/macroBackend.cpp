@@ -30,21 +30,17 @@
 // static macro backend members
 
 std::stack<void*> opdi::DataTools::parallelData;
-std::stack<void*> opdi::DataTools::taskData;
+std::stack<void*> opdi::DataTools::implicitTaskData;
 
 std::stack<bool> opdi::ImplicitBarrierTools::implicitBarrierStack;
 
-omp_lock_t opdi::ReductionTools::globalReducerLock;
-std::list<omp_nest_lock_t*> opdi::ReductionTools::individualReducerLocks;
-std::stack<bool> opdi::ReductionTools::reductionBarrierStack;
+std::stack<bool> opdi::ReductionTools::hasReductions;
+std::stack<bool> opdi::ReductionTools::needsBarrierBeforeReductions;
+std::stack<bool> opdi::ReductionTools::needsBarrierAfterReductions;
+int opdi::ReductionTools::implicitTaskNestingDepth = 0;
 
-template<typename Type, int identifier>
-omp_nest_lock_t opdi::Reducer<Type, identifier>::reduceLock;
-
-template<typename Type, int identifier>
-bool opdi::Reducer<Type, identifier>::isInitialized = false;
-
-std::stack<opdi::ProbeScopeStatus::Status> opdi::ProbeScopeStatus::statusStack;
+template<typename Type>
+size_t opdi::Reducer<Type>::nConstructorCalls = 0;
 
 // global macro backend variables
 
@@ -69,8 +65,8 @@ namespace opdi {
 
   void opdi_destroy_nest_lock(omp_nest_lock_t* lock) {
     omp_destroy_nest_lock(lock);
-    opdi::logic->onMutexDestroyed(LogicInterface::MutexKind::NestedLock,
-                                  opdi::backend->getNestedLockIdentifier(lock));
+    opdi::logic->onMutexDestroyed(LogicInterface::MutexKind::NestLock,
+                                  opdi::backend->getNestLockIdentifier(lock));
   }
 
   void opdi_set_lock(omp_lock_t* lock) {
@@ -82,8 +78,8 @@ namespace opdi {
     omp_set_nest_lock(lock);
     int lockCount = omp_test_nest_lock(lock); // user triggered locks plus lock caused by test
     if (lockCount == 2) {
-      opdi::logic->onMutexAcquired(LogicInterface::MutexKind::NestedLock,
-                                   opdi::backend->getNestedLockIdentifier(lock));
+      opdi::logic->onMutexAcquired(LogicInterface::MutexKind::NestLock,
+                                   opdi::backend->getNestLockIdentifier(lock));
     }
     omp_unset_nest_lock(lock); // revert lock caused by test
   }
@@ -96,8 +92,8 @@ namespace opdi {
   void opdi_unset_nest_lock(omp_nest_lock_t* lock) {
     int lockCount = omp_test_nest_lock(lock); // user triggered locks plus lock caused by test
     if (lockCount == 2) {
-      opdi::logic->onMutexReleased(LogicInterface::MutexKind::NestedLock,
-                                   opdi::backend->getNestedLockIdentifier(lock));
+      opdi::logic->onMutexReleased(LogicInterface::MutexKind::NestLock,
+                                   opdi::backend->getNestLockIdentifier(lock));
     }
     omp_unset_nest_lock(lock); // revert lock caused by test
     omp_unset_nest_lock(lock); // user triggered unlock
@@ -114,8 +110,8 @@ namespace opdi {
   int opdi_test_nest_lock(omp_nest_lock_t* lock) {
     int lockCount = omp_test_nest_lock(lock);
     if (lockCount == 1) {
-      opdi::logic->onMutexAcquired(LogicInterface::MutexKind::NestedLock,
-                                   opdi::backend->getNestedLockIdentifier(lock));
+      opdi::logic->onMutexAcquired(LogicInterface::MutexKind::NestLock,
+                                   opdi::backend->getNestLockIdentifier(lock));
     }
     return lockCount;
   }

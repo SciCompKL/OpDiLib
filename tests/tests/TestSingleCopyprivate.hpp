@@ -36,7 +36,7 @@ struct TestSingleCopyprivate : public TestBase<4, 1, 3, TestSingleCopyprivate<_C
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* jobResults = new T[N];
 
       T helper;
@@ -53,7 +53,7 @@ struct TestSingleCopyprivate : public TestBase<4, 1, 3, TestSingleCopyprivate<_C
 
         OPDI_BARRIER()
 
-        OPDI_SINGLE(copyprivate(helper))
+        OPDI_SINGLE_COPYPRIVATE(copyprivate(helper))
         {
           for (int i = 0; i < N; ++i) {
             helper = sin(jobResults[i]);

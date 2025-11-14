@@ -45,7 +45,6 @@
 #include "macros.hpp"
 #include "mutexIdentifiers.hpp"
 #include "probes.hpp"
-#include "probeTools.hpp"
 #include "reductionTools.hpp"
 
 namespace opdi {
@@ -58,37 +57,25 @@ namespace opdi {
       // remaining functions from backend interface
 
       void init() {
-        opdi_init_lock(&ReductionTools::globalReducerLock);
-
         // task data for initial implicit task is created in the logic layer
       }
 
       void finalize() {
         // pop task data associated with initial implicit task
         DataTools::popTaskData();
-        assert(DataTools::getTaskData() == nullptr);
-
-        opdi_set_lock(&ReductionTools::globalReducerLock);
-
-        for (auto lock : ReductionTools::individualReducerLocks) {
-          opdi_destroy_nest_lock(lock);
-        }
-
-        opdi_unset_lock(&ReductionTools::globalReducerLock);
-
-        opdi_destroy_lock(&ReductionTools::globalReducerLock);
+        assert(DataTools::getImplicitTaskData() == nullptr);
       }
 
       void* getParallelData() {
         return DataTools::getParallelData();
       }
 
-      void* getTaskData() {
-        return DataTools::getTaskData();
+      void* getImplicitTaskData() {
+        return DataTools::getImplicitTaskData();
       }
 
       void setInitialImplicitTaskData(void* data) {
-        assert(DataTools::getTaskData() == nullptr);
+        assert(DataTools::getImplicitTaskData() == nullptr);
         DataTools::pushTaskData(data);
       }
   };

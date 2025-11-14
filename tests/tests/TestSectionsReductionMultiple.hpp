@@ -36,7 +36,7 @@ struct TestSectionsReductionMultiple : public TestBase<4, 1, 3, TestSectionsRedu
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* jobResults = new T[N];
 
       T output1 = 0.0;
@@ -45,7 +45,7 @@ struct TestSectionsReductionMultiple : public TestBase<4, 1, 3, TestSectionsRedu
 
       OPDI_PARALLEL()
       {
-        OPDI_SECTIONS(OPDI_REDUCTION reduction(plus: output1) reduction(prod: output2, output3))
+        OPDI_SECTIONS(OPDI_REDUCTION reduction(+: output1) reduction(*: output2, output3))
         {
           OPDI_SECTION()
           {

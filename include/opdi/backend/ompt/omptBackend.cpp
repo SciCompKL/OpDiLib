@@ -50,48 +50,13 @@ extern "C" ompt_start_tool_result_t* ompt_start_tool(unsigned int ompVersion, ch
   startTool->initialize = opdi::OmptBackend::onInitialize;
   startTool->finalize = opdi::OmptBackend::onFinalize;
   opdi::backend = new opdi::OmptBackend;
-  startTool->tool_data.ptr = (void*) opdi::backend;
+  startTool->tool_data.ptr = static_cast<void*>(opdi::backend);
 
   return startTool;
 }
 
 /* runtime */
 
-#include "../runtime.cpp" // contains implementations that do not depend on the backend
+#include "../runtime.cpp"  // contains implementations that do not depend on the backend
 
-namespace opdi {
-
-  /* lock routines */
-
-  void opdi_destroy_lock(omp_lock_t* lock) {
-    omp_destroy_lock(lock);
-  }
-
-  void opdi_destroy_nest_lock(omp_nest_lock_t* lock) {
-    omp_destroy_nest_lock(lock);
-  }
-
-  void opdi_set_lock(omp_lock_t* lock) {
-    omp_set_lock(lock);
-  }
-
-  void opdi_set_nest_lock(omp_nest_lock_t* lock) {
-    omp_set_nest_lock(lock);
-  }
-
-  void opdi_unset_lock(omp_lock_t* lock) {
-    omp_unset_lock(lock);
-  }
-
-  void opdi_unset_nest_lock(omp_nest_lock_t* lock) {
-    omp_unset_nest_lock(lock);
-  }
-
-  int opdi_test_lock(omp_lock_t* lock) {
-    return omp_test_lock(lock);
-  }
-
-  int opdi_test_nest_lock(omp_nest_lock_t* lock) {
-    return omp_test_nest_lock(lock);
-  }
-}
+#include "runtime.cpp"  // contains backend-specific implementations

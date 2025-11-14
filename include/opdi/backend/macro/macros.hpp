@@ -27,6 +27,7 @@
 
 #include <omp.h>
 
+#include "../../config.hpp"
 #include "../../helpers/macros.hpp"
 
 #include "implicitBarrierTools.hpp"
@@ -38,9 +39,9 @@
 
 #define OPDI_PARALLEL(...) \
   { \
-    void* opdiInternalParallelData = opdi::logic->onParallelBegin(opdi::DataTools::getTaskData(), omp_get_max_threads()); \
-    opdi::TaskProbe opdiInternalTaskProbe(opdiInternalParallelData); \
-    OPDI_PRAGMA(omp parallel __VA_ARGS__ firstprivate(opdiInternalTaskProbe))
+    void* opdiInternalParallelData = opdi::logic->onParallelBegin(opdi::DataTools::getImplicitTaskData(), omp_get_max_threads()); \
+    opdi::ImplicitTaskProbe opdiInternalImplicitTaskProbe(opdiInternalParallelData); \
+    OPDI_PRAGMA(omp parallel __VA_ARGS__ firstprivate(opdiInternalImplicitTaskProbe))
 
 #define OPDI_END_PARALLEL \
     opdi::logic->onParallelEnd(opdiInternalParallelData); \
@@ -48,58 +49,121 @@
 
 #define OPDI_FOR(...) \
   opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
+  opdi::ReductionTools::beginRegionThatSupportsReductions(true); \
   OPDI_PRAGMA(omp for __VA_ARGS__ private(opdi::internalLoopProbe))
 
 #define OPDI_END_FOR \
+  opdi::ReductionTools::endRegionThatSupportsReductions(); \
   opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier();
 
 #define OPDI_SECTIONS(...) \
   opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
+  opdi::ReductionTools::beginRegionThatSupportsReductions(true); \
   OPDI_PRAGMA(omp sections private(opdi::internalSectionsProbe) __VA_ARGS__)
 
 #define OPDI_END_SECTIONS \
+  opdi::ReductionTools::endRegionThatSupportsReductions(); \
   opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier();
 
 #define OPDI_SINGLE(...) \
   { \
     bool constexpr opdiInternalBarrierIndicator = true; \
-    void* opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
-    opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1); \
-    opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
-                              opdi::LogicInterface::ScopeEndpoint::Begin); \
-    void* opdiInternalTapePosition2 = opdi::tool->allocPosition(); \
-    opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition2); \
+    bool constexpr opdiInternalBroadcastIndicator = false; \
+    void* opdiInternalTapePosition1;  /* for consistency with the end macro */ \
+    void* opdiInternalTapePosition2; \
+    OPDI_UNUSED(opdiInternalTapePosition1); \
+    OPDI_UNUSED(opdiInternalTapePosition2); \
     opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
     { \
-      opdi::SingleProbe localSingleProbe; \
+      opdi::SingleProbe localSingleProbe;  /* worksharing events */ \
       OPDI_PRAGMA(omp single __VA_ARGS__) \
-      { \
-        opdi::tool->erase(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1, opdiInternalTapePosition2);
+      {
 
 #define OPDI_SINGLE_NOWAIT(...) \
   { \
     bool constexpr opdiInternalBarrierIndicator = false; \
-    void* opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
-    void* opdiInternalTapePosition2 = opdi::tool->allocPosition(); /* for consistency with the end macro */ \
-    opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1); \
+    bool constexpr opdiInternalBroadcastIndicator = false; \
+    void* opdiInternalTapePosition1;  /* for consistency with the end macro */ \
+    void* opdiInternalTapePosition2; \
+    OPDI_UNUSED(opdiInternalTapePosition1); \
+    OPDI_UNUSED(opdiInternalTapePosition2); \
+    opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
+    { \
+      opdi::SingleProbe localSingleProbe;  /* worksharing events */ \
+      OPDI_PRAGMA(omp single nowait __VA_ARGS__) \
+      {
+
+#define OPDI_SINGLE_COPYPRIVATE(...) \
+  { \
+    bool constexpr opdiInternalBarrierIndicator = true; \
+    bool constexpr opdiInternalBroadcastIndicator = true; \
+    void* opdiInternalTapePosition1 = nullptr; \
+    if (opdi::tool != nullptr) { \
+      opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
+      opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1); \
+    } \
+    /* broadcast-related barrier */ \
     opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
                               opdi::LogicInterface::ScopeEndpoint::Begin); \
+    opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
+                              opdi::LogicInterface::ScopeEndpoint::End); \
+    void* opdiInternalTapePosition2 = nullptr; \
+    if (opdi::tool != nullptr) { \
+      opdiInternalTapePosition2 = opdi::tool->allocPosition(); \
+      opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition2); \
+    } \
+    opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
+    { \
+      opdi::SingleProbe localSingleProbe;  /* worksharing events */ \
+      OPDI_PRAGMA(omp single __VA_ARGS__) \
+      { \
+        /* delay broadcast-related barrier for executor */ \
+        if (opdi::tool != nullptr) \
+          opdi::tool->erase(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1, opdiInternalTapePosition2);
+
+#define OPDI_SINGLE_COPYPRIVATE_NOWAIT(...) \
+  { \
+    bool constexpr opdiInternalBarrierIndicator = false; \
+    bool constexpr opdiInternalBroadcastIndicator = true; \
+    void* opdiInternalTapePosition1 = nullptr; \
+    if (opdi::tool != nullptr) { \
+      opdiInternalTapePosition1 = opdi::tool->allocPosition(); \
+      opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1); \
+    } \
+    /* broadcast-related barrier */ \
+    opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
+                              opdi::LogicInterface::ScopeEndpoint::Begin); \
+    opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
+                              opdi::LogicInterface::ScopeEndpoint::End); \
+    void* opdiInternalTapePosition2 = nullptr; \
+    if (opdi::tool != nullptr) { \
+      opdiInternalTapePosition2 = opdi::tool->allocPosition(); \
+      opdi::tool->getTapePosition(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition2); \
+    } \
     opdi::ImplicitBarrierTools::beginRegionWithImplicitBarrier(); \
     { \
       opdi::SingleProbe localSingleProbe; \
       OPDI_PRAGMA(omp single nowait __VA_ARGS__) \
       { \
-        opdi::tool->reset(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1);
+        /* delay broadcast-related barrier for executor */ \
+        if (opdi::tool != nullptr) \
+          opdi::tool->erase(opdi::tool->getThreadLocalTape(), opdiInternalTapePosition1, opdiInternalTapePosition2);
 
 #define OPDI_END_SINGLE \
-        opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
-                                  opdi::LogicInterface::ScopeEndpoint::Begin); \
+        /* broadcast-related barrier */ \
+        if (opdiInternalBroadcastIndicator) { \
+          opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
+                                    opdi::LogicInterface::ScopeEndpoint::Begin); \
+          opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
+                                    opdi::LogicInterface::ScopeEndpoint::End); \
+        } \
       } \
-      opdi::logic->onSyncRegion(opdi::LogicInterface::SyncRegionKind::BarrierImplementation, \
-                                opdi::LogicInterface::ScopeEndpoint::End); \
     } \
-    opdi::tool->freePosition(opdiInternalTapePosition1); \
-    opdi::tool->freePosition(opdiInternalTapePosition2); \
+    if (opdi::tool != nullptr && opdiInternalBroadcastIndicator) { \
+      opdi::tool->freePosition(opdiInternalTapePosition1); \
+      opdi::tool->freePosition(opdiInternalTapePosition2); \
+    } \
+    /* implicit barrier */ \
     opdi::ImplicitBarrierTools::implicitBarrierStack.top() = opdiInternalBarrierIndicator; \
     opdi::ImplicitBarrierTools::endRegionWithImplicitBarrier(); \
   }
@@ -112,11 +176,16 @@
     std::size_t constexpr opdiInternalCriticalIdentifier = 0; \
     opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Critical, opdiInternalCriticalIdentifier);
 
-#define OPDI_CRITICAL_NAME(name, ...) \
+#define OPDI_CRITICAL_NAME(name) \
+  OPDI_PRAGMA(omp critical (name)) \
+  { \
+    std::size_t const opdiInternalCriticalIdentifier = opdi::backend->getCriticalIdentifier(std::string(#name)); \
+    opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Critical, opdiInternalCriticalIdentifier);
+
+#define OPDI_CRITICAL_NAME_ARGS(name, ...) \
   OPDI_PRAGMA(omp critical (name) __VA_ARGS__) \
   { \
-    std::size_t const opdiInternalCriticalIdentifier = \
-        dynamic_cast<opdi::MacroBackend*>(opdi::backend)->getCriticalIdentifier(std::string(#name)); \
+    std::size_t const opdiInternalCriticalIdentifier = opdi::backend->getCriticalIdentifier(std::string(#name)); \
     opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Critical, opdiInternalCriticalIdentifier);
 
 #define OPDI_END_CRITICAL \
@@ -126,10 +195,10 @@
 #define OPDI_ORDERED(...) \
   OPDI_PRAGMA(omp ordered __VA_ARGS__) \
   { \
-    opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Ordered, 0);
+    opdi::logic->onMutexAcquired(opdi::LogicInterface::MutexKind::Ordered, opdi::backend->getOrderedIdentifier());
 
 #define OPDI_END_ORDERED \
-    opdi::logic->onMutexReleased(opdi::LogicInterface::MutexKind::Ordered, 0); \
+    opdi::logic->onMutexReleased(opdi::LogicInterface::MutexKind::Ordered, opdi::backend->getOrderedIdentifier()); \
   }
 
 #define OPDI_SECTION(...) \
@@ -137,14 +206,35 @@
 
 #define OPDI_END_SECTION
 
-#define OPDI_MASTER(...) \
-  OPDI_PRAGMA(omp master __VA_ARGS__) \
-  { \
-    opdi::logic->onMaster(opdi::LogicInterface::ScopeEndpoint::Begin);
+#if OPDI_BACKEND_GENERATE_MASKED_EVENTS
+  #define OPDI_MASTER(...) \
+    OPDI_PRAGMA(omp master __VA_ARGS__) \
+    { \
+      opdi::logic->onMasked(opdi::LogicInterface::ScopeEndpoint::Begin);
 
-#define OPDI_END_MASTER \
-    opdi::logic->onMaster(opdi::LogicInterface::ScopeEndpoint::End); \
-  }
+  #define OPDI_END_MASTER \
+      opdi::logic->onMasked(opdi::LogicInterface::ScopeEndpoint::End); \
+    }
+
+  #define OPDI_MASKED(...) \
+    OPDI_PRAGMA(omp masked __VA_ARGS__) \
+    { \
+      opdi::logic->onMasked(opdi::LogicInterface::ScopeEndpoint::Begin);
+
+  #define OPDI_END_MASKED \
+      opdi::logic->onMasked(opdi::LogicInterface::ScopeEndpoint::End); \
+    }
+#else
+  #define OPDI_MASTER(...) \
+    OPDI_PRAGMA(omp master __VA_ARGS__) \
+
+  #define OPDI_END_MASTER
+
+  #define OPDI_MASKED(...) \
+    OPDI_PRAGMA(omp masked __VA_ARGS__) \
+
+  #define OPDI_END_MASKED
+#endif
 
 // standalone macros
 
@@ -157,18 +247,27 @@
 
 // reduction macros
 
-#define OPDI_INTERNAL_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT, ID) \
-  TYPE operator OP (opdi::Reducer<TYPE, ID> const& lhs, \
-                    opdi::Reducer<TYPE, ID> const& rhs) { \
-    return lhs.value OP rhs.value; \
-  } \
-  \
-  OPDI_PRAGMA(omp declare reduction(OP_NAME : TYPE : \
-      opdi::Reducer<TYPE, ID>(omp_out) = opdi::Reducer<TYPE, ID>(omp_out) OP opdi::Reducer<TYPE, ID>(omp_in)) \
-      initializer(omp_priv = INIT))
-
-#define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
-  OPDI_INTERNAL_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT, __COUNTER__)
+#if _OPENMP >= 202411
+  #define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
+    TYPE operator OP (opdi::Reducer<TYPE> const& lhs, \
+                      opdi::Reducer<TYPE> const& rhs) { \
+          return lhs.value OP rhs.value; \
+    } \
+    \
+    OPDI_PRAGMA(omp declare_reduction(OP_NAME : TYPE) \
+        combiner(opdi::Reducer(omp_out) = opdi::Reducer(omp_out) OP opdi::Reducer(omp_in)) \
+        initializer(omp_priv = INIT))
+#else
+  #define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
+    TYPE operator OP (opdi::Reducer<TYPE> const& lhs, \
+                      opdi::Reducer<TYPE> const& rhs) { \
+      return lhs.value OP rhs.value; \
+    } \
+    \
+    OPDI_PRAGMA(omp declare reduction(OP_NAME : TYPE : \
+        opdi::Reducer(omp_out) = opdi::Reducer(omp_out) OP opdi::Reducer(omp_in)) \
+        initializer(omp_priv = INIT))
+#endif
 
 #define OPDI_REDUCTION private(opdi::internalReductionProbe)
 

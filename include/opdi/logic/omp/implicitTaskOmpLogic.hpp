@@ -35,6 +35,18 @@
 
 namespace opdi {
 
+  struct ImplicitTaskData {
+    public:
+      bool isInitialImplicitTask;
+      int level;
+      int indexInTeam;
+      void* oldTape;
+      void* newTape;
+      ParallelData* parallelData;
+      std::deque<void*> positions;
+      std::deque<LogicInterface::AdjointAccessMode> adjointAccessModes;
+  };
+
   struct ImplicitTaskOmpLogic : public virtual LogicInterface {
     protected:
       TapePool tapePool;
@@ -48,24 +60,10 @@ namespace opdi {
 
       static AdjointAccessMode const defaultAdjointAccessMode;
 
-      using ParallelData = typename ParallelOmpLogic::Data;
+      virtual void* onImplicitTaskBegin(bool isInitialImplicitTask, int actualSizeOfTeam, int indexInTeam,
+                                        void* parallelData);
+      virtual void onImplicitTaskEnd(void* implicitTaskData);
 
-      struct Data {
-        public:
-          bool initialImplicitTask;
-          int level;
-          int index;
-          void* oldTape;
-          void* tape;
-          ParallelData* parallelData;
-          std::deque<void*> positions;
-          std::deque<AdjointAccessMode> adjointAccessModes;
-      };
-
-      virtual void* onImplicitTaskBegin(bool initialImplicitTask, int actualParallelism, int index,
-                                        void* parallelDataPtr);
-      virtual void onImplicitTaskEnd(void* dataPtr);
-
-      virtual void resetTask(void* position, AdjointAccessMode mode);
+      virtual void resetImplicitTask(void* position, AdjointAccessMode mode);
   };
 }

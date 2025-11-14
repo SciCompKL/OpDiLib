@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "../../config.hpp"
+
 #include "../logicInterface.hpp"
 
 namespace opdi {
@@ -41,12 +43,12 @@ namespace opdi {
           ScopeEndpoint endpoint;
       };
 
+      bool requiresReverseBarrier(SyncRegionKind kind, ScopeEndpoint endpoint);
+
     private:
 
       static void reverseFunc(void* dataPtr);
       static void deleteFunc(void* dataPtr);
-
-      void internalPushHandle(SyncRegionKind kind, ScopeEndpoint endpoint);
 
     public:
 

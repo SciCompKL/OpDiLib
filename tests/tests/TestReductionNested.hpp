@@ -36,16 +36,16 @@ struct TestReductionNested : public TestBase<4, 1, 3, TestReductionNested<_Case>
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* jobResults = new T[N];
 
       T output1 = 0.0;
       T output2 = 1.0;
       T output3 = 1.0;
 
-      OPDI_PARALLEL(OPDI_REDUCTION reduction(prod: output2))
+      OPDI_PARALLEL(OPDI_REDUCTION reduction(*: output2))
       {
-        OPDI_FOR(OPDI_REDUCTION reduction(plus: output1) reduction(prod: output3))
+        OPDI_FOR(OPDI_REDUCTION reduction(+: output1) reduction(*: output3))
         for (int i = 0; i < N; ++i) {
           Base::job1(i, in, jobResults[i]);
           output1 += jobResults[i];

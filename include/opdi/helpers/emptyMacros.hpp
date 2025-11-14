@@ -36,12 +36,15 @@
 
 #define OPDI_SINGLE(...)
 #define OPDI_SINGLE_NOWAIT(...)
+#define OPDI_SINGLE_COPYPRIVATE(...)
+#define OPDI_SINGLE_COPYPRIVATE_NOWAIT(...)
 #define OPDI_END_SINGLE
 
 #define OPDI_NOWAIT
 
 #define OPDI_CRITICAL(...)
-#define OPDI_CRITICAL_NAME(name, ...)
+#define OPDI_CRITICAL_NAME(name)
+#define OPDI_CRITICAL_NAME_ARGS(name, ...)
 #define OPDI_END_CRITICAL
 
 #define OPDI_ORDERED(...)
@@ -52,6 +55,9 @@
 
 #define OPDI_MASTER(...)
 #define OPDI_END_MASTER
+
+#define OPDI_MASKED(...)
+#define OPDI_END_MASKED
 
 #define OPDI_BARRIER(...)
 

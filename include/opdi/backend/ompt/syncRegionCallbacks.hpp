@@ -50,8 +50,11 @@ namespace opdi {
           void const* codeptr) {
 
         OPDI_UNUSED(parallelData);
-        OPDI_UNUSED(taskData);
         OPDI_UNUSED(codeptr);
+
+        #if OPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE != OPDI_SYNC_REGION_END
+          OPDI_UNUSED(taskData);
+        #endif
 
         LogicInterface::ScopeEndpoint endpoint;
         if (ompt_scope_begin == _endpoint) {
@@ -68,10 +71,8 @@ namespace opdi {
           case ompt_sync_region_barrier_implicit:
         #if _OPENMP >= 202011
           case ompt_sync_region_barrier_implicit_workshare:
-          case ompt_sync_region_barrier_implicit_parallel:
         #else  // fallback for compilers with _OPENMP < 202011 that already support fine-grained sync region types
           case 8:  // ompt_sync_region_barrier_implicit_workshare
-          case 9:  // ompt_sync_region_barrier_implicit_parallel
         #endif
             logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplicit, endpoint);
             break;
@@ -79,8 +80,26 @@ namespace opdi {
             logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierExplicit, endpoint);
             break;
           case ompt_sync_region_barrier_implementation:
+          #if OPDI_OMPT_BACKEND_BARRIER_IMPLEMENTATION_BEHAVIOUR == OPDI_PAIR_OF_AD_EVENTS_PER_ENDPOINT
+            logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation, LogicInterface::ScopeEndpoint::Begin);
+            logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation, LogicInterface::ScopeEndpoint::End);
+          #else
             logic->onSyncRegion(LogicInterface::SyncRegionKind::BarrierImplementation, endpoint);
+          #endif
             break;
+        #if _OPENMP >= 202011
+          case ompt_sync_region_barrier_implicit_parallel:
+        #else  // fallback for compilers with _OPENMP < 202011 that already support fine-grained sync region types
+          case 9:  // ompt_sync_region_barrier_implicit_parallel
+        #endif
+            // implicit barriers on parallel regions themselves do not require treatment
+            // however, we optionally use this to generate ImplicitTaskEnd events of non-master threads
+          #if OPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE == OPDI_OMPT_SYNC_REGION_END
+            if (LogicInterface::ScopeEndpoint::Begin == endpoint && omp_get_thread_num() != 0) {
+              opdi::logic->onImplicitTaskEnd(taskData->ptr);
+            }
+          #endif
+            break;  // no treatment needed
           case ompt_sync_region_reduction: // does not occur in this callback
             OPDI_WARNING("Unexpected kind argument ompt_sync_region_reduction.");
             break;

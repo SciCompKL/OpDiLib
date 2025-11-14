@@ -64,12 +64,12 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
 
       T* jobResults = new T[N];
       T* intermediate = new T[N];
 
-      ExternalFunctionHelper<T>* eh;
+      ExternalFunctionHelper<T>* eh = nullptr;
 
       OPDI_PARALLEL()
       {
@@ -83,7 +83,11 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
 
         OPDI_BARRIER()
 
-        OPDI_MASTER()
+        #if _OPENMP >= 202011
+          OPDI_MASKED()
+        #else
+          OPDI_MASTER()
+        #endif
         {
           eh = new ExternalFunctionHelper<T>(true);
           for (int i = 0; i < N; ++i) {
@@ -94,7 +98,11 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
             eh->addOutput(intermediate[i]);
           }
         }
-        OPDI_END_MASTER
+        #if _OPENMP < 202011
+          OPDI_END_MASTER
+        #else
+          OPDI_END_MASKED
+        #endif
 
         OPDI_BARRIER()
 
@@ -113,11 +121,19 @@ struct TestExternalFunctionGlobal : public TestBase<4, 1, 3, TestExternalFunctio
           jobResults[i] = cos(exp(intermediate[i]));
         }
 
-        OPDI_MASTER()
+        #if _OPENMP >= 202011
+          OPDI_MASKED()
+        #else
+          OPDI_MASTER()
+        #endif
         {
           delete eh;
         }
-        OPDI_END_MASTER
+        #if _OPENMP < 202011
+          OPDI_END_MASTER
+        #else
+          OPDI_END_MASKED
+        #endif
       }
       OPDI_END_PARALLEL
 

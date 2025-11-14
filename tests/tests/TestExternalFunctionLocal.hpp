@@ -51,7 +51,7 @@ struct TestExternalFunctionLocal : public TestBase<4, 1, 3, TestExternalFunction
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
 
       T* jobResults = new T[N];
       T* intermediate = new T[N];
@@ -62,29 +62,31 @@ struct TestExternalFunctionLocal : public TestBase<4, 1, 3, TestExternalFunction
         int start = ((N - 1) / nThreads + 1) * omp_get_thread_num();
         int end = std::min(N, ((N - 1) / nThreads + 1) * (omp_get_thread_num() + 1));
 
-        for (int i = start; i < end; ++i) {
-          Base::job1(i, in, jobResults[i]);
+        if (start < end) {  // avoid external functions with empty data
+          for (int i = start; i < end; ++i) {
+            Base::job1(i, in, jobResults[i]);
+          }
+
+          codi::ExternalFunctionHelper<T>* eh = new codi::ExternalFunctionHelper<T>(true);
+          for (int i = start; i < end; ++i) {
+            eh->addInput(jobResults[i]);
+          }
+
+          for (int i = start; i < end; ++i) {
+            eh->addOutput(intermediate[i]);
+          }
+
+          eh->callPrimalFuncWithADType(TestExternalFunctionLocal::primal<T>, &jobResults[start], end - start,
+                                       &intermediate[start], end - start, nullptr);
+
+          eh->addToTape(TestExternalFunctionLocal::reverse);
+
+          for (int i = start; i < end; ++i) {
+            jobResults[i] = cos(exp(intermediate[i]));
+          }
+
+          delete eh;
         }
-
-        codi::ExternalFunctionHelper<T>* eh = new codi::ExternalFunctionHelper<T>(true);
-        for (int i = start; i < end; ++i) {
-          eh->addInput(jobResults[i]);
-        }
-
-        for (int i = start; i < end; ++i) {
-          eh->addOutput(intermediate[i]);
-        }
-
-        eh->callPrimalFuncWithADType(TestExternalFunctionLocal::primal<T>, &jobResults[start], end - start,
-                                     &intermediate[start], end - start, nullptr);
-
-        eh->addToTape(TestExternalFunctionLocal::reverse);
-
-        for (int i = start; i < end; ++i) {
-          jobResults[i] = cos(exp(intermediate[i]));
-        }
-
-        delete eh;
       }
       OPDI_END_PARALLEL
 

@@ -34,8 +34,8 @@ namespace opdi {
       static std::stack<void*> parallelData;
       #pragma omp threadprivate(parallelData)
 
-      static std::stack<void*> taskData;
-      #pragma omp threadprivate(taskData)
+      static std::stack<void*> implicitTaskData;
+      #pragma omp threadprivate(implicitTaskData)
 
     public:
       static void pushParallelData(void* parallelData) {
@@ -54,20 +54,20 @@ namespace opdi {
         return DataTools::parallelData.top();
       }
 
-      static void pushTaskData(void* taskData) {
-        DataTools::taskData.push(taskData);
+      static void pushTaskData(void* implicitTaskData) {
+        DataTools::implicitTaskData.push(implicitTaskData);
       }
 
       static void popTaskData() {
-        DataTools::taskData.pop();
+        DataTools::implicitTaskData.pop();
       }
 
-      static void* getTaskData() {
-        if (DataTools::taskData.empty()) {
+      static void* getImplicitTaskData() {
+        if (DataTools::implicitTaskData.empty()) {
           return nullptr;
         }
 
-        return DataTools::taskData.top();
+        return DataTools::implicitTaskData.top();
       }
   };
 }

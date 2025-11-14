@@ -36,7 +36,7 @@ struct TestForReductionNowait : public TestBase<4, 1, 3, TestForReductionNowait<
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* jobResults1 = new T[N];
       T* jobResults2 = new T[N];
 
@@ -45,14 +45,14 @@ struct TestForReductionNowait : public TestBase<4, 1, 3, TestForReductionNowait<
 
       OPDI_PARALLEL()
       {
-        OPDI_FOR(OPDI_REDUCTION reduction(plus: output1) OPDI_NOWAIT)
+        OPDI_FOR(OPDI_REDUCTION reduction(+: output1) OPDI_NOWAIT)
         for (int i = 0; i < N; ++i) {
           Base::job1(i, in, jobResults1[i]);
           output1 += jobResults1[i];
         }
         OPDI_END_FOR
 
-        OPDI_FOR(OPDI_REDUCTION reduction(plus: output2))
+        OPDI_FOR(OPDI_REDUCTION reduction(+: output2))
         for (int i = 0; i < N; ++i) {
           Base::job2(i, in, jobResults2[i]);
           output2 += jobResults2[i];

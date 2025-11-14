@@ -33,7 +33,7 @@
 void opdi::SyncRegionOmpLogic::reverseFunc(void* dataPtr) {
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
-    Data* data = (Data*) dataPtr;
+    Data* data = static_cast<Data*>(dataPtr);
     for (auto& instrument : ompLogicInstruments) {
       instrument->reverseSyncRegion(data);
     }
@@ -46,35 +46,51 @@ void opdi::SyncRegionOmpLogic::reverseFunc(void* dataPtr) {
 
 void opdi::SyncRegionOmpLogic::deleteFunc(void* dataPtr) {
 
-  Data* data = (Data*) dataPtr;
+  Data* data = static_cast<Data*>(dataPtr);
   delete data;
 }
 
-void opdi::SyncRegionOmpLogic::internalPushHandle(SyncRegionKind kind, ScopeEndpoint endpoint) {
+bool opdi::SyncRegionOmpLogic::requiresReverseBarrier(SyncRegionKind kind, ScopeEndpoint endpoint) {
 
-  Data* data = new Data;
-  data->kind = kind;
-  data->endpoint = endpoint;
+  static std::size_t constexpr syncRegionBehaviour[] = {
+      OPDI_SYNC_REGION_BARRIER_BEHAVIOUR,
+      OPDI_SYNC_REGION_BARRIER_IMPLICIT_BEHAVIOUR,
+      OPDI_SYNC_REGION_BARRIER_EXPLICIT_BEHAVIOUR,
+      OPDI_SYNC_REGION_BARRIER_IMPLEMENTATION_BEHAVIOUR,
+      OPDI_SYNC_REGION_BARRIER_REVERSE_BEHAVIOUR
+  };
 
-  Handle* handle = new Handle;
-  handle->data = (void*) data;
-  handle->reverseFunc = SyncRegionOmpLogic::reverseFunc;
-  handle->deleteFunc = SyncRegionOmpLogic::deleteFunc;
+  assert(1 <= kind && kind <= 5);
+  assert(1 == endpoint || 2 == endpoint);
 
-  tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
+  return syncRegionBehaviour[kind - 1] & endpoint;
 }
 
 void opdi::SyncRegionOmpLogic::onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint) {
 
-  #if OPDI_OMP_LOGIC_INSTRUMENT
-    for (auto& instrument : ompLogicInstruments) {
-      instrument->onSyncRegion(kind, endpoint);
+  if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
+
+    Data* data = new Data;
+    data->kind = kind;
+    data->endpoint = endpoint;
+
+    #if OPDI_OMP_LOGIC_INSTRUMENT
+      for (auto& instrument : ompLogicInstruments) {
+        instrument->onSyncRegion(data);
+      }
+    #endif
+
+    if (requiresReverseBarrier(kind, endpoint)) {
+      Handle* handle = new Handle;
+      handle->data = static_cast<void*>(data);
+      handle->reverseFunc = SyncRegionOmpLogic::reverseFunc;
+      handle->deleteFunc = SyncRegionOmpLogic::deleteFunc;
+
+      tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
     }
-  #endif
-
-  if (tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
-
-    internalPushHandle(kind, endpoint);
+    else {
+      delete data;
+    }
   }
 }
 

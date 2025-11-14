@@ -33,16 +33,18 @@ namespace opdi {
   {
     public:
 
-      enum MutexKind {
-        Critical, Lock, NestedLock, Ordered, Reduction
+      enum MutexKind : std::size_t {
+        Critical = 0, Lock, NestLock, Ordered, Reduction, Custom
       };
 
-      enum ScopeEndpoint {
-        Begin, End, BeginEnd
+      static constexpr std::size_t nMutexKind = 6;
+
+      enum ScopeEndpoint : std::size_t {
+        Begin = 1, End, BeginEnd
       };
 
-      enum SyncRegionKind {
-        Barrier, BarrierImplicit, BarrierExplicit, BarrierImplementation, BarrierReverse
+      enum SyncRegionKind : std::size_t {
+        Barrier = 1, BarrierImplicit, BarrierExplicit, BarrierImplementation, BarrierReverse
       };
 
       enum WorksharingKind {
@@ -53,23 +55,25 @@ namespace opdi {
         Atomic, Classical
       };
 
+      using WaitId = std::size_t;
+
       virtual ~LogicInterface() {}
 
       virtual void* onParallelBegin(void* encounteringTaskData, int maxThreads) = 0;
-      virtual void onParallelEnd(void* data) = 0;
+      virtual void onParallelEnd(void* parallelData) = 0;
 
-      virtual void* onImplicitTaskBegin(bool initialImplicitTask, int actualParallelism, int index,
+      virtual void* onImplicitTaskBegin(bool isInitialImplicitTask, int actualSizeOfTeam, int indexInTeam,
                                         void* parallelData) = 0;
-      virtual void onImplicitTaskEnd(void* data) = 0;
+      virtual void onImplicitTaskEnd(void* implicitTaskData) = 0;
 
-      virtual void onMutexDestroyed(MutexKind kind, std::size_t waitId) = 0;
-      virtual void onMutexAcquired(MutexKind kind, std::size_t waitId) = 0;
-      virtual void onMutexReleased(MutexKind kind, std::size_t waitId) = 0;
-      virtual void registerInactiveMutex(MutexKind kind, std::size_t waitId) = 0;
+      virtual void onMutexDestroyed(MutexKind kind, WaitId waitId) = 0;
+      virtual void onMutexAcquired(MutexKind kind, WaitId waitId) = 0;
+      virtual void onMutexReleased(MutexKind kind, WaitId waitId) = 0;
+      virtual void registerInactiveMutex(MutexKind kind, WaitId waitId) = 0;
 
       virtual void onWork(WorksharingKind kind, ScopeEndpoint endpoint) = 0;
 
-      virtual void onMaster(ScopeEndpoint endpoint) = 0;
+      virtual void onMasked(ScopeEndpoint endpoint) = 0;
 
       virtual void onSyncRegion(SyncRegionKind kind, ScopeEndpoint endpoint) = 0;
 
@@ -86,10 +90,13 @@ namespace opdi {
       virtual void setAdjointAccessMode(AdjointAccessMode mode) = 0;
       virtual AdjointAccessMode getAdjointAccessMode() const = 0;
 
-      virtual void resetTask(void* position, AdjointAccessMode mode) = 0;
+      virtual void resetImplicitTask(void* position, AdjointAccessMode mode) = 0;
 
       virtual void addReverseBarrier() = 0;
       virtual void addReverseFlush() = 0;
+
+      virtual void beginSkippedParallelRegion() = 0;
+      virtual void endSkippedParallelRegion() = 0;
   };
 
   extern LogicInterface* logic;

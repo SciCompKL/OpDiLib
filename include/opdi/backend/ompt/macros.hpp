@@ -48,6 +48,12 @@
 #define OPDI_SINGLE_NOWAIT(...) \
   OPDI_PRAGMA(omp single nowait __VA_ARGS__)
 
+#define OPDI_SINGLE_COPYPRIVATE(...) \
+  OPDI_PRAGMA(omp single __VA_ARGS__)
+
+#define OPDI_SINGLE_COPYPRIVATE_NOWAIT(...) \
+  OPDI_PRAGMA(omp single nowait __VA_ARGS__)
+
 #define OPDI_END_SINGLE
 
 #define OPDI_NOWAIT nowait
@@ -55,7 +61,10 @@
 #define OPDI_CRITICAL(...) \
   OPDI_PRAGMA(omp critical __VA_ARGS__)
 
-#define OPDI_CRITICAL_NAME(name, ...) \
+#define OPDI_CRITICAL_NAME(name) \
+  OPDI_PRAGMA(omp critical (name))
+
+#define OPDI_CRITICAL_NAME_ARGS(name, ...) \
   OPDI_PRAGMA(omp critical (name) __VA_ARGS__)
 
 #define OPDI_END_CRITICAL
@@ -75,10 +84,21 @@
 
 #define OPDI_END_MASTER
 
+#define OPDI_MASKED(...) \
+  OPDI_PRAGMA(omp masked __VA_ARGS__)
+
+#define OPDI_END_MASKED
+
 #define OPDI_BARRIER(...) \
   OPDI_PRAGMA(omp barrier __VA_ARGS__)
 
-#define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
-  OPDI_PRAGMA(omp declare reduction(OP_NAME : TYPE : omp_out = omp_out OP omp_in) initializer(omp_priv = INIT))
+#if _OPENMP >= 202411
+  #define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
+    OPDI_PRAGMA(omp declare_reduction(OP_NAME : TYPE) combiner(omp_out = omp_out OP omp_in) \
+                initializer(omp_priv = INIT))
+#else
+  #define OPDI_DECLARE_REDUCTION(OP_NAME, TYPE, OP, INIT) \
+    OPDI_PRAGMA(omp declare reduction(OP_NAME : TYPE : omp_out = omp_out OP omp_in) initializer(omp_priv = INIT))
+#endif
 
 #define OPDI_REDUCTION

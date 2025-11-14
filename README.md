@@ -5,12 +5,14 @@
 It makes use of modern OpenMP features around OMPT to deduce a parallel reverse pass without any additional modifications of the parallel source code. Additionally, we provide a second mode of operation that works via replacement macros for OpenMP's directives and clauses as well as replacements for OpenMP's runtime functions. This mode of operation can also be used with compilers that do not support OMPT. There are no restrictions on data access patterns so that a first differentiated parallel code is obtained with little to no effort. As a next step, the parallel performance of the reverse pass can be optimized with various tools. One important aspect is disabling atomic updates on adjoint variables where appropriate. If the underlying AD tool is capable of differentiating MPI, for example via the add-on [MeDiPack](https://scicomp.rptu.de/software/medi/), OpDiLib can also be employed for a differentiation of OpenMP-MPI hybrid parallel codes.
 
 The [Scientific Computing Group](https://scicomp.rptu.de) at the University of Kaiserslautern-Landau (RPTU) develops OpDiLib and will enhance and extend OpDiLib in the future.
-There is a newsletter available at [opdi-info@scicomp.uni-kl.de](https://lists.uni-kl.de/scicomp/subscribe/opdi-info).
+There is a newsletter available at [scicomp-opdi-info@lists.rptu.de](https://lists.rptu.de/wws/subscribe/scicomp-opdi-info).
 If you want to contact us, please write a mail to [opdi@scicomp.uni-kl.de](mailto:opdi@scicomp.uni-kl.de).
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17553572.svg)](https://doi.org/10.5281/zenodo.17553572)
 
 ## OpenMP Support
 
-OpDiLib supports all directives, clauses and runtime functions of the OpenMP 2.5 specification with the exception of
+OpDiLib supports all directives, clauses and runtime functions of the OpenMP 2.5 specification, in the way they are reflected in recent versions of OpenMP. Exceptions are
 
 - `atomic` directives,
 - `flush` directives.
@@ -132,8 +134,8 @@ int main(int nargs, char** args) {
   y.setGradient(1.0);
 
   opdi::logic->prepareEvaluate();  // prepare OpDiLib for evaluation
-
   tape.evaluate();
+  opdi::logic->postEvaluate();  // OpDiLib-specific postprocessing
 
   std::cout << "f(" << x << ") = " << y << std::endl;
   std::cout << "df/dx(" << x << ") = " << x.getGradient() << std::endl;
@@ -156,7 +158,7 @@ int main(int nargs, char** args) {
 The following command can be used to compile the code.
 
 ~~~~{.txt}
-clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++11 -fopenmp -o omptexample omptexample.cpp
+clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++17 -fopenmp -o omptexample omptexample.cpp
 ~~~~
 
 ### Macro Backend
@@ -222,8 +224,8 @@ int main(int nargs, char** args) {
   y.setGradient(1.0);
 
   opdi::logic->prepareEvaluate();  // prepare OpDiLib for evaluation
-
   tape.evaluate();
+  opdi::logic->postEvaluate();  // OpDiLib-specific postprocessing
 
   std::cout << "f(" << x << ") = " << y << std::endl;
   std::cout << "df/dx(" << x << ") = " << x.getGradient() << std::endl;
@@ -247,6 +249,6 @@ int main(int nargs, char** args) {
 The following command can be used to compile the code.
 
 ~~~~{.txt}
-clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++11 -fopenmp -o macroexample macroexample.cpp
+clang++  -I<path to codi>/include -I<path to opdi>/include -DCODI_EnableOpenMP -DCODI_EnableOpDiLib --std=c++17 -fopenmp -o macroexample macroexample.cpp
 ~~~~
 

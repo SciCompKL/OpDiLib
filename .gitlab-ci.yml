@@ -1,10 +1,10 @@
 default:
+  timeout: 2h
   tags:
     - docker
 
-test-gcc-macro:
-  image: ubuntu:22.04
-  timeout: 2h
+gcc-macro:
+  image: ubuntu:24.04
   script:
     - apt update && apt install -y build-essential binutils git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -12,11 +12,14 @@ test-gcc-macro:
     - export OPDI_DIR=$(pwd)/include
     - cd tests
     - export CXX=g++
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all
 
-test-clang-macro:
-  image: fedora:39
-  timeout: 2h
+clang-macro:
+  image: fedora:42
+  parallel:
+    matrix:
+      - FLAGS: ["", "-DOPDI_BACKEND_GENERATE_MASKED_EVENTS=1 -DOPDI_BACKEND_GENERATE_WORK_EVENTS=1"]
   script:
     - dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -24,11 +27,14 @@ test-clang-macro:
     - export OPDI_DIR=$(pwd)/include
     - cd tests
     - export CXX=clang++
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all
 
-test-clang-ompt:
-  image: fedora:39
-  timeout: 2h
+clang-ompt:
+  image: fedora:42
+  parallel:
+    matrix:
+      - FLAGS: ["-DOPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE=1", "-DOPDI_OMPT_BACKEND_IMPLICIT_TASK_END_SOURCE=2", "-DOPDI_BACKEND_GENERATE_MASKED_EVENTS=1 -DOPDI_BACKEND_GENERATE_WORK_EVENTS=1"]
   script:
     - dnf install -y diffutils binutils clang git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -36,12 +42,13 @@ test-clang-ompt:
     - export OPDI_DIR=$(pwd)/include
     - cd tests
     - export CXX=clang++
+    - export CXXFLAGS="$FLAGS"
     - export BACKEND=OMPT
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all
 
-test-output:
-  image: ubuntu:22.04
-  timeout: 2h
+output:
+  image: ubuntu:24.04
   script:
     - apt update && apt install -y build-essential binutils git
     - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
@@ -51,4 +58,39 @@ test-output:
     - export CXX=g++
     - export OUTPUT_INSTRUMENT=yes
     - export STDERR_OUTPUT_IS_ERROR=no
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
+    - make all
+
+syntax:
+  image: ubuntu:24.04
+  script:
+    - apt update
+    - DEBIAN_FRONTEND=noninteractive apt install -y tzdata
+    - apt install -y python3
+    - python3 syntax/check.py -r syntax/opdi.syntax.json tests macroexample.cpp omptexample.cpp
+
+address-sanitizer:
+  image: ubuntu:24.04
+  script:
+    - apt update && apt install -y build-essential binutils git clang libomp-dev
+    - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
+    - export CODI_DIR=$(pwd)/CoDiPack/include
+    - export OPDI_DIR=$(pwd)/include
+    - cd tests
+    - export CXX=clang++
+    - export CXXFLAGS="-g -fsanitize=address -fno-omit-frame-pointer"
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
+    - make all
+
+thread-sanitizer:
+  image: $CI_REGISTRY/$CI_PROJECT_NAMESPACE/opdilib/opdi-tsan
+  script:
+    - git clone --depth 1 --branch develop https://github.com/SciCompKL/CoDiPack.git
+    - export CODI_DIR=$(pwd)/CoDiPack/include
+    - export OPDI_DIR=$(pwd)/include
+    - cd tests
+    - export CXX=g++
+    - export CXXFLAGS="$CXXFLAGS -g"
+    - export EXCLUDE_TESTS="CriticalLock CriticalName CriticalNameHint OrderedNowait ParallelNested PreaccumulationLocal SectionsNowait"
+    - export OMP_NUM_THREADS=$(expr $(nproc --all) / 2)
     - make all

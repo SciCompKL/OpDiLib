@@ -34,7 +34,7 @@
 
 #include "flushOmpLogic.hpp"
 #include "implicitTaskOmpLogic.hpp"
-#include "masterOmpLogic.hpp"
+#include "maskedOmpLogic.hpp"
 #include "mutexOmpLogic.hpp"
 #include "parallelOmpLogic.hpp"
 #include "syncRegionOmpLogic.hpp"
@@ -44,7 +44,7 @@ namespace opdi {
 
   struct OmpLogic : public FlushOmpLogic,
                     public ImplicitTaskOmpLogic,
-                    public MasterOmpLogic,
+                    public MaskedOmpLogic,
                     public MutexOmpLogic,
                     public ParallelOmpLogic,
                     public SyncRegionOmpLogic,
@@ -56,6 +56,8 @@ namespace opdi {
       virtual ~OmpLogic() {}
 
       virtual void init() {
+
+        assert(backend != nullptr);
 
         MutexOmpLogic::internalInit();
         ImplicitTaskOmpLogic::internalInit();
@@ -71,12 +73,15 @@ namespace opdi {
       }
 
       virtual void finalize() {
+
+        assert(backend != nullptr);
+
         // finalize initial implicit task
-        ImplicitTaskOmpLogic::Data* initialImplicitTaskData = (ImplicitTaskOmpLogic::Data*) backend->getTaskData();
+        ImplicitTaskData* initialImplicitTaskData = static_cast<ImplicitTaskData*>(backend->getImplicitTaskData());
 
-        assert(initialImplicitTaskData->initialImplicitTask);
+        assert(initialImplicitTaskData->isInitialImplicitTask);
 
-        onImplicitTaskEnd((void*) initialImplicitTaskData);
+        onImplicitTaskEnd(static_cast<void*>(initialImplicitTaskData));
 
         MutexOmpLogic::internalFinalize();
         ImplicitTaskOmpLogic::internalFinalize();

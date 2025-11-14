@@ -25,8 +25,9 @@
 
 #include <cassert>
 
-#include "../../helpers/macros.hpp"
 #include "../../helpers/exceptions.hpp"
+#include "../../helpers/macros.hpp"
+#include "../../helpers/tsanDefinitions.hpp"
 #include "../../config.hpp"
 #include "../../tool/toolInterface.hpp"
 
@@ -34,18 +35,21 @@
 
 #include "mutexOmpLogic.hpp"
 
-opdi::MutexOmpLogic::State opdi::MutexOmpLogic::localState;
-opdi::MutexOmpLogic::State opdi::MutexOmpLogic::evalState;
+opdi::MutexOmpLogic::AllCounters opdi::MutexOmpLogic::localCounters;
+opdi::MutexOmpLogic::AllCounters opdi::MutexOmpLogic::evaluationCounters;
 #ifdef __SANITIZE_THREAD__
-  opdi::MutexOmpLogic::State opdi::MutexOmpLogic::tsanDummies;
+  opdi::MutexOmpLogic::AllCounters opdi::MutexOmpLogic::tsanDummies;
 #endif
 
-void opdi::MutexOmpLogic::internalWaitReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
-                                                  #ifdef __SANITIZE_THREAD__
-                                                    std::map<std::size_t, std::size_t>& tsanDummies,
-                                                  #endif
-                                                  void* dataPtr) {
-  Data* data = (Data*) dataPtr;
+void opdi::MutexOmpLogic::checkKind(MutexKind mutexKind) {
+  if (mutexKind >= nMutexKind) {
+    OPDI_ERROR("Invalid mutex kind.");
+  }
+}
+
+void opdi::MutexOmpLogic::waitReverseFunc(void* dataPtr) {
+
+  Data* data = static_cast<Data*>(dataPtr);
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
@@ -53,82 +57,44 @@ void opdi::MutexOmpLogic::internalWaitReverseFunc(std::map<std::size_t, std::siz
     }
   #endif
 
-  // busy wait until trace value is matched
+  // busy wait until counter is matched
   while (true) {
-    std::size_t currentId;
+    MutexOmpLogic::Counter currentValue;
 
     #pragma omp atomic read
-    currentId = evalTrace[data->waitId];
+    currentValue = MutexOmpLogic::evaluationCounters[data->mutexKind][data->waitId];
 
-    if (currentId == data->traceValue) {
+    if (currentValue == data->counter) {
       break;
     }
   }
 
   #ifdef __SANITIZE_THREAD__
-    ANNOTATE_RWLOCK_ACQUIRED(&tsanDummies[data->waitId], true);
+    ANNOTATE_RWLOCK_ACQUIRED(&MutexOmpLogic::tsanDummies[data->mutexKind][data->waitId], true);
   #endif
 }
 
-void opdi::MutexOmpLogic::waitCriticalReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.criticalTrace,
-                          #ifdef __SANITIZE_THREAD__
-                            MutexOmpLogic::tsanDummies.criticalTrace,
-                          #endif
-                          dataPtr);
-}
+void opdi::MutexOmpLogic::decrementReverseFunc(void* dataPtr) {
 
-void opdi::MutexOmpLogic::waitLockReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.lockTrace,
-                          #ifdef __SANITIZE_THREAD__
-                            MutexOmpLogic::tsanDummies.lockTrace,
-                          #endif
-                          dataPtr);
-}
-
-void opdi::MutexOmpLogic::waitNestedLockReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.nestedLockTrace,
-                          #ifdef __SANITIZE_THREAD__
-                            MutexOmpLogic::tsanDummies.nestedLockTrace,
-                          #endif
-                          dataPtr);
-}
-
-void opdi::MutexOmpLogic::waitOrderedReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.orderedTrace,
-                          #ifdef __SANITIZE_THREAD__
-                            MutexOmpLogic::tsanDummies.orderedTrace,
-                          #endif
-                          dataPtr);
-}
-
-void opdi::MutexOmpLogic::waitReductionReverseFunc(void* dataPtr) {
-  internalWaitReverseFunc(MutexOmpLogic::evalState.reductionTrace,
-                          #ifdef __SANITIZE_THREAD__
-                            MutexOmpLogic::tsanDummies.reductionTrace,
-                          #endif
-                          dataPtr);
-}
-
-void opdi::MutexOmpLogic::waitDeleteFunc(void* dataPtr) {
-  Data* data = (Data*) dataPtr;
-  delete data;
-}
-
-void opdi::MutexOmpLogic::internalDecrementReverseFunc(std::map<std::size_t, std::size_t>& evalTrace,
-                                                       #ifdef __SANITIZE_THREAD__
-                                                         std::map<std::size_t, std::size_t>& tsanDummies,
-                                                       #endif
-                                                       void* dataPtr) {
-  Data* data = (Data*) dataPtr;
+  Data* data = static_cast<Data*>(dataPtr);
 
   #ifdef __SANITIZE_THREAD__
-    ANNOTATE_RWLOCK_RELEASED(&tsanDummies[data->waitId], true);
+    ANNOTATE_RWLOCK_RELEASED(&MutexOmpLogic::tsanDummies[data->mutexKind][data->waitId], true);
   #endif
 
-  // decrement trace value
-  #pragma omp atomic update
-  evalTrace[data->waitId] -= 1;
+  // decrement counter
+  #ifdef NDEBUG
+    #pragma omp atomic update
+    MutexOmpLogic::evaluationCounters[data->mutexKind][data->waitId] -= 1;
+  #else
+    Counter newValue;
+    #pragma omp atomic capture
+    {
+      MutexOmpLogic::evaluationCounters[data->mutexKind][data->waitId] -= 1;
+      newValue = MutexOmpLogic::evaluationCounters[data->mutexKind][data->waitId];
+    }
+    assert(newValue == data->counter);
+  #endif
 
   #if OPDI_OMP_LOGIC_INSTRUMENT
     for (auto& instrument : ompLogicInstruments) {
@@ -137,121 +103,63 @@ void opdi::MutexOmpLogic::internalDecrementReverseFunc(std::map<std::size_t, std
   #endif
 }
 
-void opdi::MutexOmpLogic::decrementCriticalReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.criticalTrace,
-                               #ifdef __SANITIZE_THREAD__
-                                 MutexOmpLogic::tsanDummies.criticalTrace,
-                               #endif
-                               dataPtr);
-}
-
-void opdi::MutexOmpLogic::decrementLockReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.lockTrace,
-                               #ifdef __SANITIZE_THREAD__
-                                 MutexOmpLogic::tsanDummies.lockTrace,
-                               #endif
-                               dataPtr);
-}
-
-void opdi::MutexOmpLogic::decrementNestedLockReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.nestedLockTrace,
-                               #ifdef __SANITIZE_THREAD__
-                                 MutexOmpLogic::tsanDummies.nestedLockTrace,
-                               #endif
-                               dataPtr);
-}
-
-void opdi::MutexOmpLogic::decrementOrderedReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.orderedTrace,
-                               #ifdef __SANITIZE_THREAD__
-                                 MutexOmpLogic::tsanDummies.orderedTrace,
-                               #endif
-                               dataPtr);
-}
-
-void opdi::MutexOmpLogic::decrementReductionReverseFunc(void* dataPtr) {
-  internalDecrementReverseFunc(MutexOmpLogic::evalState.reductionTrace,
-                               #ifdef __SANITIZE_THREAD__
-                                 MutexOmpLogic::tsanDummies.reductionTrace,
-                               #endif
-                               dataPtr);
-}
-
-void opdi::MutexOmpLogic::decrementDeleteFunc(void* dataPtr) {
-  Data* data = (Data*) dataPtr;
+void opdi::MutexOmpLogic::deleteFunc(void* dataPtr) {
+  Data* data = static_cast<Data*>(dataPtr);
   delete data;
 }
 
 void opdi::MutexOmpLogic::internalInit() {
-  omp_init_lock(&this->criticalTrace.lock);
-  omp_init_lock(&this->lockTrace.lock);
-  omp_init_lock(&this->nestedLockTrace.lock);
-  omp_init_lock(&this->orderedTrace.lock);
-  omp_init_lock(&this->reductionTrace.lock);
-
-  this->criticalTrace.waitId = backend->getLockIdentifier(&this->criticalTrace.lock);
-  this->lockTrace.waitId = backend->getLockIdentifier(&this->lockTrace.lock);
-  this->nestedLockTrace.waitId = backend->getLockIdentifier(&this->nestedLockTrace.lock);
-  this->orderedTrace.waitId = backend->getLockIdentifier(&this->orderedTrace.lock);
-  this->reductionTrace.waitId = backend->getLockIdentifier(&this->reductionTrace.lock);
-}
-
-void opdi::MutexOmpLogic::internalFinalize() {
-  omp_destroy_lock(&this->criticalTrace.lock);
-  omp_destroy_lock(&this->lockTrace.lock);
-  omp_destroy_lock(&this->nestedLockTrace.lock);
-  omp_destroy_lock(&this->orderedTrace.lock);
-  omp_destroy_lock(&this->reductionTrace.lock);
-}
-
-void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind kind, std::size_t waitId) {
-
-  #if OPDI_OMP_LOGIC_INSTRUMENT
-    for (auto& instrument : ompLogicInstruments) {
-      instrument->onMutexDestroyed(kind, waitId);
-    }
-  #endif
-
-  switch (kind) {
-    case MutexKind::Critical:
-      this->criticalTrace.inactive.erase(waitId);
-      break;
-    case MutexKind::Lock:
-      this->lockTrace.inactive.erase(waitId);
-      break;
-    case MutexKind::NestedLock:
-      this->nestedLockTrace.inactive.erase(waitId);
-      break;
-    case MutexKind::Ordered:
-      this->orderedTrace.inactive.erase(waitId);
-      break;
-    case MutexKind::Reduction:
-      this->reductionTrace.inactive.erase(waitId);
-      break;
-    default:
-      OPDI_ERROR("Invalid kind argument.");
-      break;
+  for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
+    omp_init_lock(&this->recordings[mutexKind].lock);
+    this->recordings[mutexKind].waitId = backend->getLockIdentifier(&this->recordings[mutexKind].lock);
   }
 }
 
-void opdi::MutexOmpLogic::internalOnMutexAcquired(MutexKind kind, MutexTrace& mutexTrace,
-                                                  std::map<std::size_t, std::size_t>& localTrace,
-                                                  void (*decrementReverseFunc)(void*),
-                                                  std::size_t waitId) {
+void opdi::MutexOmpLogic::internalFinalize() {
+  for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
+    omp_destroy_lock(&this->recordings[mutexKind].lock);
+  }
+}
+
+void opdi::MutexOmpLogic::onMutexDestroyed(MutexKind mutexKind, WaitId waitId) {
+
+  #if OPDI_OMP_LOGIC_INSTRUMENT
+    Data data = {mutexKind, waitId, 0};
+    for (auto& instrument : ompLogicInstruments) {
+      instrument->onMutexDestroyed(&data);
+    }
+  #endif
+
+  checkKind(mutexKind);
+  this->recordings[mutexKind].inactive.erase(waitId);
+}
+
+void opdi::MutexOmpLogic::onMutexAcquired(MutexKind mutexKind, WaitId waitId) {
+
+  checkKind(mutexKind);
+
+  // always skip internal locks
+  if (MutexKind::Lock == mutexKind) {
+    for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
+      if (waitId == this->recordings[mutexKind].waitId) {
+        return;
+      }
+    }
+  }
 
   if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     // skip inactive mutexes
-    if (mutexTrace.inactive.count(waitId) == 0) {
+    if (recordings[mutexKind].inactive.count(waitId) == 0) {
 
       Data* data = new Data;
-      data->kind = kind;
+      data->mutexKind = mutexKind;
       data->waitId = waitId;
 
-      omp_set_lock(&mutexTrace.lock);
-      data->traceValue = mutexTrace.trace[waitId]++;
-      localTrace[waitId] = mutexTrace.trace[waitId]; // remember incremented trace value for the release event
-      omp_unset_lock(&mutexTrace.lock);
+      omp_set_lock(&recordings[mutexKind].lock);
+      data->counter = recordings[mutexKind].counters[waitId]++;  // store value prior to increment
+      localCounters[mutexKind][waitId] = recordings[mutexKind].counters[waitId];  // remember incremented counter value for the release event
+      omp_unset_lock(&recordings[mutexKind].lock);
 
       #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {
@@ -261,68 +169,38 @@ void opdi::MutexOmpLogic::internalOnMutexAcquired(MutexKind kind, MutexTrace& mu
 
       // push decrement handle
       Handle* handle = new Handle;
-      handle->data = (void*) data;
-      handle->reverseFunc = decrementReverseFunc;
-      handle->deleteFunc = MutexOmpLogic::decrementDeleteFunc;
+      handle->data = static_cast<void*>(data);
+      handle->reverseFunc = MutexOmpLogic::decrementReverseFunc;
+      handle->deleteFunc = MutexOmpLogic::deleteFunc;
 
       tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
     }
   }
 }
 
-void opdi::MutexOmpLogic::onMutexAcquired(MutexKind kind, std::size_t waitId) {
+void opdi::MutexOmpLogic::onMutexReleased(MutexKind mutexKind, WaitId waitId) {
 
-  switch (kind) {
-    case MutexKind::Critical:
-      this->internalOnMutexAcquired(kind, this->criticalTrace, MutexOmpLogic::localState.criticalTrace,
-                                    MutexOmpLogic::decrementCriticalReverseFunc, waitId);
-      break;
-    case MutexKind::Lock:
-      // always skip internal locks
-      if (waitId == this->criticalTrace.waitId ||
-          waitId == this->lockTrace.waitId ||
-          waitId == this->nestedLockTrace.waitId ||
-          waitId == this->orderedTrace.waitId ||
-          waitId == this->reductionTrace.waitId) {
+  checkKind(mutexKind);
+
+  // always skip internal locks
+  if (MutexKind::Lock == mutexKind) {
+    for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
+      if (waitId == this->recordings[mutexKind].waitId) {
         return;
       }
-      this->internalOnMutexAcquired(kind, this->lockTrace, MutexOmpLogic::localState.lockTrace,
-                                    MutexOmpLogic::decrementLockReverseFunc, waitId);
-      break;
-    case MutexKind::NestedLock:
-      this->internalOnMutexAcquired(kind, this->nestedLockTrace, MutexOmpLogic::localState.nestedLockTrace,
-                                    MutexOmpLogic::decrementNestedLockReverseFunc, waitId);
-      break;
-    case MutexKind::Ordered:
-      this->internalOnMutexAcquired(kind, this->orderedTrace, MutexOmpLogic::localState.orderedTrace,
-                                    MutexOmpLogic::decrementOrderedReverseFunc, waitId);
-      break;
-    case MutexKind::Reduction:
-      this->internalOnMutexAcquired(kind, this->reductionTrace, MutexOmpLogic::localState.reductionTrace,
-                                    MutexOmpLogic::decrementReductionReverseFunc, waitId);
-      break;
-    default:
-      OPDI_ERROR("Invalid kind argument.");
-      break;
+    }
   }
-}
-
-void opdi::MutexOmpLogic::internalOnMutexReleased(MutexKind kind, MutexTrace& mutexTrace,
-                                                  std::map<std::size_t, std::size_t>& localTrace,
-                                                  void (*waitReverseFunc)(void*), std::size_t waitId) {
 
   if (tool != nullptr && tool->getThreadLocalTape() != nullptr && tool->isActive(tool->getThreadLocalTape())) {
 
     // skip inactive mutexes
-    if (mutexTrace.inactive.count(waitId) == 0) {
+    if (recordings[mutexKind].inactive.count(waitId) == 0) {
 
       Data* data = new Data;
-      data->kind = kind;
+      data->mutexKind = mutexKind;
       data->waitId = waitId;
 
-      omp_set_lock(&mutexTrace.lock);
-      data->traceValue = localTrace[waitId];
-      omp_unset_lock(&mutexTrace.lock);
+      data->counter = localCounters[mutexKind][waitId];
 
       #if OPDI_OMP_LOGIC_INSTRUMENT
         for (auto& instrument : ompLogicInstruments) {
@@ -332,154 +210,83 @@ void opdi::MutexOmpLogic::internalOnMutexReleased(MutexKind kind, MutexTrace& mu
 
       // push wait handle
       Handle* handle = new Handle;
-      handle->data = (void*) data;
-      handle->reverseFunc = waitReverseFunc;
-      handle->deleteFunc = MutexOmpLogic::waitDeleteFunc;
+      handle->data = static_cast<void*>(data);
+      handle->reverseFunc = MutexOmpLogic::waitReverseFunc;
+      handle->deleteFunc = MutexOmpLogic::deleteFunc;
 
       tool->pushExternalFunction(tool->getThreadLocalTape(), handle);
     }
   }
 }
 
-void opdi::MutexOmpLogic::onMutexReleased(MutexKind kind, std::size_t waitId) {
-
-  switch (kind) {
-    case MutexKind::Critical:
-      this->internalOnMutexReleased(kind, this->criticalTrace, MutexOmpLogic::localState.criticalTrace,
-                                    MutexOmpLogic::waitCriticalReverseFunc, waitId);
-      break;
-    case MutexKind::Lock:
-      // always skip internal locks
-      if (waitId == this->criticalTrace.waitId ||
-          waitId == this->lockTrace.waitId ||
-          waitId == this->nestedLockTrace.waitId ||
-          waitId == this->orderedTrace.waitId ||
-          waitId == this->reductionTrace.waitId) {
-        return;
-      }
-      this->internalOnMutexReleased(kind, this->lockTrace, MutexOmpLogic::localState.lockTrace,
-                                    MutexOmpLogic::waitLockReverseFunc, waitId);
-      break;
-    case MutexKind::NestedLock:
-      this->internalOnMutexReleased(kind, this->nestedLockTrace, MutexOmpLogic::localState.nestedLockTrace,
-                                    MutexOmpLogic::waitNestedLockReverseFunc, waitId);
-      break;
-    case MutexKind::Ordered:
-      this->internalOnMutexReleased(kind, this->orderedTrace, MutexOmpLogic::localState.orderedTrace,
-                                    MutexOmpLogic::waitOrderedReverseFunc, waitId);
-      break;
-    case MutexKind::Reduction:
-      this->internalOnMutexReleased(kind, this->reductionTrace, MutexOmpLogic::localState.reductionTrace,
-                                    MutexOmpLogic::waitReductionReverseFunc, waitId);
-      break;
-    default:
-      OPDI_ERROR("Invalid kind argument.");
-      break;
-  }
+// not thread-safe! only use outside of parallel regions
+void opdi::MutexOmpLogic::registerInactiveMutex(MutexKind mutexKind, WaitId waitId) {
+  checkKind(mutexKind);
+  this->recordings[mutexKind].inactive.insert(waitId);
 }
 
-// not thread safe! only use outside parallel regions
-void opdi::MutexOmpLogic::registerInactiveMutex(MutexKind kind, std::size_t waitId) {
-
-  switch (kind) {
-    case MutexKind::Critical:
-      this->criticalTrace.inactive.insert(waitId);
-      break;
-    case MutexKind::Lock:
-      this->lockTrace.inactive.insert(waitId);
-      break;
-    case MutexKind::NestedLock:
-      this->lockTrace.inactive.insert(waitId);
-      break;
-    case MutexKind::Ordered:
-      this->orderedTrace.inactive.insert(waitId);
-      break;
-    case MutexKind::Reduction:
-      this->reductionTrace.inactive.insert(waitId);
-      break;
-    default:
-      OPDI_ERROR("Invalid kind argument.");
-      break;
-  }
-}
-
+// not thread-safe! only use outside of parallel regions
 void opdi::MutexOmpLogic::prepareEvaluate() {
-  MutexOmpLogic::evalState.criticalTrace = this->criticalTrace.trace;
-  MutexOmpLogic::evalState.lockTrace = this->lockTrace.trace;
-  MutexOmpLogic::evalState.nestedLockTrace = this->nestedLockTrace.trace;
-  MutexOmpLogic::evalState.orderedTrace = this->orderedTrace.trace;
-  MutexOmpLogic::evalState.reductionTrace = this->reductionTrace.trace;
+  for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
+    MutexOmpLogic::evaluationCounters[mutexKind] = this->recordings[mutexKind].counters;
+  }
 
 #ifdef __SANITIZE_THREAD__
   /* create lock annotations for the reverse pass */
 
-  auto createReverseLocks=[](MutexOmpLogic::Trace const& evalState, MutexOmpLogic::Trace& tsanDummies) {
-    assert(tsanDummies.empty());
-    for (auto const& pair : evalState) {
-      tsanDummies[pair.first] = 0;
+  for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
+    assert(tsanDummies[mutexKind].empty());
+    for (auto const& pair : evaluationCounters[mutexKind]) {
+      tsanDummies[mutexKind][pair.first] = 0;
     }
 
-    for (auto& pair : tsanDummies) {
+    for (auto& pair : tsanDummies[mutexKind]) {
       ANNOTATE_RWLOCK_CREATE(&pair.second);
     }
-  };
-
-  createReverseLocks(MutexOmpLogic::evalState.criticalTrace, MutexOmpLogic::tsanDummies.criticalTrace);
-  createReverseLocks(MutexOmpLogic::evalState.lockTrace, MutexOmpLogic::tsanDummies.lockTrace);
-  createReverseLocks(MutexOmpLogic::evalState.nestedLockTrace, MutexOmpLogic::tsanDummies.nestedLockTrace);
-  createReverseLocks(MutexOmpLogic::evalState.orderedTrace, MutexOmpLogic::tsanDummies.orderedTrace);
-  createReverseLocks(MutexOmpLogic::evalState.reductionTrace, MutexOmpLogic::tsanDummies.reductionTrace);
+  }
 #endif
 }
 
+// not thread-safe! only use outside of parallel regions
 void opdi::MutexOmpLogic::postEvaluate() {
 #ifdef __SANITIZE_THREAD__
   /* destroy lock annotations */
 
-  auto destroyReverseLocks=[](MutexOmpLogic::Trace& tsanDummies) {
-    for (auto& pair : tsanDummies) {
+  for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
+    for (auto& pair : tsanDummies[mutexKind]) {
       ANNOTATE_RWLOCK_DESTROY(&pair.second);
     }
 
-    tsanDummies.clear();
-  };
-
-  destroyReverseLocks(MutexOmpLogic::tsanDummies.criticalTrace);
-  destroyReverseLocks(MutexOmpLogic::tsanDummies.lockTrace);
-  destroyReverseLocks(MutexOmpLogic::tsanDummies.nestedLockTrace);
-  destroyReverseLocks(MutexOmpLogic::tsanDummies.orderedTrace);
-  destroyReverseLocks(MutexOmpLogic::tsanDummies.reductionTrace);
+    tsanDummies[mutexKind].clear();
+  }
 #endif
 }
 
+// not thread-safe! only use outside of parallel regions
 void opdi::MutexOmpLogic::reset() {
-  this->criticalTrace.trace.clear();
-  this->lockTrace.trace.clear();
-  this->nestedLockTrace.trace.clear();
-  this->orderedTrace.trace.clear();
-  this->reductionTrace.trace.clear();
+  for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
+    this->recordings[mutexKind].counters.clear();
+  }
 }
 
+// not thread-safe! only use outside of parallel regions
 void* opdi::MutexOmpLogic::exportState() {
   State* state = new State;
-  state->criticalTrace = this->criticalTrace.trace;
-  state->lockTrace = this->lockTrace.trace;
-  state->nestedLockTrace = this->nestedLockTrace.trace;
-  state->orderedTrace = this->orderedTrace.trace;
-  state->reductionTrace = this->reductionTrace.trace;
-  return (void*) state;
+  for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
+    (*state)[mutexKind] = this->recordings[mutexKind].counters;
+  }
+  return static_cast<void*>(state);
 }
 
 void opdi::MutexOmpLogic::freeState(void* statePtr) {
-  State* state = (State*) statePtr;
+  State* state = static_cast<State*>(statePtr);
   delete state;
 }
 
+// not thread safe! only use outside parallel regions
 void opdi::MutexOmpLogic::recoverState(void* statePtr) {
-  State* state = (State*) statePtr;
-  this->criticalTrace.trace = state->criticalTrace;
-  this->lockTrace.trace = state->lockTrace;
-  this->nestedLockTrace.trace = state->nestedLockTrace;
-  this->orderedTrace.trace = state->orderedTrace;
-  this->reductionTrace.trace = state->reductionTrace;
+  State* state = static_cast<State*>(statePtr);
+  for (std::size_t mutexKind = 0; mutexKind < nMutexKind; ++mutexKind) {
+    this->recordings[mutexKind].counters = (*state)[mutexKind];
+  }
 }

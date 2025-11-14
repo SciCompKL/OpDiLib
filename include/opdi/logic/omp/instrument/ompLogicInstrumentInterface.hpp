@@ -30,7 +30,7 @@
 
 #include "../../logicInterface.hpp"
 #include "../implicitTaskOmpLogic.hpp"
-#include "../masterOmpLogic.hpp"
+#include "../maskedOmpLogic.hpp"
 #include "../mutexOmpLogic.hpp"
 #include "../parallelOmpLogic.hpp"
 #include "../syncRegionOmpLogic.hpp"
@@ -43,33 +43,43 @@ namespace opdi {
 
       virtual ~OmpLogicInstrumentInterface() {}
 
-      virtual void reverseFlush() {}
+      /* instrumentation of forward actions */
 
-      virtual void reverseImplicitTaskBegin(ImplicitTaskOmpLogic::Data* /*data*/) {}
-      virtual void reverseImplicitTaskEnd(ImplicitTaskOmpLogic::Data* /*data*/) {}
-      virtual void reverseImplicitTaskPart(ImplicitTaskOmpLogic::Data* /*data*/, std::size_t /*part*/) {}
-      virtual void onImplicitTaskBegin(ImplicitTaskOmpLogic::Data* /*data*/) {}
-      virtual void onImplicitTaskEnd(ImplicitTaskOmpLogic::Data* /*data*/) {}
+      virtual void onParallelBegin(ParallelData* /*data*/) {}
+      virtual void onParallelEnd(ParallelData* /*data*/) {}
+      virtual void onImplicitTaskBegin(ImplicitTaskData* /*data*/) {}
+      virtual void onImplicitTaskEnd(ImplicitTaskData* /*data*/) {}
+
+      virtual void onMutexAcquired(MutexOmpLogic::Data* /*data*/) {}
+      virtual void onMutexReleased(MutexOmpLogic::Data* /*data*/) {}
+      virtual void onMutexDestroyed(MutexOmpLogic::Data* /*data*/) {}
+
+      virtual void onSyncRegion(SyncRegionOmpLogic::Data* /*data*/) {}
+
+      virtual void onMasked(MaskedOmpLogic::Data* /*data*/) {}
+
+      virtual void onWork(WorkOmpLogic::Data* /*data*/) {}
+
+      /* instrumentation of reverse actions */
+
+      virtual void reverseParallelBegin(ParallelData* /*data*/) {}
+      virtual void reverseParallelEnd(ParallelData* /*data*/) {}
+      virtual void reverseImplicitTaskBegin(ImplicitTaskData* /*data*/) {}
+      virtual void reverseImplicitTaskEnd(ImplicitTaskData* /*data*/) {}
+      virtual void reverseImplicitTaskPart(ImplicitTaskData* /*data*/, std::size_t /*part*/) {}
 
       virtual void reverseMutexWait(MutexOmpLogic::Data* /*data*/) {}
       virtual void reverseMutexDecrement(MutexOmpLogic::Data* /*data*/) {}
-      virtual void onMutexDestroyed(LogicInterface::MutexKind /*kind*/, std::size_t /*waitId*/) {}
-      virtual void onMutexAcquired(MutexOmpLogic::Data* /*data*/) {}
-      virtual void onMutexReleased(MutexOmpLogic::Data* /*data*/) {}
-
-      virtual void reverseParallelBegin(ParallelOmpLogic::Data* /*data*/) {}
-      virtual void reverseParallelEnd(ParallelOmpLogic::Data* /*data*/) {}
-      virtual void onParallelBegin(ParallelOmpLogic::Data* /*data*/) {}
-      virtual void onParallelEnd(ParallelOmpLogic::Data* /*data*/) {}
 
       virtual void reverseSyncRegion(SyncRegionOmpLogic::Data* /*data*/) {}
-      virtual void onSyncRegion(LogicInterface::SyncRegionKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}
+
+      virtual void reverseMasked(MaskedOmpLogic::Data* /*data*/) {}
 
       virtual void reverseWork(WorkOmpLogic::Data* /*data*/) {}
-      virtual void onWork(LogicInterface::WorksharingKind /*kind*/, LogicInterface::ScopeEndpoint /*endpoint*/) {}
 
-      virtual void reverseMaster(MasterOmpLogic::Data* /*data*/) {}
-      virtual void onMaster(LogicInterface::ScopeEndpoint /*endpoint*/) {}
+      virtual void reverseFlush() {}
+
+      /* instrumentation of other functionality */
 
       virtual void onSetAdjointAccessMode(LogicInterface::AdjointAccessMode /*adjointAccess*/) {}
   };

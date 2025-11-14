@@ -123,6 +123,7 @@ def check_file(code_file, syntax_file, verbose):
     stack = []
 
     state = State.CODE
+    enabled = True
 
     # parse line by line
     while True:
@@ -131,6 +132,20 @@ def check_file(code_file, syntax_file, verbose):
         if not line:
             break
         line = line.strip()
+
+        # identify comments that enable/disable syntax checking
+        if line.startswith("//"):
+          if line[2:].strip() == "opdi-syntax-on":
+            print_status("enable syntax checking", line_no, line, verbose)
+            enabled = True
+            continue
+          if line[2:].strip() == "opdi-syntax-off":
+            print_status("disable syntax checking", line_no, line, verbose)
+            enabled = False
+            continue
+
+        if not enabled:
+          continue
 
         # eliminate /* */ comments within this line
         begin = line.find("/*")
@@ -237,7 +252,7 @@ def main():
 
     for path in args.path:
         if os.path.isfile(path):
-            result = check_and_report_result(args.file, args.syntax, args.stop_on_error, args.quiet, args.verbose)
+            result = check_and_report_result(path, args.syntax, args.stop_on_error, args.quiet, args.verbose)
             all_fine = all_fine and result
         elif os.path.isdir(path):
             if args.recursive:

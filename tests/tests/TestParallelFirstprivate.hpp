@@ -36,18 +36,23 @@ struct TestParallelFirstprivate : public TestBase<4, 1, 3, TestParallelFirstpriv
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* jobResults = new T[N];
 
       #ifndef BUILD_REFERENCE
-        /* This workaround ensures that firstprivate copy operations that are missed by the correct tapes
-         * are at least recorded on the default tapes so that they can be moved later. */
-        bool active = T::getTape().isActive();
-        #pragma omp parallel
-        {
-          if (active) {
-            T::getTape().setActive();
+        /* Set activity of default tapes. They might record copy operations due to firstprivate. OpDiLib's AD approach
+         * for parallel regions moves these recordings to the correct tapes. */
+        if (opdi::tool->isActive(opdi::tool->getThreadLocalTape())) {
+          opdi::logic->beginSkippedParallelRegion();
+          OPDI_PARALLEL()
+          {
+            /* due to skipping, OpDiLib has not exchanged the tapes */
+            if (omp_get_thread_num() != 0) {
+              opdi::tool->setActive(opdi::tool->getThreadLocalTape(), true);
+            }
           }
+          OPDI_END_PARALLEL
+          opdi::logic->endSkippedParallelRegion();
         }
       #endif
 

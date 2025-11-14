@@ -31,70 +31,51 @@
 
 #include "dataTools.hpp"
 #include "implicitBarrierTools.hpp"
-#include "probeTools.hpp"
 #include "reductionTools.hpp"
 
 namespace opdi {
 
-  struct TaskProbe {
+  struct ImplicitTaskProbe {
     public:
 
       void* parallelData;
       void* taskData;
-      void* masterPosition;
       bool needsAction;
 
-      TaskProbe() : parallelData(nullptr), taskData(nullptr), needsAction(false) {
-        this->masterPosition = tool->allocPosition();
-        opdi::tool->getTapePosition(tool->getThreadLocalTape(), this->masterPosition);
-      }
+      ImplicitTaskProbe() : parallelData(nullptr), taskData(nullptr), needsAction(false) {}
 
-      TaskProbe(void* parallelData) : parallelData(parallelData), taskData(nullptr), needsAction(false) {
-        this->masterPosition = tool->allocPosition();
-        tool->getTapePosition(tool->getThreadLocalTape(), this->masterPosition);
-      }
+      ImplicitTaskProbe(void* parallelData) : parallelData(parallelData), taskData(nullptr), needsAction(false) {}
 
-      TaskProbe(TaskProbe const& other) : parallelData(other.parallelData), needsAction(true) {
-
-        this->masterPosition = tool->allocPosition();
-        if (omp_get_thread_num() == 0) {
-          tool->copyPosition(this->masterPosition, other.masterPosition);
-        }
-        else {
-          tool->getZeroPosition(tool->getThreadLocalTape(), this->masterPosition);
-        }
-
-        void* oldTape = tool->getThreadLocalTape();
-
-        void* currentPosition = tool->allocPosition();
-        tool->getTapePosition(oldTape, currentPosition);
+      ImplicitTaskProbe(ImplicitTaskProbe const& other) : parallelData(other.parallelData), needsAction(true) {
 
         DataTools::pushParallelData(this->parallelData);
         this->taskData = logic->onImplicitTaskBegin(false, omp_get_num_threads(), omp_get_thread_num(),
                                                     this->parallelData);
         DataTools::pushTaskData(this->taskData);
 
-        // check if copy statements have been recorded before the correct tape was set
-        // if so, move them to the correct tape
-        if (tool->comparePosition(currentPosition, masterPosition) > 0) {
-          tool->append(tool->getThreadLocalTape(), oldTape, masterPosition, currentPosition);
-          tool->erase(oldTape, masterPosition, currentPosition);
+        assert(ReductionTools::implicitTaskNestingDepth <= omp_get_level());
+
+        if (ReductionTools::implicitTaskNestingDepth != omp_get_level()) {
+          /* ImplicitTaskProbe constructor before ReductionProbe constructor (if any) */
+          do {
+            ++ReductionTools::implicitTaskNestingDepth;
+          } while (ReductionTools::implicitTaskNestingDepth != omp_get_level());
+
+          ReductionTools::beginRegionThatSupportsReductions(false);
         }
-
-        tool->freePosition(currentPosition);
-
-        ProbeScopeStatus::beginImplicitTaskProbeScope();
       }
 
-      ~TaskProbe() {
+      ~ImplicitTaskProbe() {
         if (needsAction) {
-          ProbeScopeStatus::endImplicitTaskProbeScope();
+          assert(ReductionTools::implicitTaskNestingDepth == omp_get_level());
+
+          ReductionTools::endRegionThatSupportsReductions();
+          --ReductionTools::implicitTaskNestingDepth;
+
           logic->onImplicitTaskEnd(this->taskData);
           DataTools::popTaskData();
           DataTools::popParallelData();
         }
-
-        tool->freePosition(this->masterPosition);
       }
   };
 
@@ -109,13 +90,17 @@ namespace opdi {
       WorkProbe(int) : needsAction(false) {}
 
       WorkProbe() : needsAction(true) {
-        logic->onWork(kind, LogicInterface::ScopeEndpoint::Begin);
+        #if OPDI_BACKEND_GENERATE_WORK_EVENTS
+          logic->onWork(kind, LogicInterface::ScopeEndpoint::Begin);
+        #endif
       }
 
       ~WorkProbe() {
-        if (needsAction) {
-          logic->onWork(kind, LogicInterface::ScopeEndpoint::End);
-        }
+        #if OPDI_BACKEND_GENERATE_WORK_EVENTS
+          if (needsAction) {
+            logic->onWork(kind, LogicInterface::ScopeEndpoint::End);
+          }
+        #endif
       }
   };
 
@@ -130,22 +115,24 @@ namespace opdi {
   struct ReductionProbe {
     public:
 
-      bool needsAction;
+      ReductionProbe(int)  {}
 
-      ReductionProbe(int) : needsAction(false) {}
+      ReductionProbe() {
+        assert(ReductionTools::implicitTaskNestingDepth <= omp_get_level());
 
-      ReductionProbe() : needsAction(true) {
-        ProbeScopeStatus::beginReductionProbeScope();
-        ReductionTools::beginRegionWithReduction();
-      }
-
-      ~ReductionProbe() {
-        if (needsAction) {
-          ReductionTools::addBarrierIfNeeded();
-          ReductionTools::endRegionWithReduction();
-          ProbeScopeStatus::endReductionProbeScope();
+        if (ReductionTools::implicitTaskNestingDepth != omp_get_level()) {
+          /* this condition can only be satisfied by probes on a parallel construct */
+          /* ReductionProbe constructor before ImplicitTaskProbe constructor */
+          do {
+            ++ReductionTools::implicitTaskNestingDepth;
+          } while (ReductionTools::implicitTaskNestingDepth != omp_get_level());
+          ReductionTools::beginRegionThatSupportsReductions(false);
         }
+
+        ReductionTools::regionHasReductions();
       }
+
+      ~ReductionProbe() {}
   };
 
   extern ReductionProbe internalReductionProbe;

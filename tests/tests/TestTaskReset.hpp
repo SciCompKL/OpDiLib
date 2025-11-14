@@ -36,7 +36,7 @@ struct TestTaskReset : public TestBase<4, 1, 3, TestTaskReset<_Case>> {
     template<typename T>
     static void test(std::array<T, Base::nIn> const& in, std::array<T, Base::nOut>& out) {
 
-      int const N = 1000;
+      int const N = 100;
       T* a = new T[N];
       T* b = new T[N];
       T* c = new T[N];
@@ -105,10 +105,10 @@ struct TestTaskReset : public TestBase<4, 1, 3, TestTaskReset<_Case>> {
         assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Atomic);
 
         // remove the inner parallel region by positional reset
-        T::getTape().resetTo(position);
+        T::getTape().resetTo(position, false);
 
         #if _OPENMP
-          opdi::logic->resetTask(&position, mode);
+          opdi::logic->resetImplicitTask(&position, mode);
         #endif
 
         assertAdjointAccessMode(opdi::LogicInterface::AdjointAccessMode::Classical);

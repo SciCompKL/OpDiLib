@@ -51,11 +51,11 @@
   using TestReal = codi::RealReverseIndexGen<codi::RealForward>;
   using NestedReal = codi::RealForward;
 #else
-  using TestReal = codi::RealReverseIndexOpenMPGen<codi::RealForward>;
+  using TestReal = codi::RealReverseIndexOpenMPGen<codi::RealForward, codi::RealForward>;
   using NestedReal = codi::RealForward;
 
-  OPDI_DECLARE_REDUCTION(plus, TestReal, +, 0.0);
-  OPDI_DECLARE_REDUCTION(prod, TestReal, *, 1.0);
+  OPDI_DECLARE_REDUCTION(+, TestReal, +, 0.0);
+  OPDI_DECLARE_REDUCTION(*, TestReal, *, 1.0);
 #endif
 
 template<typename _Case>
