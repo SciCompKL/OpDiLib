@@ -12,7 +12,7 @@ If you want to contact us, please write a mail to [opdi@scicomp.uni-kl.de](mailt
 
 ## OpenMP Support
 
-OpDiLib supports all directives, clauses and runtime functions of the OpenMP 2.5 specification with the exception of
+OpDiLib supports all directives, clauses and runtime functions of the OpenMP 2.5 specification, in the way they are reflected in recent versions of OpenMP. Exceptions are
 
 - `atomic` directives,
 - `flush` directives.
