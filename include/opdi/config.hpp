@@ -27,9 +27,9 @@
 
 /* ------------------ OpDiLib version ------------------ */
 
-#define OPDI_MAJOR 1
-#define OPDI_MINOR 7
-#define OPDI_PATCH 1
+#define OPDI_MAJOR 2
+#define OPDI_MINOR 0
+#define OPDI_PATCH 0
 
 /* ------------------ constants ------------------ */
 
