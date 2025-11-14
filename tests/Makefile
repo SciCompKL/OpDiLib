@@ -62,13 +62,13 @@ endif
 ifeq ($(MODE),REF)
 	FLAGS += -DBUILD_REFERENCE
 else
-  FLAGS += -DRUN_TESTS -fopenmp -DCODI_EnableOpenMP -DCODI_EnableOpDiLib
+	FLAGS += -DRUN_TESTS -fopenmp -DCODI_EnableOpenMP -DCODI_EnableOpDiLib
 endif
 
 ifeq ($(BACKEND),MACRO)
-  FLAGS += -DOPDI_USE_MACRO_BACKEND
+	FLAGS += -DOPDI_USE_MACRO_BACKEND
 else
-  FLAGS += -DOPDI_USE_OMPT_BACKEND
+	FLAGS += -DOPDI_USE_OMPT_BACKEND
 endif
 
 EXCLUDE_TESTS ?=
@@ -134,17 +134,17 @@ $(DRIVERS):
 		LINK_CASES=$$LINK_CASES" "$$driver$$test; \
 		printf "$$driver$$test.o:\n" >> tempmakefile; \
 		if [ $(EXPLICIT_PREPROCESSOR) = "no" ] ; then \
-      printf "\t$(CXX) $(BUILD_DIR)/$$driver$$test.cpp -c -o $(BUILD_DIR)/$$driver$$test.o $(FLAGS) $(DRIVER_FLAGS) -I $(CODI_DIR) -I $(OPDI_DIR)\n" >> tempmakefile; \
+			printf "\t$(CXX) $(BUILD_DIR)/$$driver$$test.cpp -c -o $(BUILD_DIR)/$$driver$$test.o $(FLAGS) $(DRIVER_FLAGS) -I $(CODI_DIR) -I $(OPDI_DIR)\n" >> tempmakefile; \
 		else \
-      printf "\t$(CXX) -E $(BUILD_DIR)/$$driver$$test.cpp -o $(BUILD_DIR)/$$driver$$test.temp $(FLAGS) $(DRIVER_FLAGS) -I $(CODI_DIR) -I $(OPDI_DIR)\n" >> tempmakefile; \
+			printf "\t$(CXX) -E $(BUILD_DIR)/$$driver$$test.cpp -o $(BUILD_DIR)/$$driver$$test.temp $(FLAGS) $(DRIVER_FLAGS) -I $(CODI_DIR) -I $(OPDI_DIR)\n" >> tempmakefile; \
 			printf "\tcat $(BUILD_DIR)/$$driver$$test.temp | grep -v \"# \" > $(BUILD_DIR)/$$driver$$(test)Pre.cpp\n" >> tempmakefile; \
 			printf "\t"$(CXX)" "$(BUILD_DIR)"/"$$driver$$test"Pre.cpp -c -o "$(BUILD_DIR)"/"$$driver$$test"Pre.o "$(FLAGS)" -I "$(CODI_DIR)" -I "$(OPDI_DIR)"\n" >> tempmakefile; \
 		fi; \
 		printf "$$driver$$test: $$driver$$test.o\n" >> tempmakefile; \
 		if [ $(EXPLICIT_PREPROCESSOR) = "no" ] ; then \
-      printf "\t$(CXX) $(BUILD_DIR)/$$driver$$test.o -o $(BUILD_DIR)/$$driver$$test $(FLAGS) $(DRIVER_FLAGS) $(LDFLAGS)\n" >> tempmakefile; \
+			printf "\t$(CXX) $(BUILD_DIR)/$$driver$$test.o -o $(BUILD_DIR)/$$driver$$test $(FLAGS) $(DRIVER_FLAGS) $(LDFLAGS)\n" >> tempmakefile; \
 		else \
-      printf "\t$(CXX) $(BUILD_DIR)/$$driver$$(test)Pre.o -o $(BUILD_DIR)/$$driver$$(test)Pre $(FLAGS) $(DRIVER_FLAGS) $(LDFLAGS)\n" >> tempmakefile; \
+			printf "\t$(CXX) $(BUILD_DIR)/$$driver$$(test)Pre.o -o $(BUILD_DIR)/$$driver$$(test)Pre $(FLAGS) $(DRIVER_FLAGS) $(LDFLAGS)\n" >> tempmakefile; \
 		fi \
 	done; \
 	printf "build_all:$$BUILD_CASES\n" >> tempmakefile; \
