@@ -57,8 +57,6 @@ namespace opdi {
       // remaining functions from backend interface
 
       void init() {
-        opdi_init_lock(&ReductionTools::globalReductionLock);
-
         // task data for initial implicit task is created in the logic layer
       }
 
@@ -66,16 +64,6 @@ namespace opdi {
         // pop task data associated with initial implicit task
         DataTools::popTaskData();
         assert(DataTools::getImplicitTaskData() == nullptr);
-
-        opdi_set_lock(&ReductionTools::globalReductionLock);
-
-        for (auto lock : ReductionTools::individualReductionLocks) {
-          opdi_destroy_nest_lock(lock);
-        }
-
-        opdi_unset_lock(&ReductionTools::globalReductionLock);
-
-        opdi_destroy_lock(&ReductionTools::globalReductionLock);
       }
 
       void* getParallelData() {

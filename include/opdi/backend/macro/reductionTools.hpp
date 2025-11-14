@@ -41,9 +41,6 @@ namespace opdi {
 
   struct ReductionTools {
     public:
-      static omp_lock_t globalReductionLock;
-      static std::list<omp_nest_lock_t*> individualReductionLocks;
-
       /* item indicates a construct that might have a reduction clause */
       /* its value indicates whether there is a reduction clause */
       static std::stack<bool> hasReductions;

@@ -34,8 +34,6 @@ std::stack<void*> opdi::DataTools::implicitTaskData;
 
 std::stack<bool> opdi::ImplicitBarrierTools::implicitBarrierStack;
 
-omp_lock_t opdi::ReductionTools::globalReductionLock;
-std::list<omp_nest_lock_t*> opdi::ReductionTools::individualReductionLocks;
 std::stack<bool> opdi::ReductionTools::hasReductions;
 std::stack<bool> opdi::ReductionTools::needsBarrierBeforeReductions;
 std::stack<bool> opdi::ReductionTools::needsBarrierAfterReductions;
