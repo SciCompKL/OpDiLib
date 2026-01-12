@@ -2,11 +2,11 @@
  * OpDiLib, an Open Multiprocessing Differentiation Library
  *
  * Copyright (C) 2020-2022 Chair for Scientific Computing (SciComp), TU Kaiserslautern
- * Copyright (C) 2023-2026 Chair for Scientific Computing (SciComp), University of Kaiserslautern-Landau
+ * Copyright (C) 2023-2026 Chair for Scientific Computing (SciComp), RPTU University Kaiserslautern-Landau
  * Homepage: https://scicomp.rptu.de
  * Contact:  Prof. Nicolas R. Gauger (opdi@scicomp.uni-kl.de)
  *
- * Lead developer: Johannes Blühdorn (SciComp, University of Kaiserslautern-Landau)
+ * Lead developer: Johannes Blühdorn (SciComp, RPTU University Kaiserslautern-Landau)
  *
  * This file is part of OpDiLib (https://scicomp.rptu.de/software/opdi).
  *

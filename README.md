@@ -4,7 +4,7 @@
 
 It makes use of modern OpenMP features around OMPT to deduce a parallel reverse pass without any additional modifications of the parallel source code. Additionally, we provide a second mode of operation that works via replacement macros for OpenMP's directives and clauses as well as replacements for OpenMP's runtime functions. This mode of operation can also be used with compilers that do not support OMPT. There are no restrictions on data access patterns so that a first differentiated parallel code is obtained with little to no effort. As a next step, the parallel performance of the reverse pass can be optimized with various tools. One important aspect is disabling atomic updates on adjoint variables where appropriate. If the underlying AD tool is capable of differentiating MPI, for example via the add-on [MeDiPack](https://scicomp.rptu.de/software/medi/), OpDiLib can also be employed for a differentiation of OpenMP-MPI hybrid parallel codes.
 
-The [Scientific Computing Group](https://scicomp.rptu.de) at the University of Kaiserslautern-Landau (RPTU) develops OpDiLib and will enhance and extend OpDiLib in the future.
+The [Scientific Computing Group](https://scicomp.rptu.de) at the RPTU University Kaiserslautern-Landau develops OpDiLib and will enhance and extend OpDiLib in the future.
 There is a newsletter available at [scicomp-opdi-info@lists.rptu.de](https://lists.rptu.de/wws/subscribe/scicomp-opdi-info).
 If you want to contact us, please write a mail to [opdi@scicomp.uni-kl.de](mailto:opdi@scicomp.uni-kl.de).
 
